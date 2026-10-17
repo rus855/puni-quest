@@ -322,6 +322,9 @@ function setScreen(html, cls = "") {
   app.className = cls;
   app.innerHTML = html;
   if (typeof updateV !== "undefined" && updateV) $("updbar").classList.toggle("hidden", cls === "bg-battle");
+  // 固定した 帯の 高さを はかって、タブを その下に 固定する
+  const tb = app.querySelector(".topbar");
+  if (tb) app.style.setProperty("--tbh", tb.getBoundingClientRect().height - 2 + "px");
   window.scrollTo(0, 0);
 }
 function go(name, arg) {
