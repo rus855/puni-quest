@@ -29,6 +29,14 @@ const MATH = {};
 const CHAPTERS = [];
 // 章の 学年を まとめて つける（保護者の 出題設定で つかう）
 function setGrades(map) { CHAPTERS.forEach((c) => { if (map[c.id]) c.g = map[c.id]; }); }
+// 漢字いがいの 章の 学年（その単元を おもに 習う 学年の めやす）
+const GRADE_MAP = {
+  w1: 6, w2: 6, w3: 4, w4: 4, w5: 5, w6: 6, w7: 4, w8: 4, w9: 3, w10: 4, w11: 5, w12: 5, w13: 5, w14: 5, w15: 5,
+  m1: 5, m2: 4, m3: 6, m4: 5, m5: 5, m6: 6, m7: 5, m8: 6, m9: 4, m10: 6, m11: 5, m12: 6, m13: 6, m14: 4, m15: 5, m16: 6, m17: 6, m18: 5,
+  s1: 6, s2: 6, s3: 5, s4: 6, s5: 6, s6: 5, s7: 6, s8: 5, s9: 6, s10: 6, s11: 5, s12: 5, s13: 6, s14: 6, s15: 6, s16: 4, s17: 5,
+  h1: 6, h2: 6, h3: 6, h4: 6, h5: 6, p1: 6, p2: 6, p3: 6, g1: 5, g2: 5, g3: 5, g4: 4, g5: 5,
+};
+const applyGrades = () => setGrades(GRADE_MAP);
 
 // ---------- 敵のつよさ（ティア 1〜6） ----------
 const TIER = [null,
@@ -48,19 +56,37 @@ const SHAPE_NAME = { blob: "ぷるる", ghost: "ふわりん", rock: "ゴロン"
 const SHAPES = ["blob", "ghost", "rock", "mush", "crab"];
 
 const worldChapters = (w) => CHAPTERS.filter((c) => c.w === w);
-// 保護者の 出題設定（S.cfg）：kg ＝ 出す 漢字の 学年、off ＝ お休みに する 章
-function chapterOn(ch) {
-  const c = typeof S !== "undefined" && S && S.cfg;
-  if (!c) return true;
-  if (c.off && c.off[ch.id]) return false;
-  if (ch.w === "kanji" && c.kg && !c.kg.includes(ch.g)) return false;
-  return true;
+// 保護者の 出題設定（S.cfg）
+//   g  ＝ ざっくり設定：この 学年までの 章を 出す（なし ＝ すべて）
+//   ch ＝ くわしい設定：章ごとの オン／オフ（ざっくり設定より 優先）
+//   at ＝ 最後に 変えた 時刻（ほかの 端末で 変えた 設定と くらべる）
+function cfgChapterOn(cfg, ch) {
+  if (!cfg) return true;
+  if (cfg.ch && cfg.ch[ch.id] !== undefined) return !!cfg.ch[ch.id];
+  return !cfg.g || (ch.g || 1) <= cfg.g;
+}
+function chapterOn(ch) { return cfgChapterOn(typeof S !== "undefined" && S && S.cfg, ch); }
+// 前の版（kg：漢字の学年、off：お休みの章）の 設定を 新しい 形に なおす
+function migrateCfg(cfg) {
+  if (!cfg || (!cfg.kg && !cfg.off)) return cfg;
+  const ch = cfg.ch || {};
+  CHAPTERS.forEach((c) => {
+    if (cfg.kg && c.w === "kanji" && !cfg.kg.includes(c.g)) ch[c.id] = false;
+    if (cfg.off && cfg.off[c.id]) ch[c.id] = false;
+  });
+  return { g: cfg.g, ch, at: cfg.at || Date.now() };
+}
+// 設定の ようすを みじかい 文に する
+function cfgSummary(cfg) {
+  const n = cfg && cfg.ch ? Object.keys(cfg.ch).length : 0;
+  return `${cfg && cfg.g ? `${cfg.g}年生まで` : "すべての 学年"}${n ? `（くわしい設定 ${n}章）` : ""}`;
 }
 const activeChapters = (w) => worldChapters(w).filter(chapterOn);
 const chapterOf = (id) => CHAPTERS.find((c) => c.id === id);
 
 // 章の じゅんばんから ティア と 属性を きめる
 function prepareChapters() {
+  applyGrades();
   WORLDS.forEach((w) => {
     const list = worldChapters(w.id);
     list.forEach((ch, i) => {

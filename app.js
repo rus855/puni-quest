@@ -1417,39 +1417,45 @@ function parentPanel() {
     <div class="panel"><div class="sub">データの削除</div><button class="big-btn danger" onclick="resetAll()">ぼうけんのしょ${SL.cur + 1} を けす</button></div>`, "bg-shop");
 }
 // ---------- 出題の設定（保護者） ----------
-// S.cfg.kg：出す 漢字の 学年、S.cfg.off：お休みに する 章。子どもの 画面には 学年は 出さない
+// S.cfg = { g: この学年まで, ch: { 章id: オン/オフ（くわしい設定） }, at: 変えた時刻 }。子どもの 画面には 学年は 出さない
 function cfgPanel() {
-  const cfg = S.cfg || {}, kg = cfg.kg || [1, 2, 3, 4, 5, 6], off = cfg.off || {};
-  const grades = [1, 2, 3, 4, 5, 6].map((g) => {
-    const n = CHAPTERS.filter((c) => c.w === "kanji" && c.g === g).length;
-    return `<label class="cfgg"><input type="checkbox" ${kg.includes(g) ? "checked" : ""} onchange="cfgGrade(${g}, this.checked)"> ${g}年<small>（${n}章）</small></label>`;
-  }).join("");
-  const worlds = WORLDS.filter((w) => w.id !== "kanji").map((w) => {
-    const list = worldChapters(w.id);
-    const on = list.filter((c) => !off[c.id]).length;
+  const cfg = S.cfg || {};
+  const coarse = [1, 2, 3, 4, 5, 6].map((g) => `<button class="cfgb ${cfg.g === g ? "on" : ""}" onclick="cfgSetG(${g})">${g}年生まで</button>`).join("")
+    + `<button class="cfgb ${!cfg.g ? "on" : ""}" onclick="cfgSetG(0)">すべて</button>`;
+  const worlds = WORLDS.map((w) => {
+    const list = worldChapters(w.id), on = list.filter((c) => cfgChapterOn(cfg, c)).length;
+    const grades = [...new Set(list.map((c) => c.g))].sort();
     return `<details class="cfgw"><summary>${w.icon} ${w.name}（${on}/${list.length}章を 出題中）</summary>
-      ${list.map((c) => `<label class="cfgc"><input type="checkbox" ${off[c.id] ? "" : "checked"} onchange="cfgChapter('${c.id}', this.checked)"> ${esc(c.name)}</label>`).join("")}</details>`;
+      ${grades.map((g) => `<div class="cfggr">${g}年</div>${list.filter((c) => c.g === g).map((c) => {
+        const ov = cfg.ch && cfg.ch[c.id] !== undefined;
+        return `<label class="cfgc"><input type="checkbox" ${cfgChapterOn(cfg, c) ? "checked" : ""} onchange="cfgChapter('${c.id}', this.checked, this)"> ${esc(c.name)}<i class="ovr ${ov ? "" : "hidden"}">個別</i></label>`;
+      }).join("")}`).join("")}
+      <button class="cfgreset" onclick="cfgResetWorld('${w.id}')">この国を「◯年生まで」の 設定に もどす</button></details>`;
   }).join("");
-  return `<div class="panel"><div class="sub">⚙️ 出題の設定</div>
-    <p class="small">ゲームの 画面には 学年は 表示されません。ここで 選んだ 範囲だけが 出題されます（記録は 消えません）。</p>
-    <p class="small"><b>漢字の国：出す 学年</b></p><div class="cfggrid">${grades}</div>
-    <p class="small"><b>ほかの 国：章ごとに オン／オフ</b>（タップで 開く）</p>${worlds}
+  return `<div class="panel" id="cfgpanel"><div class="sub">⚙️ 出題の設定</div>
+    <p class="small">ゲームの 画面には 学年は 表示されません。記録は 消えません。<br>いまの 設定：<b id="cfgsum">${cfgSummary(cfg)}</b></p>
+    <p class="small"><b>ざっくり 設定</b>：この 学年までの 章を 出します</p><div class="cfgbs">${coarse}</div>
+    <p class="small"><b>くわしい 設定</b>：章ごとに オン／オフ（ざっくり設定より 優先、「個別」の しるしが つきます）</p>${worlds}
     <p class="small" id="cfgmsg"></p></div>`;
 }
-function cfgGrade(g, on) {
-  S.cfg = S.cfg || {};
-  const kg = new Set(S.cfg.kg || [1, 2, 3, 4, 5, 6]);
-  if (on) kg.add(g); else kg.delete(g);
-  if (!kg.size) { toast("どれか 1つは 選んでください"); parentPanel(); return; }
-  S.cfg.kg = [...kg].sort();
-  save(); cfgSaved();
+function cfgSave() { S.cfg.at = Date.now(); save(); if ($("cfgsum")) $("cfgsum").textContent = cfgSummary(S.cfg); const m = $("cfgmsg"); if (m) { m.textContent = "✅ 保存しました"; setTimeout(() => { if ($("cfgmsg")) $("cfgmsg").textContent = ""; }, 1500); } }
+function cfgSetG(g) {
+  S.cfg = Object.assign({ ch: {} }, S.cfg, { g: g || undefined });
+  cfgSave();
+  const y = window.scrollY; parentPanel(); window.scrollTo(0, y);
 }
-function cfgChapter(id, on) {
-  S.cfg = S.cfg || {}; S.cfg.off = S.cfg.off || {};
-  if (on) delete S.cfg.off[id]; else S.cfg.off[id] = true;
-  save(); cfgSaved();
+function cfgChapter(id, on, el) {
+  S.cfg = Object.assign({ ch: {} }, S.cfg); S.cfg.ch = S.cfg.ch || {};
+  S.cfg.ch[id] = on;
+  cfgSave();
+  const mark = el && el.parentElement.querySelector(".ovr"); if (mark) mark.classList.remove("hidden");
 }
-function cfgSaved() { const m = $("cfgmsg"); if (m) { m.textContent = "✅ 保存しました"; setTimeout(() => { if ($("cfgmsg")) $("cfgmsg").textContent = ""; }, 1500); } }
+function cfgResetWorld(w) {
+  if (!S.cfg || !S.cfg.ch) return;
+  worldChapters(w).forEach((c) => delete S.cfg.ch[c.id]);
+  cfgSave();
+  const y = window.scrollY; parentPanel(); window.scrollTo(0, y);
+}
 
 function copyBk() {
   const t = $("bk"); t.select();
@@ -1519,6 +1525,8 @@ function slotTap(i, mode) {
     SL.cur = i; writeSlots();
     if (SL.slots[i] && SL.slots[i].name) {
       S = Object.assign(newSave(), SL.slots[i]);
+      S.cfg = migrateCfg(S.cfg);
+      setTimeout(syncCfg, 500);
       Object.keys(S.cleared || {}).forEach((k) => { S.tierClear[k] = true; });
       SL.slots[i] = S;
       ensureDaily(); home();
@@ -1574,10 +1582,18 @@ async function doCloudRestore() {
 let updateV = 0;
 async function checkUpdate() {
   if (location.protocol === "file:") return;
+  syncCfg();
   try {
     const j = await (await fetch("version.json?t=" + Date.now(), { cache: "no-store" })).json();
     if (j.v > (window.APP_V || 0)) { updateV = j.v; showUpdBar(); }
   } catch (e) { /* ネットに つながらないときは 何もしない */ }
+}
+// 保護者ページで 変えた 出題の設定を 取りこむ（新しい ほうを 使う）
+async function syncCfg() {
+  if (!S) return;
+  const cs = await Cloud.fetchCfg();
+  const c = cs && cs[SL.cur];
+  if (c && (c.at || 0) > ((S.cfg && S.cfg.at) || 0)) { S.cfg = c; save(); }
 }
 function showUpdBar() {
   const b = $("updbar");

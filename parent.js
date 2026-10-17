@@ -11,7 +11,7 @@ const dateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2
 const pct = (c, t) => (t ? Math.round((c / t) * 100) + "%" : "－");
 const fmtTime = (ts) => { if (!ts) return "－"; const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-let P = { code: "", slots: [], cur: 0, loadedAt: 0 };
+let P = { code: "", slots: [], cfgs: [], cur: 0, loadedAt: 0, view: "" };
 try { const t = JSON.parse(localStorage.getItem(P_KEY) || "{}"); P.code = t.code || ""; P.cur = t.cur || 0; } catch (e) { /* 無視 */ }
 const remember = () => { try { localStorage.setItem(P_KEY, JSON.stringify({ code: P.code, cur: P.cur })); } catch (e) { /* 無視 */ } };
 
@@ -37,7 +37,32 @@ async function fetchSlots(code) {
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(String(r.status));
   const f = (await r.json()).fields || {};
-  return [1, 2, 3].map((n) => { try { const s = f["s" + n] && f["s" + n].stringValue; return s ? JSON.parse(s) : null; } catch (e) { return null; } });
+  const js = (k) => { try { const s = f[k] && f[k].stringValue; return s ? JSON.parse(s) : null; } catch (e) { return null; } };
+  // s1〜s3：セーブデータ、c1〜c3：このページで 変えた 出題の設定
+  return { slots: [1, 2, 3].map((n) => js("s" + n)), cfgs: [1, 2, 3].map((n) => js("c" + n)) };
+}
+
+// 出題の設定を クラウドに 書く（c1〜c3 だけを 書きかえる。セーブデータには さわらない）
+async function writeCfg(i, cfg) {
+  const n = i + 1;
+  const url = `https://firestore.googleapis.com/v1/projects/${P_FIREBASE.projectId}/databases/(default)/documents/saves/${P.code}?key=${P_FIREBASE.apiKey}&updateMask.fieldPaths=c${n}`;
+  const r = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fields: { ["c" + n]: { stringValue: JSON.stringify(cfg) } } }) });
+  if (!r.ok) throw new Error(String(r.status));
+}
+// いまの 設定：ゲームで 変えたものと、このページで 変えたものの 新しいほう
+function curCfg() {
+  const a = migrateCfg((P.slots[P.cur] || {}).cfg) || {}, b = P.cfgs[P.cur] || {};
+  return JSON.parse(JSON.stringify((b.at || 0) > (a.at || 0) ? b : a));
+}
+let cfgTimer = null;
+function saveCfg(cfg, msgId) {
+  cfg.at = Date.now();
+  P.cfgs[P.cur] = cfg;
+  clearTimeout(cfgTimer);
+  cfgTimer = setTimeout(async () => {
+    try { await writeCfg(P.cur, P.cfgs[P.cur]); if ($(msgId)) $(msgId).innerHTML = "✅ 保存しました（お子さんの ゲームに 数分で 反映されます）"; }
+    catch (e) { if ($(msgId)) $(msgId).innerHTML = `<span class="pg-err">保存できませんでした（${e.message === "403" ? "Firebaseの ルールの 更新が 必要です" : "通信を ご確認ください"}）</span>`; }
+  }, 700);
 }
 
 // ---------- 画面 ----------
@@ -65,11 +90,11 @@ async function doLogin() {
 async function load() {
   $("papp").innerHTML = `<div class="loading">データを 読みこみ中…</div>`;
   try {
-    const slots = await fetchSlots(P.code);
-    if (!slots) return loginView("この コードの データが 見つかりません。コードを ご確認ください。");
-    P.slots = slots; P.loadedAt = Date.now();
+    const res = await fetchSlots(P.code);
+    if (!res) return loginView("この コードの データが 見つかりません。コードを ご確認ください。");
+    P.slots = res.slots; P.cfgs = res.cfgs; P.loadedAt = Date.now();
     if (!P.slots[P.cur]) P.cur = Math.max(0, P.slots.findIndex(Boolean));
-    render();
+    if (P.view === "settings") renderSettings(); else render();
   } catch (e) { loginView("読みこみに 失敗しました。ネットの 接続を ご確認ください。"); }
 }
 
@@ -112,6 +137,7 @@ function render() {
       <div><small>きょう</small><b>${td.tot}問</b><small>正答率 ${pct(td.cor, td.tot)}</small></div>
       <div><small>この7日間</small><b>${week.tot}問</b><small>${week.play}日 学習・${pct(week.cor, week.tot)}</small></div>
     </div>
+    ${cfgCard()}
     <div class="pg-card"><div class="pg-sub">📅 14日間の 解答数</div>
       <div class="pg-chart">${days.map((d) => `<div class="pg-bar ${d.k === today ? "today" : ""}"><span>${d.tot || ""}</span><i style="height:${(d.tot / mx) * 100}%"></i><small>${d.label}</small></div>`).join("")}</div>
       <p class="pg-note">ぜんぶで ${S.stats.tot}問・正答率 ${pct(S.stats.cor, S.stats.tot)}</p></div>
@@ -132,14 +158,74 @@ function render() {
       <div><small>なかま</small><b>🐾 ${(S.pets || []).length}</b><small>ずかん ${Object.keys(S.petDex || {}).length}/${PETS.length}</small></div>
       <div><small>連続ログイン</small><b>🔥 ${(S.login || {}).streak || 0}日</b></div>
     </div>
-    <div class="pg-card"><div class="pg-sub">⚙️ 出題の 設定</div>
-      <p>漢字：${((S.cfg || {}).kg || [1, 2, 3, 4, 5, 6]).map((g) => g + "年").join("・")}</p>
-      ${Object.keys((S.cfg || {}).off || {}).length ? `<p>お休み中の 章：${Object.keys(S.cfg.off).map((id) => { const c = CHAPTERS.find((x) => x.id === id); return c ? esc(c.name) : id; }).join("、")}</p>` : "<p>ほかの 国：すべての 章を 出題中</p>"}
-      <p class="pg-note">設定の 変更は、お子さんの ゲームの ⚙️ →「保護者の方へ」→「出題の設定」で できます。</p></div>
     <p class="pg-note center">読みこみ：${fmtTime(P.loadedAt)}（ゲームで 遊ぶと 数秒〜数分で 反映されます）</p>
     <button class="big-btn" onclick="load()">🔄 最新に する</button>
     <button class="big-btn" onclick="logout()">コードを 入れなおす</button>
   </div>`;
+}
+
+// ---------- 出題の 設定 ----------
+function cfgCard() {
+  const cfg = curCfg();
+  const on = CHAPTERS.filter((c) => cfgChapterOn(cfg, c)).length;
+  const btn = (g, label) => `<button class="pg-gb ${(cfg.g || 0) === g ? "on" : ""}" onclick="setCoarse(${g})">${label}</button>`;
+  return `<div class="pg-card"><div class="pg-sub">⚙️ 出題の 設定 <small>（お子さんの 画面には 学年は 出ません）</small></div>
+    <p>いまの 設定：<b>${cfgSummary(cfg)}</b>　出題中 ${on}/${CHAPTERS.length}章</p>
+    <p class="pg-note">ざっくり 設定（この 学年までの 章を 出す）</p>
+    <div class="pg-gbs">${[1, 2, 3, 4, 5, 6].map((g) => btn(g, `${g}年生まで`)).join("")}${btn(0, "すべて")}</div>
+    <button class="big-btn" onclick="openSettings()">くわしい 設定（章ごと）▶</button>
+    <p class="pg-note" id="cfgmsg"></p></div>`;
+}
+function setCoarse(g) {
+  const cfg = curCfg(); cfg.g = g || undefined;
+  saveCfg(cfg, "cfgmsg");
+  const y = window.scrollY; render(); window.scrollTo(0, y);
+  if ($("cfgmsg")) $("cfgmsg").textContent = "保存中…";
+}
+
+// くわしい 設定（別の 画面）
+let setWorld = "kanji";
+function openSettings() { P.view = "settings"; renderSettings(); window.scrollTo(0, 0); }
+function closeSettings() { P.view = ""; render(); window.scrollTo(0, 0); }
+function renderSettings(w) {
+  if (w) setWorld = w;
+  const cfg = curCfg(), S = P.slots[P.cur];
+  const list = CHAPTERS.filter((c) => c.w === setWorld);
+  const grades = [...new Set(list.map((c) => c.g))].sort();
+  const tabs = WORLDS.map((x) => {
+    const l = CHAPTERS.filter((c) => c.w === x.id), on = l.filter((c) => cfgChapterOn(cfg, c)).length;
+    return `<button class="${x.id === setWorld ? "on" : ""}" onclick="renderSettings('${x.id}')">${x.icon}<small>${on}/${l.length}</small></button>`;
+  }).join("");
+  $("papp").innerHTML = `<div class="pg-wrap">
+    <div class="pg-top"><button class="back" onclick="closeSettings()">◀ もどる</button><b>くわしい 設定</b><span>${S ? esc(S.name) : ""}</span></div>
+    <div class="pg-tabs pg-wtabs">${tabs}</div>
+    <div class="pg-card"><div class="pg-sub">${worldOf(setWorld).icon} ${worldOf(setWorld).name}</div>
+      <p class="pg-note">ざっくり設定（<b>${cfg.g ? `${cfg.g}年生まで` : "すべて"}</b>）を もとに、章ごとに オン／オフ できます。変えた 章には「個別」の しるしが つき、ざっくり設定より 優先されます。</p>
+      ${grades.map((g) => `<div class="pg-grade"><div class="pg-ghead"><b>${g}年</b>
+          <span><button onclick="setGradeAll(${g}, true)">ぜんぶ オン</button><button onclick="setGradeAll(${g}, false)">ぜんぶ オフ</button></span></div>
+        ${list.filter((c) => c.g === g).map((c) => {
+          const ov = cfg.ch && cfg.ch[c.id] !== undefined;
+          return `<label class="pg-ch"><input type="checkbox" ${cfgChapterOn(cfg, c) ? "checked" : ""} onchange="setChapter('${c.id}', this.checked)"><span>${c.icon || ""} ${esc(c.name)}</span>${ov ? '<i class="pg-ov">個別</i>' : ""}</label>`;
+        }).join("")}</div>`).join("")}
+      <button class="big-btn" onclick="resetWorld()">この国を ざっくり設定に もどす</button>
+    </div>
+    <p class="pg-note center" id="setmsg"></p>
+  </div>`;
+}
+function rerenderKeep(msg) { const y = window.scrollY; renderSettings(); window.scrollTo(0, y); if ($("setmsg")) $("setmsg").textContent = msg; }
+function setChapter(id, on) {
+  const cfg = curCfg(); cfg.ch = cfg.ch || {}; cfg.ch[id] = on;
+  saveCfg(cfg, "setmsg"); rerenderKeep("保存中…");
+}
+function setGradeAll(g, on) {
+  const cfg = curCfg(); cfg.ch = cfg.ch || {};
+  CHAPTERS.filter((c) => c.w === setWorld && c.g === g).forEach((c) => { cfg.ch[c.id] = on; });
+  saveCfg(cfg, "setmsg"); rerenderKeep("保存中…");
+}
+function resetWorld() {
+  const cfg = curCfg(); cfg.ch = cfg.ch || {};
+  CHAPTERS.filter((c) => c.w === setWorld).forEach((c) => delete cfg.ch[c.id]);
+  saveCfg(cfg, "setmsg"); rerenderKeep("保存中…");
 }
 
 function head() {
@@ -150,4 +236,5 @@ function logout() { localStorage.removeItem(P_KEY); P.code = ""; loginView(); }
 // 開いたままに しておいても 新しく なるように、画面に もどったときに 読みなおす
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && P.slots.length && Date.now() - P.loadedAt > 60000) load(); });
 
+applyGrades();
 if (P.code) load(); else loginView();

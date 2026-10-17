@@ -596,3 +596,11 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .cfgg input, .cfgc input { width: 20px; height: 20px; }
 .wtabs .ti { font-size: 18px; line-height: 1.1; }
 .cfgg { white-space: nowrap; font-size: 13px; }
+
+/* 出題の設定（新しい形） */
+.cfgbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 10px; }
+.cfgb { border: 2px solid #e6dcf0; background: #fff; border-radius: 10px; padding: 8px 2px; font-size: 12px; font-weight: bold; }
+.cfgb.on { background: var(--pink); color: #fff; border-color: var(--pink-d); }
+.cfggr { font-size: 12px; font-weight: bold; color: var(--pink-d); margin: 8px 0 2px; }
+.ovr { font-style: normal; font-size: 10px; background: #fff3b0; border-radius: 99px; padding: 1px 6px; margin-left: auto; }
+.cfgreset { margin-top: 8px; border: 0; background: #f1ecf3; border-radius: 10px; padding: 8px; font-size: 12px; width: 100%; }

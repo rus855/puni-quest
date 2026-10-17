@@ -44,3 +44,23 @@
 .pg-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .pg-tbl td { padding: 4px 2px; border-bottom: 1px solid #f3eef5; }
 .pg-tbl td:nth-child(2), .pg-tbl td:nth-child(3) { text-align: right; white-space: nowrap; }
+
+/* 出題の 設定 */
+.pg-sub small { font-weight: normal; font-size: 11px; opacity: .7; }
+.pg-gbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 6px 0 10px; }
+.pg-gb { border: 2px solid #e6dcf0; background: #fff; border-radius: 10px; padding: 9px 2px; font-size: 12px; font-weight: bold; }
+.pg-gb.on { background: var(--pink); color: #fff; border-color: var(--pink-d); }
+.pg-top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 10px; background: rgba(255,247,251,.95); padding: 8px 0; margin-bottom: 8px; }
+.pg-top b { flex: 1; text-align: center; font-size: 16px; }
+.pg-top span { font-size: 12px; }
+.pg-wtabs { position: sticky; top: 62px; z-index: 9; background: rgba(255,247,251,.95); padding: 4px 0; }
+.pg-wtabs button { display: flex; flex-direction: column; align-items: center; font-size: 20px; }
+.pg-wtabs small { font-size: 10px; }
+.pg-grade { border-top: 1px dashed #eee; padding: 6px 0; }
+.pg-ghead { display: flex; justify-content: space-between; align-items: center; margin: 4px 0; }
+.pg-ghead b { color: var(--pink-d); }
+.pg-ghead button { border: 0; background: #f1ecf3; border-radius: 99px; padding: 5px 10px; font-size: 11px; margin-left: 4px; }
+.pg-ch { display: flex; align-items: center; gap: 8px; padding: 7px 2px; font-size: 14px; }
+.pg-ch input { width: 22px; height: 22px; flex: none; }
+.pg-ch span { flex: 1; }
+.pg-ov { font-style: normal; font-size: 10px; background: #fff3b0; border-radius: 99px; padding: 1px 7px; }

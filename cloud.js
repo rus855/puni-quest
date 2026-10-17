@@ -75,9 +75,12 @@ const Cloud = (() => {
     return [1, 2, 3].map((n) => {
       const s = f["s" + n] && f["s" + n].stringValue;
       const t = Number((f["t" + n] && f["t" + n].integerValue) || 0);
-      let d = null;
+      let d = null, cfg = null;
       if (s) { try { d = JSON.parse(s); } catch (e) { d = null; } }
-      return { d, t, has: "t" + n in f };
+      // c1〜c3：保護者ページで 変えた 出題の設定
+      const cs = f["c" + n] && f["c" + n].stringValue;
+      if (cs) { try { cfg = JSON.parse(cs); } catch (e) { cfg = null; } }
+      return { d, t, has: "t" + n in f, cfg };
     });
   }
 
@@ -89,10 +92,13 @@ const Cloud = (() => {
       const docs = await fetchDoc(st.code);
       if (!docs) { SL.slots.forEach((d, i) => { if (d) markDirty(i); }); return false; }
       let changed = false;
-      docs.forEach(({ d, t, has }, i) => {
+      docs.forEach(({ d, t, has, cfg }, i) => {
         const lt = (SL.slots[i] && SL.slots[i].savedAt) || 0;
         if (has && t > lt && !st.dirty[i]) { SL.slots[i] = d; changed = true; }
         else if (lt > t) markDirty(i);
+        // 保護者ページの 設定の ほうが 新しければ 使う
+        const sl = SL.slots[i];
+        if (cfg && sl && (cfg.at || 0) > ((sl.cfg && sl.cfg.at) || 0)) { sl.cfg = cfg; changed = true; }
       });
       if (changed) writeSlots();
       return changed;
@@ -113,6 +119,12 @@ const Cloud = (() => {
     } catch (e) { return "net"; }
   }
 
+  // 保護者ページで 変えた 設定だけを 読む（数分ごとに 確認する）
+  async function fetchCfg() {
+    if (!enabled() || !st.code) return null;
+    try { const docs = await fetchDoc(st.code); return docs ? docs.map((x) => x.cfg) : null; } catch (e) { return null; }
+  }
+
   function status() {
     if (!enabled()) return { icon: "📱", text: "このスマホに ほぞん" };
     if (st.dirty.some(Boolean)) return { icon: "⏳", text: lastErr ? "クラウドに まだ ほぞんしていない（ネットに つながったら ほぞん）" : "クラウドに ほぞんちゅう…" };
@@ -123,5 +135,5 @@ const Cloud = (() => {
   window.addEventListener("online", () => push());
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") push(); });
 
-  return { enabled, code: () => fmt(code()), hasCode: () => !!st.code, markDirty, push, pullAll, restore, status, lastOk: () => lastOk };
+  return { enabled, code: () => fmt(code()), hasCode: () => !!st.code, markDirty, push, pullAll, restore, status, fetchCfg, lastOk: () => lastOk };
 })();
