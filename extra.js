@@ -81,8 +81,6 @@ function maouButton() {
 }
 
 // ---------- かきとり（お手本なしで 書く）の 判定 ----------
-// 書いた字を お手本と 同じ 大きさ・位置に そろえ、どちらも 細い 線（ほね組み）に してから
-// 「お手本の 線の 近くに 書いた 線が あるか」「書いた 線が お手本の 近くに あるか」を 甘めに くらべる
 const FS_N = 64;
 // ほね組みに する（Zhang-Suen の 細線化）
 function thinGrid(a, N) {
@@ -122,47 +120,84 @@ function bboxOf(g, N) {
   if (h < m) { y0 -= (m - h) / 2; h = m; }
   return { x0, y0, w, h };
 }
-// お手本の ほね組み（字ごとに おぼえておく）
-const refCache = {};
-function refSkel(k) {
-  if (refCache[k]) return refCache[k];
+// かきとりの ○× 判定（あまめ）
+// 字を 5×5 の ます目に わけ、それぞれの ますに「どの 向きの 線（─ │ ／ ＼）が どれだけ あるか」を くらべる。
+// 書いた 位置・大きさ・多少の ゆがみには 強い。正しい字が、にた字＋ほかの 字（約80字）の 中で
+// 上から 10番いない かつ にている度が 0.4 いじょう なら ○。
+const DZ = 5;
+function dirFeat(pts) {
+  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+  pts.forEach(([x, y]) => { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; });
+  let w = x1 - x0, h = y1 - y0; const m = Math.max(w, h) * 0.35 || 0.1;
+  if (w < m) { x0 -= (m - w) / 2; w = m; }
+  if (h < m) { y0 -= (m - h) / 2; h = m; }
+  const f = new Float32Array(DZ * DZ * 4);
+  for (const [x, y, a] of pts) {
+    const u = ((x - x0) / w) * DZ - 0.5, v = ((y - y0) / h) * DZ - 0.5;
+    const t = ((a % Math.PI) + Math.PI) % Math.PI, bf = t / (Math.PI / 4), b0 = Math.floor(bf) % 4, b1 = (b0 + 1) % 4, fr = bf - Math.floor(bf);
+    for (let zy = 0; zy < DZ; zy++) for (let zx = 0; zx < DZ; zx++) {
+      const wg = Math.exp(-((zx - u) ** 2 + (zy - v) ** 2) / 0.8);
+      if (wg < 0.02) continue;
+      const i = (zy * DZ + zx) * 4; f[i + b0] += wg * (1 - fr); f[i + b1] += wg * fr;
+    }
+  }
+  let n = 0; for (const v of f) n += v * v; n = Math.sqrt(n) || 1;
+  for (let i = 0; i < f.length; i++) f[i] /= n;
+  return f;
+}
+// ほね組みの 点と、その 向き
+function skelPts(sk, N) {
+  const pts = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (sk[y * N + x]) {
+    let sxx = 0, syy = 0, sxy = 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const xx = x + dx, yy = y + dy;
+      if (xx >= 0 && yy >= 0 && xx < N && yy < N && sk[yy * N + xx]) { sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+    }
+    pts.push([x / N, y / N, 0.5 * Math.atan2(2 * sxy, sxx - syy)]);
+  }
+  return pts;
+}
+const featCache = {};
+function refFeat(k) {
+  if (featCache[k]) return featCache[k];
   const N = FS_N, c = document.createElement("canvas"); c.width = c.height = N;
   const g = c.getContext("2d", { willReadFrequently: true });
   g.font = `${Math.round(N * 0.8)}px ${KFONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#000";
   g.fillText(k, N / 2, N / 2 + N * 0.04);
-  const fill = gridOf(g, N, 100);
-  return (refCache[k] = { sk: thinGrid(fill, N), bb: bboxOf(fill, N) });
+  return (featCache[k] = dirFeat(skelPts(thinGrid(gridOf(g, N, 100), N), N)));
 }
-function freeScore(k, strokes) {
-  const N = FS_N, R = 3;
-  const ref = refSkel(k);
-  // 書いた 線を お手本の 大きさ・位置に そろえて かく
-  const raw = document.createElement("canvas"); raw.width = raw.height = N;
-  const rx = raw.getContext("2d", { willReadFrequently: true });
-  drawStrokes(rx, N, strokes, "#000", N * 0.05);
-  const ib = bboxOf(gridOf(rx, N, 60), N);
-  if (!ib || !ref.bb) return { ok: false, cov: 0, prec: 0 };
-  const c = document.createElement("canvas"); c.width = c.height = N;
-  const cx = c.getContext("2d", { willReadFrequently: true });
-  const sx = ref.bb.w / ib.w, sy = ref.bb.h / ib.h;
-  const moved = strokes.map((st) => st.map(([x, y]) => [((x * N - ib.x0) * sx + ref.bb.x0) / N, ((y * N - ib.y0) * sy + ref.bb.y0) / N]));
-  drawStrokes(cx, N, moved, "#000", N * 0.06);
-  const ink = thinGrid(gridOf(cx, N, 60), N), sk = ref.sk;
-  const near = (arr, x, y) => {
-    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
-      const xx = x + dx, yy = y + dy;
-      if (xx >= 0 && yy >= 0 && xx < N && yy < N && arr[yy * N + xx]) return true;
+// 書いた 線の 特ちょう（線の 向きを そのまま つかう）
+function inkFeat(strokes) {
+  const pts = []; let dots = 0;
+  strokes.forEach((st) => {
+    if (st.length < 2) { dots++; return; }
+    for (let i = 1; i < st.length; i++) {
+      const [ax, ay] = st[i - 1], [bx, by] = st[i], L = Math.hypot(bx - ax, by - ay);
+      if (L < 1e-4) continue;
+      const n = Math.max(1, Math.ceil(L / 0.015)), a = Math.atan2(by - ay, bx - ax);
+      for (let j = 0; j < n; j++) pts.push([ax + ((bx - ax) * j) / n, ay + ((by - ay) * j) / n, a]);
     }
-    return false;
-  };
-  let sn = 0, inN = 0, cov = 0, prec = 0;
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const i = y * N + x;
-    if (sk[i]) { sn++; if (near(ink, x, y)) cov++; }
-    if (ink[i]) { inN++; if (near(sk, x, y)) prec++; }
+  });
+  if (!pts.length || dots > strokes.length / 2) {
+    const N = FS_N, c = document.createElement("canvas"); c.width = c.height = N;
+    const cx = c.getContext("2d", { willReadFrequently: true });
+    drawStrokes(cx, N, strokes, "#000", N * 0.06);
+    const sp = skelPts(thinGrid(gridOf(cx, N, 60), N), N);
+    return sp.length ? dirFeat(sp) : null;
   }
-  cov = sn ? cov / sn : 0; prec = inN ? prec / inN : 0;
-  return { cov, prec, ok: cov >= 0.75 && prec >= 0.75 };
+  return dirFeat(pts);
+}
+const cosSim = (a, b) => { let s2 = 0; for (let i = 0; i < a.length; i++) s2 += a[i] * b[i]; return s2; };
+function writeCheck(k, strokes) {
+  const f = inkFeat(strokes);
+  if (!f) return { ok: false, s: 0 };
+  const me = cosSim(refFeat(k), f);
+  const K = KANJI.find((x) => x.k === k);
+  const same = KANJI.filter((x) => K && x.g === K.g && x.k !== k).map((x) => x.k);
+  const cands = [...new Set([...(K ? K.sim : []), ...shuffle(same).slice(0, 40), ...shuffle(KANJI.map((x) => x.k)).slice(0, 40)])].filter((x) => x !== k);
+  const higher = cands.filter((x) => cosSim(refFeat(x), f) > me).length;
+  return { s: me, rank: higher + 1, ok: me >= 0.4 && higher < 10 };
 }
 
 // かきとりの 問題を つくる
@@ -181,10 +216,22 @@ function showWrite() {
 function writeJudge() {
   if (!B || B.busy || !B.q || B.q.kind !== "write") return;
   if (!TR.strokes.length) { toast("わくの 中に 字を 書いてね"); return; }
-  const r = freeScore(TR.k, TR.strokes);
-  if (r.ok) showMaru($("wbox"));
-  else $("wbox").insertAdjacentHTML("beforeend", `<div class="wans">${TR.k}</div>`);
-  judge(r.ok);
+  const r = writeCheck(TR.k, TR.strokes);
+  if (window.PQ_DEBUG) toast(`🛠 にている度 ${Math.round(r.s * 100)}${r.rank ? `・${r.rank}位` : ""}`);
+  if (r.ok) { showMaru($("wbox")); judge(true); return; }
+  // きかいで わからなかった ときは、お手本と くらべて じぶんで きめる
+  B.busy = true;
+  $("wbox").insertAdjacentHTML("beforeend", `<div class="wans">${TR.k}</div>`);
+  $("qpanel").querySelector(".wrow").outerHTML = `<p class="wself">右の お手本と 同じ 字が 書けたかな？</p>
+    <div class="row wrow"><button class="big-btn" onclick="writeSelf(false)">✕ ちがった</button><button class="big-btn primary" onclick="writeSelf(true)">○ 書けてた！</button></div>`;
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+function writeSelf(ok) {
+  if (!B || !B.q || B.q.kind !== "write" || !$("qpanel").querySelector(".wself")) return;
+  $("qpanel").querySelectorAll(".wrow button").forEach((b) => { b.disabled = true; });
+  B.q.self = true; B.busy = false;
+  if (ok) showMaru($("wbox"));
+  judge(ok);
 }
 function writeGiveUp() {
   if (!B || B.busy || !B.q || B.q.kind !== "write") return;

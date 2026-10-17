@@ -669,3 +669,9 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .psort button.on { background: var(--pink); border-color: var(--pink-d); color: #fff; }
 
 .codebig { font-size: 24px; font-weight: bold; letter-spacing: .08em; text-align: center; background: #fff7cc; border-radius: 12px; padding: 8px; margin: 6px 0; -webkit-user-select: all; user-select: all; }
+.wself { text-align: center; font-weight: bold; color: #6b5b8a; margin: 4px 0; font-size: 14px; }
+
+/* そうび画面の しゅるい タブ */
+.eqtabs { gap: 4px; }
+.eqtabs button { padding: 8px 2px; font-size: 13px; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.eqtabs button small { font-size: 10px; opacity: .7; }

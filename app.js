@@ -258,6 +258,7 @@ function patternSVG(a) {
     case "space": return `${base}<rect x="30" y="134" width="140" height="7" fill="#b0bec5"/><rect x="80" y="148" width="40" height="26" rx="5" fill="#455a64"/>
       <circle cx="90" cy="157" r="4" fill="#ff5252"/><circle cx="100" cy="157" r="4" fill="#ffd23f"/><circle cx="110" cy="157" r="4" fill="#69f0ae"/><rect x="86" y="165" width="28" height="4" rx="2" fill="#80deea"/>
       <circle cx="56" cy="156" r="8" fill="#1e88e5"/>${spark(56, 156, 5)}<rect x="132" y="150" width="20" height="12" fill="#ef5350"/><rect x="132" y="150" width="8" height="6" fill="#1565c0"/>`;
+    case "robe": return `${base}<path d="M100 134 L100 196" stroke="#ffd54f" stroke-width="5"/><path d="M30 138 Q100 150 170 138" stroke="#ffd54f" stroke-width="5" fill="none"/>${[[62, 162, 5], [138, 170, 6], [80, 184, 3], [122, 150, 3]].map(([x, y, r]) => spark(x, y, r, "#fff59d")).join("")}<circle cx="100" cy="146" r="6" fill="#e53935" stroke="#ffd54f" stroke-width="2"/>`;
     case "sparkle": return `<defs><linearGradient id="gsp" x1="0" x2="1"><stop offset="0" stop-color="#d6a8ff"/><stop offset=".5" stop-color="#ffb3e6"/><stop offset="1" stop-color="#9fd8ff"/></linearGradient></defs>
       <rect x="30" y="134" width="140" height="60" fill="url(#gsp)"/>${[[50, 150, 6], [74, 172, 4], [100, 152, 8], [126, 176, 5], [150, 154, 6], [88, 186, 3], [138, 140, 3]].map(([x, y, r]) => spark(x, y, r)).join("")}`;
   }
@@ -342,6 +343,17 @@ function lookSVG(w) {
       ${spark(-28, -70, 6, "#ffe066")}${spark(26, -108, 5, "#9fd8ff")}${spark(-22, -112, 4, "#ffb3e6")}${spark(20, -60, 4, "#fff")}`);
     case "shine": return g(20, `<circle cx="0" cy="-60" r="34" fill="#fff6c2" opacity=".35"/><rect x="-4" y="-6" width="8" height="22" rx="3" fill="#7e57c2"/><path d="M-16 -12 Q0 -4 16 -12 L14 -4 Q0 2 -14 -4Z" fill="#ffd23f" stroke="#c99a00" stroke-width="1.5"/><circle cx="0" cy="-8" r="4" fill="#4aa8ff"/>
       <path d="M-8 -12 L-8 -92 L0 -108 L8 -92 L8 -12Z" fill="#e3f2fd" stroke="#90caf9" stroke-width="2"/><path d="M0 -18 L0 -96" stroke="#fff" stroke-width="3"/>${spark(-18, -90, 7)}${spark(16, -50, 5, "#ffe066")}${spark(-14, -36, 4, "#ffb3e6")}`);
+    case "bolt": return g(10, `<rect x="-4" y="-6" width="8" height="22" rx="3" fill="#5d4037"/><rect x="-13" y="-10" width="26" height="6" rx="3" fill="#ffd23f"/><path d="M-2 -10 L10 -50 L0 -50 L12 -100 L-12 -44 L-2 -44 L-10 -10Z" fill="#ffe14d" stroke="#e0a000" stroke-width="2.5" stroke-linejoin="round"/>${spark(16, -78, 6, "#fff59d")}`);
+    case "magnet": return g(15, `<rect x="-4" y="-60" width="8" height="76" rx="4" fill="#8d6e63"/><path d="M-22 -60 L-22 -84 Q-22 -102 0 -102 Q22 -102 22 -84 L22 -60 L10 -60 L10 -84 Q10 -90 0 -90 Q-10 -90 -10 -84 L-10 -60Z" fill="#e53935" stroke="#8e1b1b" stroke-width="2"/><rect x="-22" y="-66" width="12" height="8" fill="#eceff1"/><rect x="10" y="-66" width="12" height="8" fill="#eceff1"/><path d="M-30 -96 l-6 -6 M30 -96 l6 -6 M-34 -80 l-8 0 M34 -80 l8 0" stroke="#ffd23f" stroke-width="2.5" stroke-linecap="round"/>`);
+    case "kotostaff": return g(12, `<rect x="-3" y="-70" width="6" height="86" rx="3" fill="#a1887f"/><path d="M-20 -104 Q-20 -114 -10 -114 L18 -114 Q28 -114 28 -104 L28 -86 Q28 -76 18 -76 L2 -76 L-6 -66 L-6 -76 L-10 -76 Q-20 -76 -20 -86Z" fill="#fff" stroke="#66bb6a" stroke-width="2.5"/><path d="M-12 -102 L18 -102 M-12 -94 L20 -94 M-12 -86 L10 -86" stroke="#66bb6a" stroke-width="2.5" stroke-linecap="round"/>`);
+    case "kotosword": return g(20, `<rect x="-4" y="-6" width="8" height="22" rx="3" fill="#33691e"/><path d="M-16 -12 Q0 -2 16 -12 L14 -4 Q0 4 -14 -4Z" fill="#ffd23f"/><path d="M-8 -12 L-8 -92 L0 -108 L8 -92 L8 -12Z" fill="#f1f8e9" stroke="#7cb342" stroke-width="2"/><text x="0" y="-74" text-anchor="middle" font-size="12" font-weight="bold" fill="#558b2f">こ</text><text x="0" y="-56" text-anchor="middle" font-size="12" font-weight="bold" fill="#558b2f">と</text><text x="0" y="-38" text-anchor="middle" font-size="12" font-weight="bold" fill="#558b2f">ば</text>`);
+    case "rainbowboom": return g(-15, `${["#ff5252", "#ffab40", "#ffee58", "#69f0ae", "#40c4ff", "#b388ff"].map((cl, i) => `<path d="M${-34 + i * 3} -40 Q0 ${-96 + i * 4} ${34 - i * 3} -40" fill="none" stroke="${cl}" stroke-width="5" stroke-linecap="round"/>`).join("")}<circle cx="0" cy="-40" r="5" fill="#fff" stroke="#b388ff" stroke-width="2"/>${spark(-30, -84, 5)}${spark(30, -86, 4, "#fff59d")}`);
+    case "laser": return g(30, `<rect x="-9" y="-10" width="18" height="26" rx="5" fill="#455a64"/><rect x="-12" y="-60" width="24" height="54" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5"/><rect x="-7" y="-52" width="14" height="10" rx="3" fill="#4fc3f7"/><circle cx="0" cy="-30" r="5" fill="#ef5350"/><rect x="-5" y="-74" width="10" height="16" rx="3" fill="#90a4ae"/><path d="M0 -74 L0 -112" stroke="#ff4081" stroke-width="5" stroke-linecap="round"/><path d="M0 -74 L0 -112" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`);
+    case "gearsword": return g(20, `<rect x="-4" y="-6" width="8" height="22" rx="3" fill="#37474f"/><circle cx="0" cy="-8" r="11" fill="#ffd23f" stroke="#c99a00" stroke-width="2"/><circle cx="0" cy="-8" r="4" fill="#37474f"/>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<rect x="-3" y="-23" width="6" height="7" fill="#ffd23f" transform="rotate(${a} 0 -8)"/>`).join("")}<path d="M-8 -20 L-8 -96 L0 -110 L8 -96 L8 -20Z" fill="#cfd8dc" stroke="#546e7a" stroke-width="2"/>${[-40, -64, -88].map((y) => `<circle cx="0" cy="${y}" r="5" fill="none" stroke="#546e7a" stroke-width="2"/>`).join("")}${spark(14, -70, 5, "#fff59d")}`);
+    case "comet": return g(8, `<path d="M8 -86 Q40 -60 44 -14 Q24 -50 4 -70Z" fill="#b388ff" opacity=".55"/><path d="M8 -86 Q30 -64 30 -30 Q16 -56 2 -72Z" fill="#80d8ff" opacity=".7"/><rect x="-3" y="-66" width="6" height="82" rx="3" fill="#7e57c2"/><circle cx="0" cy="-86" r="16" fill="#fff59d" stroke="#ffb300" stroke-width="2.5"/><circle cx="0" cy="-86" r="7" fill="#fff"/>${spark(-22, -104, 5)}${spark(-18, -70, 4, "#b3e5fc")}`);
+    case "rainbowsword": return g(18, `<circle cx="0" cy="-62" r="36" fill="#fff" opacity=".35"/><rect x="-4" y="-6" width="8" height="22" rx="3" fill="#7e57c2"/><path d="M-18 -12 Q0 -2 18 -12 L16 -4 Q0 4 -16 -4Z" fill="#ffd23f" stroke="#c99a00" stroke-width="1.5"/>
+      ${["#ff5252", "#ffab40", "#ffee58", "#69f0ae", "#40c4ff", "#b388ff"].map((cl, i) => `<path d="M${-9 + i * 3} -12 L${-9 + i * 3} -98 L${-6 + i * 3} -104 L${-6 + i * 3} -12Z" fill="${cl}"/>`).join("")}<path d="M-9 -98 L0 -114 L9 -98" fill="#fff" stroke="#b388ff" stroke-width="1.5"/>${spark(-20, -90, 7)}${spark(18, -54, 5, "#fff59d")}${spark(-16, -40, 4, "#ffb3e6")}`);
+    case "greatsword": return g(22, `<rect x="-5" y="-4" width="10" height="26" rx="3" fill="#3e2723"/><rect x="-22" y="-12" width="44" height="9" rx="4" fill="#78909c" stroke="#455a64" stroke-width="2"/><path d="M-13 -12 L-13 -100 L0 -118 L13 -100 L13 -12Z" fill="#b0bec5" stroke="#455a64" stroke-width="2.5"/><path d="M0 -18 L0 -104" stroke="#eceff1" stroke-width="3"/>`);
     case "katana": return g(22, `<rect x="-4" y="-4" width="8" height="22" rx="3" fill="#263238"/><ellipse cx="0" cy="-6" rx="11" ry="4" fill="#ffd23f"/><path d="M-4 -8 Q-8 -60 6 -104 L8 -102 Q0 -60 4 -8Z" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>`);
   }
   return "";
@@ -920,7 +932,7 @@ async function judge(ok) {
     const rg = (asp().regen || 0) + (hsp().regen || 0);
     if (rg) B.php = Math.min(pMaxHp(), B.php + Math.max(1, Math.round(pMaxHp() * rg)));
     B.coins += got; S.coins += got;
-    if (q.kind === "write") { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
+    if (q.kind === "write" && !q.self) { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
     petCharge();
     await attack(q.special ? 3 : q.kind === "write" ? 2 : 1, q.special ? q.skill || "スーパーアタック" : null);
   } else {
@@ -1406,23 +1418,30 @@ function buy(id) {
 }
 
 // ---------- そうび ----------
+let eqTab = "weapon";
 function equip() {
   const sec = (type, label) => {
     const its = ITEMS.filter((x) => x.type === type && S.owned.includes(x.id));
     // みじかい せつめい（数字と 属性だけ）＋ とくしゅ能力
     const short = (it) => (it.type === "acc" ? (it.id === "x_none" ? "つけない" : "🎀") : it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}` : it.type === "armor" ? `🛡️${it.def}${it.res === "all" ? " ✨" : it.res ? ` ${ELEMENTS[it.res].icon}◎` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}✕` : ""}` : `❤️+${it.hp}`);
-    return `<div class="esec"><div class="sub">${label}（${its.length}）</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
+    return `<div class="esec"><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
       <b>${it.series ? WORLDS.find((w) => w.id === it.series).icon : ""}${it.name}${funTag(it)}</b><small>${short(it)}</small>${it.sp ? `<span class="spt">${spText(it.sp)}</span>` : ""}</button>`).join("")}</div></div>`;
   };
+  // しゅるいを えらぶ タブ（キャラの すぐ 下）
+  const tabs = [["weapon", "⚔️ ぶき"], ["armor", "🛡️ よろい"], ["hat", "🎩 ぼうし"], ["acc", "🎀 アクセ"], ["color", "🎨 いろ"]];
+  const cnt = (t) => (t === "color" ? "" : `<small>${ITEMS.filter((x) => x.type === t && S.owned.includes(x.id)).length}</small>`);
+  const body = eqTab === "color"
+    ? `<div class="esec"><div class="colors">${BODY_COLORS.map((c) => `<button class="cdot ${S.color === c ? "sel" : ""}" style="background:${c}" onclick="setColor('${c}')"></button>`).join("")}</div></div>`
+    : sec(eqTab);
   setScreen(`${topBar("そうび")}
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>
     <small class="note">❤️ は ずかんの ★10こで +1 ふえるよ（いま +${starHp()}）</small></div>
-    ${sec("weapon", "ぶき")}${sec("armor", "よろい")}${sec("hat", "ぼうし")}${sec("acc", "アクセサリー")}
-    <div class="esec"><div class="sub">からだの いろ</div><div class="colors">${BODY_COLORS.map((c) => `<button class="cdot ${S.color === c ? "sel" : ""}" style="background:${c}" onclick="setColor('${c}')"></button>`).join("")}</div></div>`, "bg-shop");
+    <div class="tabs eqtabs">${tabs.map(([k, l]) => `<button class="${eqTab === k ? "on" : ""}" onclick="eqTab='${k}';equip()">${l}${cnt(k)}</button>`).join("")}</div>
+    ${body}`, "bg-shop");
 }
-function doEquip(type, id) { S.eq[type] = id; save(); snd("ok"); equip(); }
-function setColor(c) { S.color = c; save(); snd("tap"); equip(); }
+function doEquip(type, id) { const y = window.scrollY; S.eq[type] = id; save(); snd("ok"); equip(); window.scrollTo(0, y); }
+function setColor(c) { const y = window.scrollY; S.color = c; save(); snd("tap"); equip(); window.scrollTo(0, y); }
 
 // ---------- ずかん ----------
 let zTab = "kanji";

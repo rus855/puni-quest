@@ -42,6 +42,8 @@
           <button onclick="dbg.money()">コイン・ほうせき・そざい MAX</button>
           <button onclick="dbg.pets()">なかま ぜんぶ（Lv10）</button>
           <button onclick="dbg.eggs()">タマゴを すぐ かえす</button>
+          <button onclick="dbg.gearAll()">そうび・アクセ ぜんぶ</button>
+          <button onclick="dbg.accAll()">アクセサリー ぜんぶ</button>
         </div>
         <h3>進み具合</h3>
         <div class="dgrid">
@@ -94,11 +96,25 @@
     maxAll() {
       if (!needS()) return;
       S.owned = ITEMS.map((x) => x.id);
+      if (!S.eq.acc) S.eq.acc = "x_none";
       for (let t = 1; t <= 6; t++) S.tierClear[t] = true;
       S.tut = Object.assign(S.tut || {}, { map2: 1, battle: 1, egg: 1 });
       this.pets();
       S.coins = 99999; S.gems = 999; Object.keys(MATS).forEach((k) => { S.mats[k] = 99; });
       done("ぜんぶ そろえたよ（装備・なかま・コイン・そざい）");
+    },
+    gearAll() {
+      if (!needS()) return;
+      ITEMS.forEach((x) => { if (!S.owned.includes(x.id)) S.owned.push(x.id); });
+      if (!S.eq.acc) S.eq.acc = "x_none";
+      done(`そうびを ${ITEMS.length}こ ぜんぶ そろえたよ（アクセサリーも）`);
+    },
+    accAll() {
+      if (!needS()) return;
+      const acc = ITEMS.filter((x) => x.type === "acc");
+      acc.forEach((x) => { if (!S.owned.includes(x.id)) S.owned.push(x.id); });
+      if (!S.eq.acc) S.eq.acc = "x_none";
+      done(`アクセサリーを ${acc.length}こ ぜんぶ そろえたよ`);
     },
     toggleOpen() { window.PQ_OPEN = !window.PQ_OPEN; closeModal(); openDebug(); },
     toggleZukan() { window.PQ_ZUKANALL = !window.PQ_ZUKANALL; ss("pq_debug_zukan", window.PQ_ZUKANALL ? "1" : "0"); closeModal(); openDebug(); },
