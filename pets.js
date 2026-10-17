@@ -291,9 +291,32 @@ function breedTab() {
   return `<div class="breed">
     <p class="note">2ひきの なかまを かけあわせると、あたらしい タマゴが うまれるよ！<br>とくべつな くみあわせで しか うまれない なかまも いる…？</p>
     <div class="brow">${box(0)}<span class="bx">×</span>${box(1)}</div>
-    <div class="bres">${a && b ? `${eggSVG({ r: 0, f: true }, "wobble slow")}<small>なにが うまれるかな？</small>` : ""}</div>
+    <div class="bres">${a && b ? `${eggSVG({ r: 0, f: true }, "wobble slow")}<small>${findRecipe(a.sp, b.sp) ? "✨ なにか すごいことが おきそう…！" : "なにが うまれるかな？"}</small>` : ""}</div>
     <button class="big-btn primary" ${ok ? "" : "disabled"} onclick="doBreed()">かけあわせる！（🪙${BREED_COST}）</button>
-    <p class="note">じょうけん：どちらも Lv${BREED_LV}いじょう ／ 1ぴき 1日1回まで ／ タマゴは ${MAX_EGGS}こまで</p></div>`;
+    <p class="note">じょうけん：どちらも Lv${BREED_LV}いじょう ／ 1ぴき 1日1回まで ／ タマゴは ${MAX_EGGS}こまで</p>
+    ${breedHints(a, b)}</div>`;
+}
+
+const findRecipe = (x, y) => RECIPES.find(([pair]) => (pair[0] === x && pair[1] === y) || (pair[0] === y && pair[1] === x));
+
+// かけあわせの ヒント：えらんだ なかま（えらんでいなければ 持っている なかま）の「仲よし」を 少しだけ 教える
+function breedHints(a, b) {
+  const sel = [a, b].filter(Boolean).map((p) => p.sp);
+  const mine = [...new Set(S.pets.map((p) => p.sp))];
+  const base = sel.length ? sel : mine;
+  const lines = [];
+  RECIPES.forEach(([pair, res]) => {
+    if (S.petDex[res] || SECRET_RECIPES.includes(res)) return;
+    pair.forEach((x, i) => {
+      const other = pair[1 - i];
+      if (!base.includes(x) || lines.some((l) => l.k === x + other || l.k === other + x)) return;
+      lines.push({ k: x + other, t: `${petSp(x).em} ${petSp(x).name}は「${TRAIT[other]}」と 仲が よさそうだ…` });
+    });
+  });
+  const secret = SECRET_RECIPES.filter((r) => !S.petDex[r]).length;
+  if (!lines.length && !secret) return "";
+  return `<div class="hintbox"><b>🔍 なかまの ようす</b>${shuffle(lines).slice(0, 5).map((l) => `<p>${l.t}</p>`).join("")}
+    ${secret ? `<p class="secret">❓ ひみつの くみあわせが あと ${secret}こ あるらしい…</p>` : ""}</div>`;
 }
 function breedPick(k) {
   snd("tap");
@@ -348,7 +371,7 @@ function dexInfo(id) {
     // 見つけたことのある親だけ 絵で ヒントを出す
     const pair = RECIPES.find((r) => r[1] === id)[0];
     const show = (x) => (S.petDex[x] ? petSp(x).em : "？");
-    hint = `ヒント：${show(pair[0])} × ${show(pair[1])} を かけあわせると…？`;
+    hint = SECRET_RECIPES.includes(id) ? "ひみつの くみあわせで うまれるらしい…" : `ヒント：${show(pair[0])} × ${show(pair[1])} を かけあわせると…？`;
   }
   modal(`<div class="petbig lock">？</div><p>${hint}</p><button class="big-btn" onclick="closeModal()">とじる</button>`);
 }

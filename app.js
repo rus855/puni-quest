@@ -321,6 +321,7 @@ function setScreen(html, cls = "") {
   const app = $("app");
   app.className = cls;
   app.innerHTML = html;
+  if (typeof updateV !== "undefined" && updateV) $("updbar").classList.toggle("hidden", cls === "bg-battle");
   window.scrollTo(0, 0);
 }
 function go(name, arg) {
@@ -377,7 +378,7 @@ function home() {
   const claimable = MISSIONS.some((m) => (S.daily.prog[m.id] || 0) >= m.goal && !S.daily.claimed[m.id]);
   const ng = nigateIds().length;
   setScreen(`<div class="homewrap">
-    <div class="topbar"><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
+    <div class="topbar"><button class="back" onclick="goTitle()">🏠 タイトル</button><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
     <h1 class="logo sm">ぷにまるクエスト</h1>
     <div class="herowrap"><div class="hero" onclick="snd('tap');this.firstElementChild.classList.remove('jump');void this.offsetWidth;this.firstElementChild.classList.add('jump')">${charSVG(S.eq, S.color, "bounce")}</div>
       ${partner() ? `<button class="homepet" onclick="go('nakama','pets')" style="--pc:${ELEMENTS[petSp(partner().sp).el].color}">${petSp(partner().sp).em}</button>` : ""}</div>
@@ -1303,7 +1304,7 @@ function parent() {
   gateAns = a * b;
   setScreen(`${topBar("せってい")}
     <div class="panel"><div class="sub">ぼうけんのしょ</div><p class="small">いまは「ぼうけんのしょ${SL.cur + 1}」で あそんでいます。</p>
-      <button class="big-btn" onclick="save();title()">📖 ほかの ぼうけんのしょを えらぶ</button></div>
+      <button class="big-btn" onclick="goTitle()">📖 タイトルに もどる</button></div>
     <div class="panel"><div class="sub">効果音</div><button class="big-btn" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
     <div class="panel"><div class="sub">保護者の方へ</div><p class="small">学習の記録・バックアップは、次の計算の答えを入力すると開きます。</p>
     <div class="gate"><span>${a} × ${b} ＝</span><input id="gate" inputmode="numeric" autocomplete="off"><button class="sbtn" onclick="checkGate()">ひらく</button></div></div>`, "bg-shop");
@@ -1393,7 +1394,9 @@ function title() {
     <div class="sub center">ぼうけんのしょを えらんでね</div>
     <div class="slots">${[0, 1, 2].map((i) => slotCard(i, "start")).join("")}</div>
     <p class="note">${cs.icon} ${cs.text}</p>
+    ${updateV ? `<button class="big-btn primary" onclick="goTitle()">🆕 アップデートする</button>` : ""}
     ${Cloud.enabled() ? `<button class="big-btn" onclick="restoreMenu()">🔑 ふっかつコードで もどす</button>` : ""}
+    <p class="note">ver.${window.APP_V || "-"}</p>
   </div>`, "bg-home");
   // ほかのスマホで遊んだ分があれば取りこんで表示しなおす
   Cloud.pullAll().then((changed) => { if (changed && !S) title(); });
@@ -1454,6 +1457,38 @@ async function doCloudRestore() {
   if (msg) { snd("ng"); toast(msg); return; }
   snd("win"); closeModal(); toast("データを もどしたよ！"); title();
 }
+
+// ---------- アップデートの確認 ----------
+// version.json の 版が 新しくなっていたら、小さく お知らせする
+let updateV = 0;
+async function checkUpdate() {
+  if (location.protocol === "file:") return;
+  try {
+    const j = await (await fetch("version.json?t=" + Date.now(), { cache: "no-store" })).json();
+    if (j.v > (window.APP_V || 0)) { updateV = j.v; showUpdBar(); }
+  } catch (e) { /* ネットに つながらないときは 何もしない */ }
+}
+function showUpdBar() {
+  const b = $("updbar");
+  b.innerHTML = "🆕 アップデートが あるよ！ <b>タイトルに もどると</b> あたらしく なるよ";
+  b.onclick = goTitle;
+  b.classList.toggle("hidden", $("app").className === "bg-battle");
+}
+// タイトルへ もどる（アップデートが あれば ここで あたらしい版に する）
+function goTitle() {
+  if (B) B.over = true;
+  if (S) save();
+  if (updateV) {
+    $("app").innerHTML = `<div class="loading">あたらしい 版に しています…</div>`;
+    Promise.resolve(Cloud.push()).finally(() => location.replace(location.pathname + "?v=" + updateV));
+    return;
+  }
+  closeModal();
+  title();
+}
+setTimeout(checkUpdate, 3000);
+setInterval(checkUpdate, 5 * 60 * 1000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkUpdate(); });
 
 // ---------- 起動 ----------
 prepareChapters();

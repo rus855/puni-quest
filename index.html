@@ -14,21 +14,39 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" id="css" href="style.css">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app"><div class="loading">よみこみちゅう…</div></div>
   <div id="modal"></div>
   <div id="toast"></div>
-  <script src="data.js"></script>
-  <script src="world.js"></script>
-  <script src="c_kanji.js"></script>
-  <script src="c_kotoba.js"></script>
-  <script src="c_math.js"></script>
-  <script src="c_sci.js"></script>
-  <script src="c_soc.js"></script>
-  <script src="cloud.js"></script>
-  <script src="pets.js"></script>
-  <script src="app.js"></script>
+  <div id="updbar" class="hidden"></div>
+  <script>
+    // いちばん新しい版の番号を たしかめてから、その版の ファイルを 読みこむ
+    // （古いファイルが のこらないように、ファイル名に ?v=版 を つける）
+    (function () {
+      var FILES = ["data.js", "world.js", "c_kanji.js", "c_kotoba.js", "c_math.js", "c_sci.js", "c_soc.js", "cloud.js", "pets.js", "app.js"];
+      function boot(v) {
+        window.APP_V = v || 0;
+        var q = v ? "?v=" + v : "";
+        if (v) document.getElementById("css").href = "style.css" + q;
+        (function next(i) {
+          if (i >= FILES.length) return;
+          var s = document.createElement("script");
+          s.src = FILES[i] + q;
+          s.onload = function () { next(i + 1); };
+          s.onerror = function () { next(i + 1); };
+          document.body.appendChild(s);
+        })(0);
+      }
+      var done = false;
+      // ネットに つながらないときは 2秒で あきらめて、保存してある 版で うごかす
+      var timer = setTimeout(function () { if (!done) { done = true; boot(0); } }, 2000);
+      fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (!done) { done = true; clearTimeout(timer); boot(j.v); } })
+        .catch(function () { if (!done) { done = true; clearTimeout(timer); boot(0); } });
+    })();
+  </script>
 </body>
 </html>

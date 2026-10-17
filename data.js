@@ -378,3 +378,23 @@ const ABILITY = {
   revive: { icon: "🪶", name: "ふっかつ", desc: (p) => `たおれたとき 1回だけ ${p}% で ふっかつ（いつでも）` },
   chgel: { icon: "🔄", name: "ぞくせいチェンジ", desc: () => "てきの ぞくせいを、いまの ぶきが ばつぐんに なる ぞくせいに かえる" },
 };
+
+// --- かけあわせの ヒントに 使う「なかまの ようす」 ---
+const TRAIT = {
+  pyomaru: "小さな ひよこ", nyanta: "ねこの なかま", wanta: "いぬの なかま", pyonkichi: "ぴょんぴょん はねる 子",
+  kamessy: "こうらの ある 子", kerosuke: "みずべで ケロケロ なく 子", nezumin: "ちいさな ネズミ", butappi: "まるい ぶた",
+  hachimitsu: "花の みつが すきな 虫", konta: "ほのおの けもの", kumagoro: "力もちの 子", hoho: "もの知りな とり",
+  pandan: "ささが だいすきな 子", takorin: "あしが たくさん ある 子", penta: "さむい 国の とり", saruta: "木のぼり 上手",
+  hebinu: "にょろにょろ した 子", koumori: "よるの 空の 子", gaou: "百じゅうの 王", yuniko: "つのの ある 子",
+  draco: "りゅうの 子ども", birihamu: "ほっぺが ビリビリ する 子", ookami: "とおぼえ する 子", kujaku: "きれいな はねの とり",
+  toramaru: "しまもようの けもの", kujiran: "うみの 大きな 子", washitaka: "空の ハンター", goriran: "むねを たたく 子",
+  tokagen: "かくれんぼ 上手", koaran: "木に しがみつく 子", niwatori: "あさ はやく なく とり", ushimo: "もうもう なく 子",
+  umataro: "はしるのが はやい 子", hitsujin: "もこもこの 子", ahirun: "ガアガア なく 子", kanikani: "はさみを もつ 子",
+  yamaarashi: "トゲトゲの 子", chocho: "ひらひら とぶ 子", sukanku: "くさい においの 子", kabao: "大きな 口の 子",
+  sameddo: "うみの ハンター", sasorin: "どくの しっぽの 子", wanio: "大きな 口の ハンター", manmos: "大むかしの けもの",
+  zouzou: "はなが ながい 子", kirin: "首が ながい 子", yukihyo: "ゆきの けもの", flamingo: "かた足で 立つ とり",
+  tiranon: "きょうりゅう", stego: "せなかに いたの ある きょうりゅう", dodo: "まぼろしの とり", orca: "うみの 王",
+  ryuou: "でんせつの りゅう",
+};
+// ヒントを 出さない「ひみつの くみあわせ」
+const SECRET_RECIPES = ["yukihyo", "flamingo", "stego", "dodo", "orca", "ryuou"];
