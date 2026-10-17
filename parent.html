@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ぷにまるクエスト 保護者ページ</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" id="css" href="style.css">
+  <link rel="stylesheet" id="pcss" href="parent.css">
+</head>
+<body class="pg-body">
+  <div id="papp"><div class="loading">よみこみ中…</div></div>
+  <script>
+    // ゲームと 同じ 問題データを 読みこむ（カードの 名前を 表示するため）。保存は しない、見るだけの ページ
+    (function () {
+      var FILES = ["data.js", "world.js", "c_kanji.js", "c_kotoba.js", "c_math.js", "c_sci.js", "c_soc.js", "parent.js"];
+      function boot(v) {
+        var q = v ? "?v=" + v : "";
+        if (v) { document.getElementById("css").href = "style.css" + q; document.getElementById("pcss").href = "parent.css" + q; }
+        (function next(i) {
+          if (i >= FILES.length) return;
+          var s = document.createElement("script");
+          s.src = FILES[i] + q;
+          s.onload = function () { next(i + 1); };
+          s.onerror = function () { next(i + 1); };
+          document.body.appendChild(s);
+        })(0);
+      }
+      fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { boot(j.v); })
+        .catch(function () { boot(0); });
+    })();
+  </script>
+</body>
+</html>

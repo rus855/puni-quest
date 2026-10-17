@@ -1352,7 +1352,8 @@ function parentPanel() {
       <p class="small">データは自動でクラウドにも保存されています。アプリやデータが消えても、タイトル画面の「ふっかつコードで もどす」に下のコードを入れると、3つのぼうけんのしょが すべて元に戻ります。<b>スクリーンショットやメモで控えておいてください。</b></p>
       <div class="rcode">${Cloud.code()}</div>
       <p class="small" id="cstat">${Cloud.status().icon} ${Cloud.status().text}</p>
-      <button class="big-btn" onclick="cloudNow()">いますぐ クラウドに 保存</button>` : `<p class="small">クラウドセーブは準備中です（Firebaseの設定後に使えるようになります）。それまでは下のバックアップをご利用ください。</p>`}</div>
+      <button class="big-btn" onclick="cloudNow()">いますぐ クラウドに 保存</button>
+      <div class="abox left"><b>📱 別のスマホや PC から 見る</b><br>保護者用ページ（見るだけ）で、このコードを 入れると 学習の ようすを 確認できます。<br><span class="purl">${location.origin}${location.pathname.replace(/[^/]*$/, "")}parent.html</span></div>` : `<p class="small">クラウドセーブは準備中です（Firebaseの設定後に使えるようになります）。それまでは下のバックアップをご利用ください。</p>`}</div>
     <div class="panel"><div class="sub">バックアップ（このぼうけんのしょ）</div>
       <p class="small">機種変更やデータ消去にそなえて、下の「コピー」でデータを保存しておけます（メモアプリ等に貼り付け）。</p>
       <textarea id="bk" rows="3" readonly>${btoa(unescape(encodeURIComponent(JSON.stringify(S))))}</textarea>

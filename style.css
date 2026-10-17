@@ -582,3 +582,4 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
   margin: -4px -14px 10px; padding: 6px 14px;
   background: rgba(255, 247, 251, .9); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
+.purl { display: block; margin-top: 4px; font-size: 12px; word-break: break-all; color: #4a6cf7; -webkit-user-select: text; user-select: text; }
