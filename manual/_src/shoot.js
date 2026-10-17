@@ -25,6 +25,7 @@ CHAPTERS.filter(c=>["k1a","k1b","m1","m4","h1","s1","w1"].includes(c.id)).forEac
 ["k1a-1","k1a-2","k1a-3","k1a-4","k1b-1","k1b-2","m1-1","m1-2"].forEach((k,i)=>S.stClear[k]=[3,3,2,3,2,3,3,1][i]); S.tierClear[1]=true;
 S.stats.tot=420; S.stats.cor=356; S.login={last:today(), streak:4};
 ensureDaily(); S.daily.prog = { q10: 10, starup3: 2 };
+checkTreasures(); S.treasureSeen={}; Object.keys(S.treasures).forEach(k=>S.treasureSeen[k]=1);
 save(); window.SAVED=JSON.stringify(S);
 window.RESTORE=()=>{ S=JSON.parse(window.SAVED); SL.slots[0]=S; };
 window.FAKE=(k)=>{ const N=64,c=document.createElement("canvas"); c.width=c.height=N; const g=c.getContext("2d",{willReadFrequently:true}); g.translate(N/2,N/2); g.rotate(-0.05); g.scale(0.92,1.05); g.translate(-N/2,-N/2); g.font=(N*0.78)+"px serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(k,N/2+1,N/2+2); const sk=thinGrid(gridOf(g,N,100),N), st=[]; for(let y=0;y<N;y++) for(let x=0;x<N;x++) if(sk[y*N+x]) st.push([[x/N+Math.sin(y/7)*0.012,y/N+Math.sin(x/8)*0.012]]); return st; };
@@ -67,6 +68,9 @@ const SHOTS = [
   ["33_costume", `RESTORE(); S.eq={weapon:"w_heart",armor:"a_knight",hat:"h_none",acc:"x_dragon"}; equip()`],
   ["34_shopacc", `RESTORE(); S.tierClear={1:true,2:true,3:true}; shop("acc")`],
   ["35_dressup", `RESTORE(); const cs=[["w_heart","a_bear","h_none","x_cloud"],["w_tuna","a_swim","h_glasses","x_whale"],["w_niji","a_knight","h_none","x_dragon"],["w_mugen","a_robot","h_none","x_rocket"],["w_h1","a_ninja2","h_none","x_horse"],["w_shine","a_bolt","h_crown","x_none"],["w_starwand","a_starry","h_tiara","x_rainbow"],["w_harisen","a_box","h_afro","x_tear"],["w_stick","a_cloth","h_party","x_heart"]]; setScreen('<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:18px 8px;background:#fff7fb;min-height:720px">'+cs.map(c=>'<div style="text-align:center">'+charSVG({weapon:c[0],armor:c[1],hat:c[2],acc:c[3]},S.color)+'</div>').join("")+'</div>',"bg-home")`],
+  ["36_treasures", `RESTORE(); S.stats.cor=620; S.login.streak=8; worldChapters("math").forEach(c=>S.stClear[c.id+"-4"]=3); checkTreasures(); Object.keys(S.treasures).forEach(k=>S.treasureSeen[k]=1); treasures()`],
+  ["37_trophy", `RESTORE(); worldChapters("math").forEach(c=>S.stClear[c.id+"-4"]=3); checkTreasures(); treasures(); treasureDetail(TREASURES.findIndex(t=>t.id==="hero_math"))`, 900],
+  ["38_cert", `RESTORE(); S.treasures=Object.assign(S.treasures||{}, {cert:Date.now()}); treasures(); treasureDetail(TREASURES.findIndex(t=>t.id==="cert"))`, 900],
   ["27_hatch", `RESTORE(); S.eggs[0].p=20; nakama("egg"); hatchEgg(0)`, 2800],
 ];
 

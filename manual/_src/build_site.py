@@ -23,8 +23,9 @@ body { padding-top: calc(env(safe-area-inset-top, 0px) + 62px); }
   padding: calc(env(safe-area-inset-top, 0px) + 8px) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
   background: rgba(255, 248, 251, .94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(59,42,85,.12); }
 .backbar a { text-decoration: none; color: var(--ink); background: #fff; border: 2px solid #ffc6dd; border-bottom-width: 4px; border-radius: 14px; padding: 7px 14px; font-weight: 900; font-size: 15px; white-space: nowrap; }
-.backbar span { font-weight: 900; font-size: 14px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-section, header { scroll-margin-top: 80px; }
+.backbar a.tocbtn { margin-left: auto; border-color: #f3d27a; background: #fff4cf; }
+.backbar span { flex: 1; min-width: 0; font-weight: 900; font-size: 14px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+section, header, nav.toc, .pc, .qa { scroll-margin-top: 84px; }
 .parent { margin-top: 24px; }
 .toplinks { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
 .toplinks a { text-decoration: none; color: var(--parent); background: #fff; border: 2px solid #c9dbef; border-radius: 12px; padding: 8px 12px; font-weight: 900; font-size: 14px; }
@@ -59,7 +60,7 @@ kids_secs = txt[txt.index('  <!-- ===== 1 はじめかた'):txt.index('  <!-- ==
 parent_sec = block('<section class="parent" id="parents">', "</section>")
 
 # こども用：もどる先は タイトル（保護者ページから 来たときは 保護者ページ）
-kids_back = """<div class="backbar"><a id="back" href="../index.html">◀ タイトルに もどる</a><span>📘 ぷにまるクエスト せつめいしょ</span></div>
+kids_back = """<div class="backbar"><a id="back" href="../index.html">◀ タイトルに もどる</a><span>📘 せつめいしょ</span><a class="tocbtn" href="#toc">📑 もくじ</a></div>
 <script>
   // 保護者ページから 来たときは 保護者ページに もどる
   if (/[?&]from=parent/.test(location.search)) { var b = document.getElementById("back"); b.href = "../parent.html"; b.textContent = "◀ 保護者ページに もどる"; }
@@ -73,10 +74,17 @@ kids = doc("ぷにまるクエスト せつめいしょ", kids_back + f"""
 open(os.path.join(OUT, "kids.html"), "w", encoding="utf-8").write(kids)
 
 # 保護者用
-par_back = """<div class="backbar"><a href="../parent.html">◀ 保護者ページに もどる</a><span>📗 保護者用 せつめいしょ</span></div>"""
+par_back = """<div class="backbar"><a href="../parent.html">◀ 保護者ページに もどる</a><span>📗 保護者用</span><a class="tocbtn" href="#toc">📑 もくじ</a></div>"""
+# 保護者用の もくじ（カードの 見出しから つくる）
+heads = re.findall(r'<div class="pc">\s*<h3>(.*?)</h3>', parent_sec)
+_n = iter(range(len(heads)))
+parent_sec = re.sub(r'<div class="pc">(\s*<h3>)', lambda m: f'<div class="pc" id="p{next(_n)}">{m.group(1)}', parent_sec)
+par_toc = '<nav class="toc" id="toc" aria-label="もくじ">' + "".join(f'<a class="par" href="#p{i}">{h}</a>' for i, h in enumerate(heads)) + '<a href="#qa" class="par">よくある質問</a></nav>'
+parent_sec = parent_sec.replace('<div class="qa">', '<div class="qa" id="qa">', 1)
 parents = doc("ぷにまるクエスト 保護者用せつめいしょ", par_back + f"""
 <div class="wrap">
   <div class="toplinks"><a href="kids.html?from=parent">📘 こども用 せつめいしょ（遊び方）を 見る</a></div>
+  {par_toc}
   {parent_sec}
   <footer>ぷにまるクエスト 保護者用せつめいしょ</footer>
 </div>""")

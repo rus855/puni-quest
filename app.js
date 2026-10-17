@@ -427,7 +427,7 @@ function setScreen(html, cls = "") {
 }
 function go(name, arg) {
   snd("tap");
-  ({ home, map, shop, equip, zukan, missions, parent, nakama, openWorld, openChapter })[name](arg);
+  ({ home, map, shop, equip, zukan, missions, parent, nakama, openWorld, openChapter, treasures })[name](arg);
 }
 function topBar(title, back = "home") {
   return `<div class="topbar"><button class="back" onclick="go('${back}')">◀ もどる</button><div class="ttl">${title}</div>
@@ -494,9 +494,10 @@ function home() {
       <button onclick="go('zukan')"><span class="mi">🃏</span>ずかん${ng ? `<i class="badge">${ng}</i>` : ""}</button>
       <button onclick="go('missions')"><span class="mi">📜</span>ミッション${claimable ? `<i class="badge">!</i>` : ""}</button>
       <button onclick="saveMenu()"><span class="mi">💾</span>セーブ</button>
+      <button class="tbtn" onclick="go('treasures')"><span class="mi">🏆</span>たからもの${unseenTreasures().length ? `<i class="badge">NEW</i>` : ""}</button>
     </div></div>`, "bg-home");
-  // ログインボーナス → タマゴがかえる の順に1つずつ見せる
-  if (!loginBonus()) petEvents();
+  // ログインボーナス → たからもの → タマゴがかえる の順に1つずつ見せる
+  if (!loginBonus() && !treasureEvents()) petEvents();
 }
 
 // ホームのタマゴ表示（いちばん早くかえるタマゴまでの問題数）
@@ -1193,6 +1194,7 @@ function stageClear() {
     }
   }
   save();
+  checkTreasures(); // もらった 日を きろくする（見せるのは ホームで）
   const tiles = (ids, tag) => ids.map((id) => `<div class="mini-card ${id.startsWith("k:") ? "" : "long"}"><b>${id.startsWith("k:") ? id.slice(2) : esc(cardLabel(id))}</b><i>${tag}</i></div>`).join("");
   const cards = B.news.length || B.ups.length ? `<div class="gotcards">${tiles(B.news, "NEW")}${tiles(B.ups, "★UP")}</div>` : "";
   const box = treasure ? `<div class="tbox" id="tbox" onclick="openBox()"><div class="chest">🎁</div><small>タップして あけよう！</small></div>

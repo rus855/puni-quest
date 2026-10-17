@@ -154,17 +154,19 @@ body { padding-top: calc(env(safe-area-inset-top, 0px) + 62px); }
   padding: calc(env(safe-area-inset-top, 0px) + 8px) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
   background: rgba(255, 248, 251, .94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(59,42,85,.12); }
 .backbar a { text-decoration: none; color: var(--ink); background: #fff; border: 2px solid #ffc6dd; border-bottom-width: 4px; border-radius: 14px; padding: 7px 14px; font-weight: 900; font-size: 15px; white-space: nowrap; }
-.backbar span { font-weight: 900; font-size: 14px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-section, header { scroll-margin-top: 80px; }
+.backbar a.tocbtn { margin-left: auto; border-color: #f3d27a; background: #fff4cf; }
+.backbar span { flex: 1; min-width: 0; font-weight: 900; font-size: 14px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+section, header, nav.toc, .pc, .qa { scroll-margin-top: 84px; }
 .parent { margin-top: 24px; }
 .toplinks { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
 .toplinks a { text-decoration: none; color: var(--parent); background: #fff; border: 2px solid #c9dbef; border-radius: 12px; padding: 8px 12px; font-weight: 900; font-size: 14px; }
 </style>
 </head>
 <body>
-<div class="backbar"><a href="../parent.html">◀ 保護者ページに もどる</a><span>📗 保護者用 せつめいしょ</span></div>
+<div class="backbar"><a href="../parent.html">◀ 保護者ページに もどる</a><span>📗 保護者用</span><a class="tocbtn" href="#toc">📑 もくじ</a></div>
 <div class="wrap">
   <div class="toplinks"><a href="kids.html?from=parent">📘 こども用 せつめいしょ（遊び方）を 見る</a></div>
+  <nav class="toc" id="toc" aria-label="もくじ"><a class="par" href="#p0">📚 出題される内容</a><a class="par" href="#p1">🧠 くり返しのしくみ</a><a class="par" href="#p2">🔐 保護者ページ</a><a class="par" href="#p3">⚙️ 出題範囲の設定</a><a class="par" href="#p4">📈 学習記録</a><a class="par" href="#p5">💾 データの保存</a><a class="par" href="#p6">🔇 音とマナーモード</a><a class="par" href="#p7">🛡️ 安心して使えるように</a><a class="par" href="#p8">🏆 たからもの（記念）</a><a class="par" href="#p9">⏱️ 遊び方の目安</a><a href="#qa" class="par">よくある質問</a></nav>
   <section class="parent" id="parents">
     <span class="label">おうちの方へ</span>
     <h2>ぷにまるクエストは、小学校の 学習内容を RPG の バトルで くり返し練習する ゲームです</h2>
@@ -180,7 +182,7 @@ section, header { scroll-margin-top: 80px; }
     </div>
 
     <div class="pgrid">
-      <div class="pc">
+      <div class="pc" id="p0">
         <h3>📚 出題される内容</h3>
         <ul>
           <li><b>漢字</b>：1〜6年の全1,026字。読み・書き・熟語・同じ字が入る熟語の4形式。ボスではなぞり書き、「かきとり道場」ではお手本なしの手書き。線の向きと位置をくらべる甘めの自動判定で、自動で○にならなかったときはお手本を見せて、お子さん自身が「書けてた／ちがった」を選びます（自分で○にした場合はボーナスコインなし）。</li>
@@ -190,7 +192,7 @@ section, header { scroll-margin-top: 80px; }
           <li><b>ことば</b>：難読語・送りがな・同音異字・四字熟語・ことわざ・慣用句・敬語など。</li>
         </ul>
       </div>
-      <div class="pc">
+      <div class="pc" id="p1">
         <h3>🧠 くり返しのしくみ</h3>
         <ul>
           <li>正解した問題はカードになり、<b>別の日に</b>正解するたびに★が増えます（最大★5）。同じ日に何度正解しても★は増えないため、日をあけた復習が自然に起こります。</li>
@@ -198,38 +200,38 @@ section, header { scroll-margin-top: 80px; }
           <li>クリア済みの章の問題も、およそ4問に1問の割合で復習として混ざります。</li>
         </ul>
       </div>
-      <div class="pc">
+      <div class="pc" id="p2">
         <h3>🔐 保護者ページ</h3>
         <p>学習のようすの確認と出題の設定は、ゲームとは別の<b>保護者ページ</b>で行います（ゲームの中からは開けません）。</p>
         <p><span class="url">https://rus855.github.io/puni-quest/parent.html</span></p>
         <p>お子さんのゲームの ⚙️せってい画面に出ている12文字の「ふっかつコード」を入力して開きます。このURLはお子さんには伝えないでください。</p>
       </div>
-      <div class="pc">
+      <div class="pc" id="p3">
         <h3>⚙️ 出題範囲の設定</h3>
         <p>保護者ページの「出題の設定」で、<b>「◯年生まで」</b>のおおまかな設定と、<b>章ごとのオン・オフ</b>ができます。子どもの画面には学年は表示されません。</p>
         <p><b>「中学受験用の 問題を 出さない」</b>にチェックすると、特殊算（旅人算・つるかめ算など）・難読語・浮力などの【中学受験用】の章と問題が出なくなります。章ごとの設定画面では、該当する章に【中学受験用】と表示されます。</p>
         <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/41_parentcfg.jpg" alt="保護者ページの出題の設定" width="750" height="1440" loading="lazy"></div>
       </div>
-      <div class="pc">
+      <div class="pc" id="p4">
         <h3>📈 学習記録</h3>
         <p>保護者ページで、最後に遊んだ日時、今日と直近の解答数、正答率、国ごとの進み具合、苦手な問題を確認できます。ゲームで遊ぶと数秒〜数分で反映されます。</p>
         <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/40_parent.jpg" alt="保護者ページの学習記録" width="750" height="1440" loading="lazy"></div>
       </div>
-      <div class="pc">
+      <div class="pc" id="p5">
         <h3>💾 データの保存</h3>
         <ul>
           <li>進み具合は自動で端末とクラウドに保存されます。ぼうけんのしょは3つまで。</li>
           <li>ブラウザのデータが消えても、タイトル画面の「ふっかつコードで もどす」に12文字のコードを入れると元に戻ります。コードは控えておいてください。</li>
         </ul>
       </div>
-      <div class="pc">
+      <div class="pc" id="p6">
         <h3>🔇 音とマナーモード</h3>
         <ul>
           <li>BGM・効果音とも<b>初期設定はオフ</b>です。⚙️のせってい画面でそれぞれオンにできます。</li>
           <li>iPhone のマナーモードに従う種類の音で鳴らしており、イヤホンを付けていなければスピーカーからは鳴らない設計です。ただし、ブラウザの種類によっては従わない場合があるため、一度マナーモードで確かめてからオンにしてください。</li>
         </ul>
       </div>
-      <div class="pc">
+      <div class="pc" id="p7">
         <h3>🛡️ 安心して使えるように</h3>
         <ul>
           <li>広告・課金はありません。コインや宝石はゲーム内だけのものです。</li>
@@ -237,13 +239,17 @@ section, header { scroll-margin-top: 80px; }
           <li>アプリのインストールは不要で、ブラウザで動きます。ホーム画面やブックマークから開けます。</li>
         </ul>
       </div>
-      <div class="pc">
+      <div class="pc" id="p8">
+        <h3>🏆 たからもの（記念）</h3>
+        <p>国ごとの全クリア（英雄トロフィー）、まおう討伐、全世界の英雄トロフィーと表彰状、正解数（100・500・1000・3000問）、かきとり道場全クリア、キラカード100枚、なかま収集、連続ログイン（7日・30日）で記念品がもらえます。ホームの「🏆 たからもの」で、もらった日と一緒に見られます。</p>
+      </div>
+      <div class="pc" id="p9">
         <h3>⏱️ 遊び方の目安</h3>
         <p>1ステージは数分で終わります。毎日のミッション（3つ）をこなすと、ちょうどよい復習量になります。ニガテモンスターがたまってきたら「ニガテモンスター たいじ」を優先するよう声をかけてあげてください。</p>
       </div>
     </div>
 
-    <div class="qa">
+    <div class="qa" id="qa">
       <details><summary>Q. 音が鳴りません</summary><p>⚙️のせってい画面で BGM・効果音をオンにしてください。初期設定はオフです。それでも鳴らない場合は、マナーモードや音量を確認してください（マナーモード中はイヤホン使用時だけ鳴ります）。</p></details>
       <details><summary>Q. 新しい問題や機能が追加されたのに反映されません</summary><p>画面の下に更新のおしらせが出ているときは、ホームの「🏠 タイトル」に戻ると新しい版に切り替わります。</p></details>
       <details><summary>Q. 問題がむずかしすぎる／かんたんすぎる</summary><p>保護者ページの「出題の設定」で学年の範囲や章を調整できます。中学受験用の問題だけを外すこともできます。設定はゲームに数分以内に届き、次のバトルから反映されます。</p></details>

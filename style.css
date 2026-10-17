@@ -677,3 +677,25 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .eqtabs button small { font-size: 10px; opacity: .7; }
 
 a.manualbtn { display: block; text-align: center; text-decoration: none; color: inherit; background: #e3f1ff; box-sizing: border-box; }
+
+/* たからもの */
+.menu4.m6 .tbtn { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 8px; background: linear-gradient(135deg, #fff6c2, #ffd23f); font-size: 15px; }
+.menu4.m6 .tbtn .mi { font-size: 22px; }
+.tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+.tcard { position: relative; border: 0; border-radius: 16px; background: #fff; box-shadow: var(--shadow); padding: 8px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.tcard.lock { background: #efedf3; box-shadow: none; }
+.tcard.own { background: radial-gradient(circle at 50% 35%, #fffbe0, #fff 70%); }
+.tcard.special.own { box-shadow: 0 0 0 3px #ffd23f, var(--shadow); }
+.tcard small { font-size: 11px; font-weight: bold; line-height: 1.3; text-align: center; }
+.tcard.lock small { color: #9a96a6; }
+.tsvg { width: 100%; max-width: 92px; height: auto; display: block; }
+.tcard .badge { position: absolute; top: 4px; right: 4px; }
+.tdetail { text-align: center; }
+.tdetail p { margin: 6px 0; }
+.tbig { display: flex; justify-content: center; margin: 4px auto 8px; }
+.tbig .tsvg { max-width: 180px; }
+.tbig .certsvg { width: 100%; max-width: 300px; height: auto; }
+.tbig.shine { animation: tshine 1.6s ease-in-out infinite; }
+@keyframes tshine { 0%, 100% { filter: drop-shadow(0 0 4px #ffe066); } 50% { filter: drop-shadow(0 0 16px #ffd23f); } }
+.tname { display: block; font-size: 18px; margin-top: 4px; }
+#modal .mbox.tmodal { max-height: 92vh; overflow-y: auto; }

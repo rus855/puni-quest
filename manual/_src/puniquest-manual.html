@@ -152,8 +152,8 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
       <h1>ぷにまる<br>クエスト<small>もんだいを とくほど、ぷにまるが つよくなる！</small></h1>
       <p class="lead">漢字・算数・理科・社会・ことばの <b>5つの国</b> を ぼうけんする ゲームだよ。<br>もんだいに せいかいすると、てきに こうげき！ コインを あつめて そうびを かったり、タマゴから なかまを そだてたりしよう。</p>
       <div class="chips"><span class="chip">📖 漢字 1026字</span><span class="chip">🔢 算数の 公式</span><span class="chip">🔬 理科</span><span class="chip">🗾 社会</span><span class="chip">💬 ことば</span><span class="chip">🐣 なかま 53しゅるい</span><span class="chip">✍️ かきとり道場</span><span class="chip">🌑 まおう</span></div>
-      <nav class="toc" aria-label="もくじ">
-        <a href="#start">1 はじめかた</a><a href="#home">2 ホーム</a><a href="#map">3 ぼうけん</a><a href="#battle">4 バトル</a><a href="#answer">5 こたえかた</a><a href="#boss">6 ボスと クリア</a><a href="#write">7 かきとり道場</a><a href="#power">8 つよくなる</a><a href="#nakama">9 なかま</a><a href="#zukan">10 ずかん</a><a href="#maou">11 まおう</a><a href="#settings">12 せってい</a><a href="#parents" class="par">おうちの方へ</a>
+      <nav class="toc" id="toc" aria-label="もくじ">
+        <a href="#start">1 はじめかた</a><a href="#home">2 ホーム</a><a href="#map">3 ぼうけん</a><a href="#battle">4 バトル</a><a href="#answer">5 こたえかた</a><a href="#boss">6 ボスと クリア</a><a href="#write">7 かきとり道場</a><a href="#power">8 つよくなる</a><a href="#nakama">9 なかま</a><a href="#zukan">10 ずかん</a><a href="#maou">11 まおう</a><a href="#takara">12 たからもの</a><a href="#settings">13 せってい</a><a href="#parents" class="par">おうちの方へ</a>
       </nav>
     </div>
     <div>
@@ -228,6 +228,7 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
           <li><span class="n y">9</span><span><b>ずかん</b>：あつめた カード・そざい。</span></li>
           <li><span class="n y">10</span><span><b>ミッション</b>：まいにちの おだい。</span></li>
           <li><span class="n y">11</span><span><b>セーブ</b>：きろくを のこす（ふだんは じどうで セーブされるよ）。</span></li>
+          <li><span class="n y">12</span><span><b>🏆 たからもの</b>（いちばん下の 金色の ボタン）：あつめた トロフィーや メダルを 見る。</span></li>
         </ol>
         <div class="tip">どの 画面でも、左上の <span class="tap">◀ もどる</span> で 1つ まえに もどれるよ。画面を 下に スクロールしても、もどるボタンは ずっと 上に あるよ。</div>
       </div>
@@ -572,9 +573,42 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
     <p class="cap">まおう ドンヨリ との たたかい</p>
   </section>
 
-  <!-- ===== 12 せってい ===== -->
+  <!-- ===== 12 たからもの ===== -->
+  <section class="chapter" id="takara">
+    <div class="chead"><span class="no">12</span><div><h2>たからもの</h2><p>がんばった きねんの トロフィー・メダル・表彰状</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/36_treasures.jpg" alt="たからものの 一覧。まだの ものは 灰色の かげに なっている" width="750" height="1440" loading="lazy"></div>
+        <h4>たからものの へや</h4>
+        <p>ホームの <span class="tap">🏆 たからもの</span> で 見られるよ。まだ もらっていない ものは <b>灰色の かげ</b>。タップすると ヒントが 出るよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/37_trophy.jpg" alt="もらった トロフィーを 大きく 見た ところ" width="750" height="1440" loading="lazy"></div>
+        <h4>大きく 見る</h4>
+        <p>もらった たからものを タップすると、大きな 絵と <b>もらった日</b> が 見られるよ。<span class="tap">◀ たからものに もどる</span> で もとの 画面へ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/38_cert.jpg" alt="全世界の 英雄 表彰状" width="750" height="1440" loading="lazy"></div>
+        <h4>さいごの たからもの</h4>
+        <p>5つの 国を ぜんぶ すくって、しんの まおうを たおすと、<b>全世界の 英雄トロフィー</b>と <b>表彰状</b> が もらえるよ！</p>
+      </div>
+    </div>
+    <div class="tbl" style="margin-top:22px"><table>
+      <tr><th>たからもの</th><th>もらえる とき</th></tr>
+      <tr><td>🏆 ○○の国の 英雄トロフィー（5こ）</td><td>その 国の 章を ぜんぶ クリア</td></tr>
+      <tr><td>🏆 まおう たいじ トロフィー</td><td>まおうを たおす</td></tr>
+      <tr><td>🏆 全世界の 英雄トロフィー・📜 表彰状</td><td>5つの 国を ぜんぶ クリアして、しんの まおうを たおす</td></tr>
+      <tr><td>🏅 正解 メダル（100・500・1000・3000問）</td><td>問題に ぜんぶで その数 正解</td></tr>
+      <tr><td>🏅 かきとり名人 メダル</td><td>かきとり道場を ぜんぶ クリア</td></tr>
+      <tr><td>🏅 キラカード 100まい メダル</td><td>★5の カードを 100まい</td></tr>
+      <tr><td>🏅 なかま 20しゅるい メダル／🏆 コンプリート トロフィー</td><td>なかまずかんを 20しゅるい／ぜんぶ</td></tr>
+      <tr><td>🏅 7日・30日 れんぞく メダル</td><td>まいにち つづけて あそぶ</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ===== 13 せってい ===== -->
   <section class="chapter" id="settings">
-    <div class="chead"><span class="no">12</span><div><h2>せってい・セーブ</h2><p>音や きろくの こと</p></div></div>
+    <div class="chead"><span class="no">13</span><div><h2>せってい・セーブ</h2><p>音や きろくの こと</p></div></div>
     <div class="row">
       <div class="shot">
         <div class="phone"><img src="img/24_settings.jpg" alt="せってい画面" width="750" height="1440" loading="lazy">
@@ -669,6 +703,10 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
         </ul>
       </div>
       <div class="pc">
+        <h3>🏆 たからもの（記念）</h3>
+        <p>国ごとの全クリア（英雄トロフィー）、まおう討伐、全世界の英雄トロフィーと表彰状、正解数（100・500・1000・3000問）、かきとり道場全クリア、キラカード100枚、なかま収集、連続ログイン（7日・30日）で記念品がもらえます。ホームの「🏆 たからもの」で、もらった日と一緒に見られます。</p>
+      </div>
+      <div class="pc">
         <h3>⏱️ 遊び方の目安</h3>
         <p>1ステージは数分で終わります。毎日のミッション（3つ）をこなすと、ちょうどよい復習量になります。ニガテモンスターがたまってきたら「ニガテモンスター たいじ」を優先するよう声をかけてあげてください。</p>
       </div>
@@ -682,5 +720,5 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
     </div>
   </section>
 
-  <footer>ぷにまるクエスト ぼうけんガイド　・　画面は ver.20 の ものです</footer>
+  <footer>ぷにまるクエスト ぼうけんガイド　・　画面は ver.21 の ものです</footer>
 </div>
