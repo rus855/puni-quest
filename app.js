@@ -1,7 +1,9 @@
 // ===== ぷにまるクエスト：ゲーム本体 =====
 "use strict";
 
-const SLOTS_KEY = "puniquest_slots_v1";
+// デバッグページ（PQ_DEBUG）では 本番とは 別の 場所に 保存する
+const PQ_DEBUG = !!window.PQ_DEBUG;
+const SLOTS_KEY = PQ_DEBUG ? "puniquest_debug_slots_v1" : "puniquest_slots_v1";
 const OLD_SAVE_KEY = "puniquest_save_v1";
 const KFONT = '"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif';
 const BODY_COLORS = ["#ffc4dd", "#bdf0d8", "#fff0a8", "#c6e2ff", "#e3d0ff"];
@@ -17,8 +19,10 @@ const itemById = (id) => ITEMS.find((x) => x.id === id);
 const kanjiOf = (id) => KANJI.find((x) => x.k === id.slice(2));
 const formulaOf = (id) => FORMULAS.find((x) => x.id === id.slice(2));
 const dateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const today = () => dateKey(new Date());
-const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dateKey(d); };
+// デバッグでは 日付を 進められる（PQ_DAY 日 先）
+const nowDate = () => new Date(Date.now() + (PQ_DEBUG ? (window.PQ_DAY || 0) * 86400000 : 0));
+const today = () => dateKey(nowDate());
+const yesterday = () => { const d = nowDate(); d.setDate(d.getDate() - 1); return dateKey(d); };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- セーブデータ ----------
@@ -39,7 +43,7 @@ function loadSlots() {
     const t = localStorage.getItem(SLOTS_KEY);
     if (t) { SL = Object.assign({ cur: 0, slots: [null, null, null] }, JSON.parse(t)); return; }
     // 以前のバージョンのデータは「ぼうけんのしょ1」に引っこす
-    const o = localStorage.getItem(OLD_SAVE_KEY);
+    const o = PQ_DEBUG ? null : localStorage.getItem(OLD_SAVE_KEY);
     if (o) { SL.slots[0] = Object.assign(newSave(), JSON.parse(o), { savedAt: Date.now() }); writeSlots(); }
   } catch (e) { /* 保存できない環境でも遊べるようにする */ }
 }
@@ -736,6 +740,7 @@ function showQ() {
       <button class="big-btn" onclick="orderReset()">やりなおす</button>`;
   }
   $("qpanel").innerHTML = sp + q.head + body;
+  if (PQ_DEBUG && window.PQ_SHOWANS) debugMarkAnswer(q);
   fitBattle();
   if (B.hint && q.kind === "choice") {
     B.hint = false;
@@ -1237,7 +1242,7 @@ function traceJudge() {
 // ---------- ショップ ----------
 let shopTab = "weapon";
 // ステージクリアでショップに並ぶ
-const unlocked = (it) => !it.unlock || !!(S.tierClear || {})[it.unlock] || !!S.cleared[it.unlock];
+const unlocked = (it) => (PQ_DEBUG && window.PQ_OPEN) || !it.unlock || !!(S.tierClear || {})[it.unlock] || !!S.cleared[it.unlock];
 // まだ見ていない新商品があるか
 function newShop() { return ITEMS.some((x) => x.price > 0 && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]); }
 
@@ -1584,7 +1589,7 @@ async function checkUpdate() {
   if (location.protocol === "file:") return;
   syncCfg();
   try {
-    const j = await (await fetch("version.json?t=" + Date.now(), { cache: "no-store" })).json();
+    const j = await (await fetch((window.PQ_BASE || "") + "version.json?t=" + Date.now(), { cache: "no-store" })).json();
     if (j.v > (window.APP_V || 0)) { updateV = j.v; showUpdBar(); }
   } catch (e) { /* ネットに つながらないときは 何もしない */ }
 }
@@ -1621,6 +1626,6 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 prepareChapters();
 loadSlots();
 title();
-if ("serviceWorker" in navigator && location.protocol !== "file:") {
+if ("serviceWorker" in navigator && location.protocol !== "file:" && !PQ_DEBUG) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }

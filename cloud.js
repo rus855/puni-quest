@@ -3,12 +3,13 @@
 const FIREBASE = { apiKey: "AIzaSyDUNwtZ4KxpvrIKuGl9X48qWjTzHqGG3As", projectId: "puni-quest" };
 
 const Cloud = (() => {
-  const KEY = "puniquest_cloud_v1";
+  const KEY = window.PQ_DEBUG ? "puniquest_debug_cloud_v1" : "puniquest_cloud_v1";
   // code: ふっかつコード, dirty: クラウドにまだ送っていないぼうけんのしょ
   let st = { code: "", dirty: [false, false, false] };
   try { const t = localStorage.getItem(KEY); if (t) st = Object.assign(st, JSON.parse(t)); } catch (e) { /* 無視 */ }
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* 無視 */ } };
-  const enabled = () => !!(FIREBASE.apiKey && FIREBASE.projectId);
+  // デバッグページでは クラウドを 使わない（本番の データに さわらない）
+  const enabled = () => !window.PQ_DEBUG && !!(FIREBASE.apiKey && FIREBASE.projectId);
 
   let timer = null, pulled = false, busy = null, lastOk = 0, lastErr = false;
 

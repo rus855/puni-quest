@@ -157,11 +157,12 @@ function stageInfo(ch, n) {
 const stStars = (key) => (S.stClear || {})[key] || 0;
 // 区切りの 最初の 章と、一度 遊んだ 章は ひらいている。ほかは 1つ前の（出題する）章を クリアすると ひらく
 function chapterOpen(ch) {
+  if (window.PQ_DEBUG && window.PQ_OPEN) return true; // デバッグ：ぜんぶ ひらく
   const list = activeChapters(ch.w).filter((c) => c.sec === ch.sec), i = list.indexOf(ch);
   if (i <= 0 || stStars(`${ch.id}-1`) > 0) return true;
   return chapterDone(list[i - 1]);
 }
-const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || stStars(`${ch.id}-${n - 1}`) > 0);
+const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || (window.PQ_DEBUG && window.PQ_OPEN) || stStars(`${ch.id}-${n - 1}`) > 0);
 const chapterDone = (ch) => stStars(`${ch.id}-4`) > 0;
 const chapterStars = (ch) => [1, 2, 3, 4].reduce((a, n) => a + stStars(`${ch.id}-${n}`), 0);
 function worldProgress(w) {
