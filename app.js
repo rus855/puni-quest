@@ -617,7 +617,10 @@ function makeQ(id, kind) {
     const q = { id, kind: "choice", explain: `${word}（${reading}）` };
     if (kind === "kread") {
       q.head = `<div class="qlabel">よみかたは？</div><div class="qword">${esc(word).replace(K.k, `<span class="hl">${K.k}</span>`)}</div>`;
-      // 文字数のちかい読みを、まちがいの選択肢にする
+      // ほかの 字や ひらがなの 部分は そのままで、この 漢字の 読みだけ ちがう まちがいを つくる（消去法で とけないように）
+      const smart = YOMI.distractors(K, word, reading);
+      if (smart) return mkOpts(q, reading, smart);
+      // 作れない ときは、文字数の ちかい 読みを まちがいに する
       const pool = [];
       KANJI.forEach((x) => x.w.forEach(([, r]) => { if (r !== reading && !pool.includes(r)) pool.push(r); }));
       const near = shuffle(pool.filter((r) => Math.abs(r.length - reading.length) <= 1));
