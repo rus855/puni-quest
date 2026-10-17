@@ -1692,6 +1692,7 @@ function title() {
     <p class="note">${cs.icon} ${cs.text}</p>
     ${updateV ? `<button class="big-btn primary" onclick="goTitle()">🆕 アップデートする</button>` : ""}
     ${Cloud.enabled() ? `<button class="big-btn" onclick="restoreMenu()">🔑 ふっかつコードで もどす</button>` : ""}
+    <a class="big-btn manualbtn" href="${window.PQ_BASE || ""}manual/kids.html">📘 せつめいしょ を 見る</a>
     <p class="note">ver.${window.APP_V || "-"}</p>
   </div>`, "bg-home");
   // ほかのスマホで遊んだ分があれば取りこんで表示しなおす

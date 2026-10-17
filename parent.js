@@ -69,8 +69,9 @@ function saveCfg(cfg, msgId) {
 function loginView(msg) {
   $("papp").innerHTML = `<div class="pg-wrap">
     <h1 class="pg-title">🐣 ぷにまるクエスト<br><small>保護者ページ</small></h1>
+    <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>
     <div class="pg-card">
-      <p>お子さんの ゲームの ⚙️ →「保護者の方へ」に 表示される <b>ふっかつコード（12文字）</b> を入力してください。</p>
+      <p>お子さんの ゲームの ⚙️せってい画面に 表示される <b>ふっかつコード（12文字）</b> を入力してください。</p>
       <input id="pcode" class="pg-in" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(P.code ? P.code.replace(/(.{4})(.{4})(.{4})/, "$1-$2-$3") : "")}">
       <label class="pg-chk"><input type="checkbox" id="prem" checked> この端末に コードを 記憶する</label>
       <button class="big-btn primary" onclick="doLogin()">学習の ようすを 見る</button>
@@ -237,7 +238,8 @@ function resetWorld() {
 }
 
 function head() {
-  return `<h1 class="pg-title sm">🐣 ぷにまるクエスト <small>保護者ページ</small></h1>`;
+  return `<h1 class="pg-title sm">🐣 ぷにまるクエスト <small>保護者ページ</small></h1>
+    <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>`;
 }
 function logout() { localStorage.removeItem(P_KEY); P.code = ""; loginView(); }
 

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>ぷにまるクエスト 保護者用せつめいしょ</title>
+<link rel="icon" type="image/png" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* レイアウト：絵本の ページのように、左に ゲーム画面・右に せつめい（スマホでは たてに ならぶ） */
+:root {
+  color-scheme: light;
+  --paper: #fff8fb;      /* 紙の色 */
+  --ink: #3b2a55;        /* 文字（ゲームと 同じ 紫がかった こい色） */
+  --ink-soft: #6b5b8a;
+  --pink: #f0569a;       /* ゲームの ロゴの ピンク */
+  --pink-soft: #ffe1ee;
+  --mint: #2fae7c;
+  --mint-soft: #ddf6ea;
+  --sun: #ffc93c;
+  --sun-soft: #fff4cf;
+  --sky-soft: #e3f1ff;
+  --line: #f1d6e4;
+  --parent: #2f5d8a;     /* おうちの方むけの 色 */
+  --parent-soft: #eaf2fb;
+  --f-display: "Dela Gothic One", "Hiragino Maru Gothic ProN", "Zen Maru Gothic", sans-serif;
+  --f-body: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-weight: 500;
+  font-size: 16px; line-height: 1.85;
+  background-image: radial-gradient(circle at 12px 12px, rgba(240,86,154,.07) 2px, transparent 2.5px);
+  background-size: 28px 28px;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; margin: 0; }
+p { margin: 0; }
+b, strong { font-weight: 900; }
+ruby rt { font-size: .5em; }
+
+/* ---- 表紙 ---- */
+.cover { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 28px; align-items: center; padding-block: 40px 24px; }
+.cover .kicker { display: inline-block; background: var(--ink); color: #fff; font-weight: 900; font-size: 13px; letter-spacing: .12em; padding: 4px 14px; border-radius: 99px; }
+.cover h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(40px, 7vw, 68px); color: var(--pink); line-height: 1.12; margin-top: 14px;
+  text-shadow: 3px 3px 0 #fff, -3px 3px 0 #fff, 3px -3px 0 #fff, -3px -3px 0 #fff, 0 7px 0 rgba(240,86,154,.22); }
+.cover h1 small { display: block; font-size: .42em; color: var(--ink); text-shadow: none; margin-top: 10px; letter-spacing: .04em; }
+.cover .lead { font-size: 18px; margin-top: 18px; max-width: 30em; }
+.cover .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chip { background: #fff; border: 2px solid var(--line); border-radius: 99px; padding: 4px 12px; font-weight: 700; font-size: 14px; }
+.toc { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--sun-soft); border-radius: 12px; padding: 6px 12px; font-weight: 700; font-size: 14px; border-bottom: 3px solid #f3d27a; }
+.toc a.par { background: var(--parent-soft); border-bottom-color: #b9cfe8; }
+.toc a:focus-visible, a:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+/* ---- スマホの わく ---- */
+.phone { position: relative; width: 100%; max-width: 270px; margin: 0 auto; border-radius: 30px; padding: 9px; background: var(--ink);
+  box-shadow: 0 14px 30px rgba(59,42,85,.22); }
+.phone img { display: block; width: 100%; height: auto; border-radius: 22px; }
+.phone.tilt { transform: rotate(2.5deg); }
+.cap { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 10px; font-weight: 700; }
+/* 画面の上の 番号ピン */
+.pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 900; font-size: 14px;
+  display: grid; place-items: center; border: 2.5px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); line-height: 1; }
+.pin.y { background: #e08a00; }
+
+/* ---- 章 ---- */
+.chapter { margin-top: 56px; }
+.chead { display: flex; align-items: center; gap: 14px; }
+.chead .no { flex: none; width: 54px; height: 54px; border-radius: 18px; background: var(--pink); color: #fff; font-family: var(--f-display); font-size: 26px; display: grid; place-items: center; transform: rotate(-6deg); box-shadow: 0 4px 0 #c43c7b; }
+.chead h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(24px, 4vw, 34px); }
+.chead p { color: var(--ink-soft); font-weight: 700; }
+.row { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 32px; align-items: start; margin-top: 26px; }
+.row.flip { grid-template-columns: minmax(0, 1fr) 270px; }
+.row.flip .shot { order: 2; }
+.txt { min-width: 0; display: grid; gap: 14px; }
+.txt h3 { font-size: 21px; font-weight: 900; }
+.txt h3 .tag { font-size: 13px; vertical-align: middle; background: var(--mint-soft); color: var(--mint); border-radius: 99px; padding: 2px 10px; margin-left: 6px; }
+
+/* 番号つきの せつめい */
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.legend li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; }
+.legend li .n { width: 26px; height: 26px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 900; font-size: 14px; display: grid; place-items: center; margin-top: 3px; }
+.legend li .n.y { background: #e08a00; }
+/* 手順 */
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; gap: 10px; }
+.steps li { counter-increment: s; position: relative; padding: 10px 14px 10px 50px; background: #fff; border: 2px solid var(--line); border-radius: 16px; }
+.steps li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 28px; height: 28px; border-radius: 9px; background: var(--sun); color: var(--ink); font-weight: 900; display: grid; place-items: center; }
+.tap { display: inline-block; background: #fff; border: 2px solid #ffc6dd; border-bottom-width: 4px; border-radius: 10px; padding: 0 8px; font-weight: 900; font-size: .92em; white-space: nowrap; }
+
+/* ふきだし・メモ */
+.tip { background: var(--sun-soft); border-radius: 18px; padding: 12px 16px 12px 52px; position: relative; }
+.tip::before { content: "💡"; position: absolute; left: 14px; top: 10px; font-size: 24px; }
+.tip.warn { background: var(--pink-soft); }
+.tip.warn::before { content: "⚠️"; }
+.tip.star::before { content: "⭐"; }
+.say { display: flex; gap: 12px; align-items: flex-start; }
+.say .face { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--pink-soft); display: grid; place-items: center; font-size: 30px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.say .bubble { background: #fff; border: 2px solid var(--line); border-radius: 4px 18px 18px 18px; padding: 10px 14px; min-width: 0; }
+
+/* 画面を ならべる */
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 22px; margin-top: 22px; }
+.gallery .phone { max-width: 220px; }
+.gallery .g { display: grid; gap: 8px; align-content: start; }
+.gallery h4 { margin: 4px 0 0; font-size: 17px; font-weight: 900; text-align: center; }
+.gallery p { font-size: 14.5px; line-height: 1.75; }
+
+/* 表 */
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; border-radius: 14px; overflow: hidden; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--pink-soft); font-weight: 900; white-space: nowrap; }
+
+/* ---- おうちの方へ ---- */
+.parent { margin-top: 64px; background: var(--parent-soft); border-radius: 28px; padding-block: 28px; padding-inline: clamp(16px, 4vw, 40px); border: 2px solid #c9dbef; }
+.parent .label { display: inline-block; background: var(--parent); color: #fff; font-size: 13px; letter-spacing: .1em; font-weight: 900; padding: 3px 12px; border-radius: 99px; }
+.parent h2 { font-size: clamp(22px, 3.4vw, 30px); font-weight: 900; color: var(--parent); margin-top: 10px; }
+.parent .pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px; }
+.parent .pc { background: #fff; border-radius: 18px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.parent .pc h3 { font-size: 17px; font-weight: 900; color: var(--parent); }
+.parent .pc p, .parent .pc li { font-size: 15px; line-height: 1.8; }
+.parent ul { margin: 0; padding-left: 1.2em; }
+.parent .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 18px; }
+.parent .fig { background: #fff; border-radius: 16px; padding: 12px; text-align: center; }
+.parent .fig b { display: block; font-size: 28px; color: var(--parent); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.parent .fig span { font-size: 13px; font-weight: 700; color: #4d6a87; }
+.url { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: var(--parent-soft); padding: 2px 8px; border-radius: 6px; word-break: break-all; user-select: all; }
+
+.qa { display: grid; gap: 10px; margin-top: 18px; }
+.qa details { background: #fff; border-radius: 16px; padding: 12px 16px; border: 2px solid var(--line); }
+.qa summary { font-weight: 900; cursor: pointer; }
+.qa details p { margin-top: 8px; }
+
+footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+
+@media (max-width: 760px) {
+  .cover { grid-template-columns: minmax(0, 1fr); padding-top: 28px; }
+  .cover .phone { max-width: 230px; }
+  .row, .row.flip { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .row.flip .shot { order: 0; }
+  .shot .phone { max-width: 250px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cover .phone.tilt { animation: bob 4s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: rotate(2.5deg) translateY(0); } 50% { transform: rotate(2.5deg) translateY(-8px); } }
+}
+
+/* 上に 固定の もどるボタン */
+body { padding-top: calc(env(safe-area-inset-top, 0px) + 62px); }
+.backbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
+  background: rgba(255, 248, 251, .94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(59,42,85,.12); }
+.backbar a { text-decoration: none; color: var(--ink); background: #fff; border: 2px solid #ffc6dd; border-bottom-width: 4px; border-radius: 14px; padding: 7px 14px; font-weight: 900; font-size: 15px; white-space: nowrap; }
+.backbar span { font-weight: 900; font-size: 14px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+section, header { scroll-margin-top: 80px; }
+.parent { margin-top: 24px; }
+.toplinks { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.toplinks a { text-decoration: none; color: var(--parent); background: #fff; border: 2px solid #c9dbef; border-radius: 12px; padding: 8px 12px; font-weight: 900; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="backbar"><a href="../parent.html">◀ 保護者ページに もどる</a><span>📗 保護者用 せつめいしょ</span></div>
+<div class="wrap">
+  <div class="toplinks"><a href="kids.html?from=parent">📘 こども用 せつめいしょ（遊び方）を 見る</a></div>
+  <section class="parent" id="parents">
+    <span class="label">おうちの方へ</span>
+    <h2>ぷにまるクエストは、小学校の 学習内容を RPG の バトルで くり返し練習する ゲームです</h2>
+    <p style="margin-top:12px">問題に正解すると敵に攻撃でき、集めたコインや素材で装備をそろえたり、タマゴからなかまを育てたりできます。問題は暗算や知識で答えられるものにしぼっており、1問あたり数秒〜十数秒で解けます。</p>
+
+    <div class="figs">
+      <div class="fig"><b>1,026</b><span>小学校の漢字（全学年）</span></div>
+      <div class="fig"><b>5</b><span>教科の国</span></div>
+      <div class="fig"><b>115</b><span>章（各 3ステージ＋ボス）</span></div>
+      <div class="fig"><b>6</b><span>かきとり道場</span></div>
+      <div class="fig"><b>約1,660</b><span>問題の種類</span></div>
+      <div class="fig"><b>53</b><span>なかま</span></div>
+    </div>
+
+    <div class="pgrid">
+      <div class="pc">
+        <h3>📚 出題される内容</h3>
+        <ul>
+          <li><b>漢字</b>：1〜6年の全1,026字。読み・書き・熟語・同じ字が入る熟語の4形式。ボスではなぞり書き、「かきとり道場」ではお手本なしの手書き。線の向きと位置をくらべる甘めの自動判定で、自動で○にならなかったときはお手本を見せて、お子さん自身が「書けてた／ちがった」を選びます（自分で○にした場合はボーナスコインなし）。</li>
+          <li><b>算数</b>：面積・体積・速さ・割合・比・平均などの公式と、旅人算・つるかめ算など特殊算の考え方（暗算で解ける数値）。</li>
+          <li><b>理科</b>：水よう液・気体・電気・てこ・人体・天体・地層など。</li>
+          <li><b>社会</b>：歴史（できごと・人物の並べかえ）・政治・地理・雨温図・県庁所在地など。</li>
+          <li><b>ことば</b>：難読語・送りがな・同音異字・四字熟語・ことわざ・慣用句・敬語など。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🧠 くり返しのしくみ</h3>
+        <ul>
+          <li>正解した問題はカードになり、<b>別の日に</b>正解するたびに★が増えます（最大★5）。同じ日に何度正解しても★は増えないため、日をあけた復習が自然に起こります。</li>
+          <li>続けて正解している問題は出る回数が減り、<b>まちがえた問題は「ニガテモンスター」</b>として残ります。2回正解すると解除されます。</li>
+          <li>クリア済みの章の問題も、およそ4問に1問の割合で復習として混ざります。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🔐 保護者ページ</h3>
+        <p>学習のようすの確認と出題の設定は、ゲームとは別の<b>保護者ページ</b>で行います（ゲームの中からは開けません）。</p>
+        <p><span class="url">https://rus855.github.io/puni-quest/parent.html</span></p>
+        <p>お子さんのゲームの ⚙️せってい画面に出ている12文字の「ふっかつコード」を入力して開きます。このURLはお子さんには伝えないでください。</p>
+      </div>
+      <div class="pc">
+        <h3>⚙️ 出題範囲の設定</h3>
+        <p>保護者ページの「出題の設定」で、<b>「◯年生まで」</b>のおおまかな設定と、<b>章ごとのオン・オフ</b>ができます。子どもの画面には学年は表示されません。</p>
+        <p><b>「中学受験用の 問題を 出さない」</b>にチェックすると、特殊算（旅人算・つるかめ算など）・難読語・浮力などの【中学受験用】の章と問題が出なくなります。章ごとの設定画面では、該当する章に【中学受験用】と表示されます。</p>
+        <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/41_parentcfg.jpg" alt="保護者ページの出題の設定" width="750" height="1440" loading="lazy"></div>
+      </div>
+      <div class="pc">
+        <h3>📈 学習記録</h3>
+        <p>保護者ページで、最後に遊んだ日時、今日と直近の解答数、正答率、国ごとの進み具合、苦手な問題を確認できます。ゲームで遊ぶと数秒〜数分で反映されます。</p>
+        <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/40_parent.jpg" alt="保護者ページの学習記録" width="750" height="1440" loading="lazy"></div>
+      </div>
+      <div class="pc">
+        <h3>💾 データの保存</h3>
+        <ul>
+          <li>進み具合は自動で端末とクラウドに保存されます。ぼうけんのしょは3つまで。</li>
+          <li>ブラウザのデータが消えても、タイトル画面の「ふっかつコードで もどす」に12文字のコードを入れると元に戻ります。コードは控えておいてください。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🔇 音とマナーモード</h3>
+        <ul>
+          <li>BGM・効果音とも<b>初期設定はオフ</b>です。⚙️のせってい画面でそれぞれオンにできます。</li>
+          <li>iPhone のマナーモードに従う種類の音で鳴らしており、イヤホンを付けていなければスピーカーからは鳴らない設計です。ただし、ブラウザの種類によっては従わない場合があるため、一度マナーモードで確かめてからオンにしてください。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🛡️ 安心して使えるように</h3>
+        <ul>
+          <li>広告・課金はありません。コインや宝石はゲーム内だけのものです。</li>
+          <li>ほかのユーザーとのやり取り（チャットなど）はありません。</li>
+          <li>アプリのインストールは不要で、ブラウザで動きます。ホーム画面やブックマークから開けます。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>⏱️ 遊び方の目安</h3>
+        <p>1ステージは数分で終わります。毎日のミッション（3つ）をこなすと、ちょうどよい復習量になります。ニガテモンスターがたまってきたら「ニガテモンスター たいじ」を優先するよう声をかけてあげてください。</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <details><summary>Q. 音が鳴りません</summary><p>⚙️のせってい画面で BGM・効果音をオンにしてください。初期設定はオフです。それでも鳴らない場合は、マナーモードや音量を確認してください（マナーモード中はイヤホン使用時だけ鳴ります）。</p></details>
+      <details><summary>Q. 新しい問題や機能が追加されたのに反映されません</summary><p>画面の下に更新のおしらせが出ているときは、ホームの「🏠 タイトル」に戻ると新しい版に切り替わります。</p></details>
+      <details><summary>Q. 問題がむずかしすぎる／かんたんすぎる</summary><p>保護者ページの「出題の設定」で学年の範囲や章を調整できます。中学受験用の問題だけを外すこともできます。設定はゲームに数分以内に届き、次のバトルから反映されます。</p></details>
+      <details><summary>Q. データを別のスマホに移したい</summary><p>新しい端末でゲームを開き、タイトル画面の「ふっかつコードで もどす」に、⚙️せってい画面に表示されている12文字のコードを入力してください。</p></details>
+    </div>
+  </section>
+  <footer>ぷにまるクエスト 保護者用せつめいしょ</footer>
+</div>
+</body>
+</html>

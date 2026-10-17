@@ -69,3 +69,6 @@
 .pg-exam small { font-size: 11px; color: #8a6d3b; }
 .pg-exl { color: #c2410c; font-size: 11px; white-space: nowrap; }
 .pg-off { opacity: .45; }
+
+.pg-manuals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 12px; }
+.pg-manuals a { display: block; text-align: center; text-decoration: none; color: #2f5d8a; background: #eaf2fb; border: 2px solid #c9dbef; border-radius: 12px; padding: 10px 4px; font-weight: bold; font-size: 13px; }
