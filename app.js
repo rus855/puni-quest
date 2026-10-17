@@ -1,7 +1,8 @@
 // ===== ぷにまるクエスト：ゲーム本体 =====
 "use strict";
 
-const SAVE_KEY = "puniquest_save_v1";
+const SLOTS_KEY = "puniquest_slots_v1";
+const OLD_SAVE_KEY = "puniquest_save_v1";
 const KFONT = '"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",sans-serif';
 const BODY_COLORS = ["#ffc4dd", "#bdf0d8", "#fff0a8", "#c6e2ff", "#e3d0ff"];
 // からだの色ごとの足の色
@@ -29,15 +30,27 @@ function newSave() {
     daily: { date: "", prog: {}, claimed: {}, ngGems: 0 }, login: { last: "", streak: 0 }, tut: {},
   };
 }
-let S;
-function load() {
+// 3つの「ぼうけんのしょ」。cur は いま遊んでいる番号（0〜2）
+let SL = { cur: 0, slots: [null, null, null] };
+let S = null;
+function loadSlots() {
   try {
-    const t = localStorage.getItem(SAVE_KEY);
-    if (t) { S = Object.assign(newSave(), JSON.parse(t)); return; }
+    const t = localStorage.getItem(SLOTS_KEY);
+    if (t) { SL = Object.assign({ cur: 0, slots: [null, null, null] }, JSON.parse(t)); return; }
+    // 以前のバージョンのデータは「ぼうけんのしょ1」に引っこす
+    const o = localStorage.getItem(OLD_SAVE_KEY);
+    if (o) { SL.slots[0] = Object.assign(newSave(), JSON.parse(o), { savedAt: Date.now() }); writeSlots(); }
   } catch (e) { /* 保存できない環境でも遊べるようにする */ }
-  S = newSave();
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 無視 */ } }
+function writeSlots() { try { localStorage.setItem(SLOTS_KEY, JSON.stringify(SL)); } catch (e) { /* 無視 */ } }
+// 自動セーブ：いまのぼうけんのしょに保存して、クラウドにも送る
+function save() {
+  if (!S) return;
+  S.savedAt = Date.now();
+  SL.slots[SL.cur] = S;
+  writeSlots();
+  Cloud.markDirty(SL.cur);
+}
 
 // 毎日ミッションの日付切りかえ
 function ensureDaily() {
@@ -85,7 +98,7 @@ const nigateIds = () => Object.keys(S.cards).filter((id) => S.cards[id].ng);
 // ---------- 効果音（WebAudioで鳴らす） ----------
 let AC = null;
 function snd(type) {
-  if (!S.sound) return;
+  if (S && !S.sound) return;
   try {
     if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
     if (AC.state === "suspended") AC.resume();
@@ -293,7 +306,7 @@ function home() {
   const claimable = MISSIONS.some((m) => (S.daily.prog[m.id] || 0) >= m.goal && !S.daily.claimed[m.id]);
   const ng = nigateIds().length;
   setScreen(`<div class="homewrap">
-    <div class="topbar"><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
+    <div class="topbar"><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="saveMenu()" aria-label="セーブ">💾</button><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
     <h1 class="logo sm">ぷにまるクエスト</h1>
     <div class="hero" onclick="snd('tap');this.firstElementChild.classList.remove('jump');void this.offsetWidth;this.firstElementChild.classList.add('jump')">${charSVG(S.eq, S.color, "bounce")}</div>
     <div class="pname">${esc(S.name)}</div>
@@ -950,6 +963,8 @@ function parent() {
   const a = 12 + Math.floor(Math.random() * 8), b = 13 + Math.floor(Math.random() * 7);
   gateAns = a * b;
   setScreen(`${topBar("せってい")}
+    <div class="panel"><div class="sub">ぼうけんのしょ</div><p class="small">いまは「ぼうけんのしょ${SL.cur + 1}」で あそんでいます。</p>
+      <button class="big-btn" onclick="save();title()">📖 ほかの ぼうけんのしょを えらぶ</button></div>
     <div class="panel"><div class="sub">効果音</div><button class="big-btn" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
     <div class="panel"><div class="sub">保護者の方へ</div><p class="small">学習の記録・バックアップは、次の計算の答えを入力すると開きます。</p>
     <div class="gate"><span>${a} × ${b} ＝</span><input id="gate" inputmode="numeric" autocomplete="off"><button class="sbtn" onclick="checkGate()">ひらく</button></div></div>`, "bg-shop");
@@ -977,11 +992,16 @@ function parentPanel() {
       <p>漢字：出会った <b>${kGot}</b> / ${KANJI.length}字、★5（定着） <b>${kMaster}</b>字</p>
       <p>公式：出会った <b>${fGot}</b> / ${FORMULAS.length}</p>
       <p>苦手（ニガテ）：${ng.length ? ng.map(esc).join("、") : "なし"}</p></div>
-    <div class="panel"><div class="sub">バックアップ</div>
+    <div class="panel"><div class="sub">クラウドセーブ</div>${Cloud.enabled() ? `
+      <p class="small">データは自動でクラウドにも保存されています。アプリやデータが消えても、タイトル画面の「ふっかつコードで もどす」に下のコードを入れると、3つのぼうけんのしょが すべて元に戻ります。<b>スクリーンショットやメモで控えておいてください。</b></p>
+      <div class="rcode">${Cloud.code()}</div>
+      <p class="small" id="cstat">${Cloud.status().icon} ${Cloud.status().text}</p>
+      <button class="big-btn" onclick="cloudNow()">いますぐ クラウドに 保存</button>` : `<p class="small">クラウドセーブは準備中です（Firebaseの設定後に使えるようになります）。それまでは下のバックアップをご利用ください。</p>`}</div>
+    <div class="panel"><div class="sub">バックアップ（このぼうけんのしょ）</div>
       <p class="small">機種変更やデータ消去にそなえて、下の「コピー」でデータを保存しておけます（メモアプリ等に貼り付け）。</p>
       <textarea id="bk" rows="3" readonly>${btoa(unescape(encodeURIComponent(JSON.stringify(S))))}</textarea>
       <div class="row"><button class="big-btn" onclick="copyBk()">コピー</button><button class="big-btn" onclick="restoreBk()">復元する</button></div></div>
-    <div class="panel"><div class="sub">データの初期化</div><button class="big-btn danger" onclick="resetAll()">はじめから やりなおす</button></div>`, "bg-shop");
+    <div class="panel"><div class="sub">データの削除</div><button class="big-btn danger" onclick="resetAll()">ぼうけんのしょ${SL.cur + 1} を けす</button></div>`, "bg-shop");
 }
 function copyBk() {
   const t = $("bk"); t.select();
@@ -999,14 +1019,109 @@ function doRestore() {
   } catch (e) { toast("コードが正しくありません"); }
 }
 function resetAll() {
-  modal(`<div class="mtitle">本当に はじめから？</div><p class="small">コイン・そうび・カードが すべて きえます。</p>
-    <div class="row"><button class="big-btn" onclick="closeModal()">やめる</button><button class="big-btn danger" onclick="S=newSave();save();closeModal();setup()">けす</button></div>`);
+  modal(`<div class="mtitle">ぼうけんのしょ${SL.cur + 1} を けす？</div><p class="small">「${esc(S.name)}」の コイン・そうび・カードが すべて きえます。<br>ほかの ぼうけんのしょは きえません。</p>
+    <div class="row"><button class="big-btn" onclick="closeModal()">やめる</button><button class="big-btn danger" onclick="deleteSlot()">けす</button></div>`);
+}
+function deleteSlot() {
+  SL.slots[SL.cur] = null; writeSlots(); Cloud.markDirty(SL.cur);
+  S = null; closeModal(); title();
+}
+async function cloudNow() {
+  $("cstat").textContent = "⏳ 保存しています…";
+  const ok = await Cloud.push();
+  const st = Cloud.status();
+  if ($("cstat")) $("cstat").textContent = ok ? "☁️ クラウドに保存しました" : `${st.icon} ${st.text}`;
+}
+
+// ---------- タイトル画面（ぼうけんのしょを えらぶ） ----------
+const fmtTime = (ts) => { if (!ts) return ""; const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
+
+function slotCard(i, mode) {
+  const d = SL.slots[i];
+  const isCur = mode === "save" && i === SL.cur;
+  if (!d || !d.name) {
+    return `<button class="slot empty" onclick="slotTap(${i},'${mode}')"><span class="snum">${i + 1}</span><span class="sinfo"><b>${mode === "start" ? "＋ あたらしく はじめる" : "（からっぽ）"}</b></span></button>`;
+  }
+  const stars = Object.values(d.cards || {}).reduce((a, c) => a + c.s, 0);
+  const clr = Object.keys(d.cleared || {}).length;
+  return `<button class="slot ${isCur ? "cur" : ""}" onclick="slotTap(${i},'${mode}')">
+    <span class="snum">${i + 1}</span><span class="sprev">${charSVG(d.eq, d.color)}</span>
+    <span class="sinfo"><b>${esc(d.name)}</b><small>クリア ${clr}/${STAGES.length} ・ ★${stars} ・ 🪙${d.coins}</small><small>${fmtTime(d.savedAt)}</small></span>
+    ${isCur ? '<i class="curtag">いま</i>' : ""}</button>`;
+}
+
+function title() {
+  S = null;
+  const cs = Cloud.status();
+  setScreen(`<div class="titlewrap">
+    <h1 class="logo">ぷにまる<br>クエスト</h1>
+    <div class="sub center">ぼうけんのしょを えらんでね</div>
+    <div class="slots">${[0, 1, 2].map((i) => slotCard(i, "start")).join("")}</div>
+    <p class="note">${cs.icon} ${cs.text}</p>
+    ${Cloud.enabled() ? `<button class="big-btn" onclick="restoreMenu()">🔑 ふっかつコードで もどす</button>` : ""}
+  </div>`, "bg-home");
+  // ほかのスマホで遊んだ分があれば取りこんで表示しなおす
+  Cloud.pullAll().then((changed) => { if (changed && !S) title(); });
+}
+
+function slotTap(i, mode) {
+  snd("tap");
+  if (mode === "start") {
+    SL.cur = i; writeSlots();
+    if (SL.slots[i] && SL.slots[i].name) {
+      S = Object.assign(newSave(), SL.slots[i]);
+      SL.slots[i] = S;
+      ensureDaily(); home();
+    } else { S = newSave(); setup(); }
+    return;
+  }
+  // 手動セーブ：いまのぼうけんのしょ、または別のぼうけんのしょ（コピー）に保存
+  if (i === SL.cur) { manualSave(i); return; }
+  const d = SL.slots[i];
+  if (d && d.name) {
+    modal(`<div class="mtitle">うわがき しても いい？</div><p>ぼうけんのしょ${i + 1} の「<b>${esc(d.name)}</b>」は きえて、<br>いまの ぼうけんが コピーされるよ。</p>
+      <div class="row"><button class="big-btn" onclick="saveMenu()">やめる</button><button class="big-btn danger" onclick="manualSave(${i})">うわがき</button></div>`);
+  } else manualSave(i);
+}
+
+function saveMenu() {
+  snd("tap");
+  modal(`<div class="mtitle">💾 セーブ</div><p class="small">どの ぼうけんのしょに セーブする？</p>
+    <div class="slots">${[0, 1, 2].map((i) => slotCard(i, "save")).join("")}</div>
+    <p class="note">ふだんは じどうで セーブされているよ。<br>ちがう ぼうけんのしょを えらぶと コピーが のこせるよ。</p>
+    <button class="big-btn" onclick="closeModal()">とじる</button>`, "savebox");
+}
+
+async function manualSave(i) {
+  save();
+  if (i !== SL.cur) {
+    SL.slots[i] = JSON.parse(JSON.stringify(S));
+    writeSlots(); Cloud.markDirty(i);
+  }
+  modal(`<div class="mtitle">セーブしています…</div><div class="bigicon">💾</div>`);
+  const ok = Cloud.enabled() ? await Cloud.push() : false;
+  snd("coin");
+  const where = !Cloud.enabled() ? "この スマホに セーブしたよ！" : ok ? "クラウドにも セーブしたよ！" : "この スマホに セーブしたよ！<br><small>（クラウドは ネットに つながったら セーブ）</small>";
+  modal(`<div class="mtitle">セーブ かんりょう！</div><div class="bigicon">${ok ? "☁️" : "💾"}</div>
+    <p>ぼうけんのしょ${i + 1} に ${where}</p><button class="big-btn primary" onclick="closeModal();home()">OK</button>`);
+}
+
+function restoreMenu() {
+  snd("tap");
+  modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">保護者メニューに のっている 12文字の コードを 入れてね。<br>このスマホの 3つの ぼうけんのしょは、コードの データに おきかわります。</p>
+    <input id="rcode" class="rinput" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">
+    <div class="row"><button class="big-btn" onclick="closeModal()">やめる</button><button class="big-btn primary" onclick="doCloudRestore()">もどす</button></div>`);
+}
+async function doCloudRestore() {
+  const r = await Cloud.restore($("rcode").value);
+  const msg = { bad: "コードは 12文字だよ", off: "クラウドセーブが 使えません", notfound: "その コードの データが みつからないよ", net: "ネットに つながっているか たしかめてね" }[r];
+  if (msg) { snd("ng"); toast(msg); return; }
+  snd("win"); closeModal(); toast("データを もどしたよ！"); title();
 }
 
 // ---------- 起動 ----------
-load();
-ensureDaily();
-if (S.name) home(); else setup();
+loadSlots();
+title();
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }

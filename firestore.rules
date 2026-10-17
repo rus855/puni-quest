@@ -1,0 +1,14 @@
+rules_version = '2';
+// ぷにまるクエストのクラウドセーブ用ルール
+// ・12文字のふっかつコードを知っている人だけが、そのデータを読み書きできる
+// ・一覧の取得や削除はできない
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /saves/{code} {
+      allow get: if code.matches('^[A-HJ-NP-Z2-9]{12}$');
+      allow create, update: if code.matches('^[A-HJ-NP-Z2-9]{12}$')
+        && request.resource.data.keys().hasOnly(['s1', 's2', 's3', 't1', 't2', 't3']);
+      allow list, delete: if false;
+    }
+  }
+}

@@ -89,6 +89,25 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .cdot { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; box-shadow: var(--shadow); }
 .cdot.sel { outline: 4px solid var(--pink); }
 
+/* ---- タイトル（ぼうけんのしょ） ---- */
+.titlewrap { padding-top: 6px; }
+.sub.center { text-align: center; }
+.slots { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.slot {
+  display: flex; align-items: center; gap: 10px; border: 3px solid #fff; border-radius: 22px; padding: 8px 12px; text-align: left;
+  background: #fff; box-shadow: 0 5px 0 #e2cde0; position: relative; min-height: 76px;
+}
+.slot:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2cde0; }
+.slot.empty { background: rgba(255,255,255,.6); border-style: dashed; border-color: #ffb3d1; }
+.slot.cur { border-color: var(--pink); background: #fff0f6; }
+.slot .snum { width: 34px; height: 34px; font-size: 17px; background: #ffe0ee; }
+.slot .sprev { width: 64px; height: 60px; flex: none; }
+.slot .sinfo small { font-size: 12px; }
+.curtag { position: absolute; top: -9px; right: 12px; font-style: normal; font-size: 11px; background: var(--pink); color: #fff; padding: 2px 8px; border-radius: 99px; font-weight: bold; }
+.savebox .slot { box-shadow: 0 3px 0 #e2cde0; border-color: #f3e6f0; }
+.rcode { font-size: 26px; font-weight: bold; letter-spacing: 2px; text-align: center; background: #fff7cc; border-radius: 14px; padding: 10px; margin: 8px 0; font-family: Menlo, Consolas, monospace; -webkit-user-select: text; user-select: text; }
+.rinput { width: 100%; font-size: 22px; text-align: center; letter-spacing: 2px; border: 3px solid #ffb3d1; border-radius: 14px; padding: 10px; margin: 8px 0; text-transform: uppercase; }
+
 /* ---- マップ ---- */
 .maplist { display: flex; flex-direction: column; gap: 12px; }
 .stage {
