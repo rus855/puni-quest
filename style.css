@@ -224,6 +224,47 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .matgot span { background: #fff; border-radius: 14px; padding: 6px 10px; box-shadow: var(--shadow); font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
 .matgot small { font-size: 11px; }
 
+/* ---- 国・章・新しい問題 ---- */
+.stage.rec { margin-bottom: 10px; width: 100%; }
+.bar.wb { height: 8px; margin-top: 4px; border-width: 1px; }
+.bar.wb i { background: linear-gradient(90deg, #ffd23f, #ff7eb3); }
+.sstate.stars { font-size: 13px; letter-spacing: -1px; }
+.chhead { text-align: center; background: linear-gradient(135deg, var(--b1), var(--b2)); border-radius: 22px; padding: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--shadow); }
+.chhead b { font-size: 20px; }
+.chhead small { font-size: 12px; }
+.bigstars { font-size: 34px; letter-spacing: 4px; }
+.splabel { text-align: center; font-weight: bold; color: #9b5fd1; font-size: 13px; }
+.qtext .big, .big { font-size: 34px; font-weight: bold; letter-spacing: 2px; }
+.qtext.sm { font-size: 14px; }
+.fml.sm { font-size: 16px; }
+.qsvg { display: block; width: 150px; height: 150px; margin: 0 auto 8px; }
+.qsvg.wide { width: 100%; max-width: 340px; height: auto; }
+.mtab { border-collapse: collapse; margin: 6px auto; }
+.mtab td { width: 40px; height: 40px; border: 2px solid #c9b2f2; text-align: center; font-size: 20px; font-weight: bold; background: #fff; }
+.inbox { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 8px; }
+.inv { min-width: 140px; text-align: right; font-size: 30px; font-weight: bold; border: 3px solid #ece1f5; border-radius: 14px; padding: 4px 12px; background: #fbf8ff; }
+.inv.right { border-color: #3cc45a; background: #d8ffd9; }
+.inv.wrong { border-color: #ff4d6d; background: #ffe0e5; }
+.inu { font-size: 18px; font-weight: bold; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.key { border: 0; border-radius: 14px; padding: 10px; font-size: 22px; font-weight: bold; background: #fbf8ff; box-shadow: 0 3px 0 #ddd0ea; }
+.key:active { transform: translateY(2px); box-shadow: 0 1px 0 #ddd0ea; }
+.okbtn { margin-top: 8px; }
+.olist { display: flex; flex-direction: column; gap: 6px; }
+.oitem { display: flex; align-items: center; gap: 8px; border: 3px solid #ece1f5; background: #fbf8ff; border-radius: 14px; padding: 9px 10px; font-size: 15px; font-weight: bold; text-align: left; }
+.oitem i { width: 26px; height: 26px; flex: none; border-radius: 50%; background: #eee; font-style: normal; display: grid; place-items: center; color: #fff; }
+.oitem.on { border-color: var(--pink); background: #fff0f6; }
+.oitem.on i { background: var(--pink); }
+.explain { overflow-y: auto; }
+.explain div { font-size: 18px; }
+.mini-card.long { width: auto; min-width: 64px; max-width: 120px; padding: 6px; }
+.mini-card.long b { font-size: 12px; line-height: 1.2; }
+.wtabs button { display: flex; flex-direction: column; align-items: center; font-size: 18px; padding: 6px 2px; }
+.wtabs small { font-size: 10px; }
+.spt { color: #9b5fd1; font-size: 11px; font-weight: bold; }
+.ser { font-style: normal; margin-right: 3px; }
+.witem small.spt { display: block; }
+
 /* ---- マップ ---- */
 .maplist { display: flex; flex-direction: column; gap: 12px; }
 .stage {

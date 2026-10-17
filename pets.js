@@ -2,8 +2,8 @@
 "use strict";
 
 const MAX_EGGS = 4;
-const BREED_COST = 100;
-const BREED_LV = 3;
+const BREED_COST = 150;
+const BREED_LV = 5;
 const MAX_PET_LV = 10;
 
 const petSp = (id) => PETS.find((p) => p.id === id);
@@ -15,7 +15,9 @@ function petPow(pet) {
   const sp = petSp(pet.sp), k = 1 + 0.12 * (pet.lv - 1);
   switch (sp.ab) {
     case "heal": case "coin": return Math.round(sp.pow * k);
-    case "attack": case "atkup": return Math.round(sp.pow * k * 100) / 100;
+    case "revive": return Math.min(100, Math.round(sp.pow * k));
+    case "attack": case "atkup": case "multi": case "drain": case "poison": return Math.round(sp.pow * k * 100) / 100;
+    case "reflect": return Math.min(1.5, Math.round(sp.pow * (1 + 0.08 * (pet.lv - 1)) * 100) / 100);
     case "shield": return Math.min(1, Math.round(sp.pow * (1 + 0.1 * (pet.lv - 1)) * 100) / 100);
     default: return sp.pow;
   }
@@ -46,17 +48,17 @@ function giveEgg(r, sp) {
 
 // 敵をたおしたときのタマゴ（ステージが進むほどレアが出やすい）
 function rollEgg(stageNo, boss, sure) {
-  if (!sure && Math.random() > (boss ? 0.4 : 0.1)) return null;
+  if (!sure && Math.random() > (boss ? 0.2 : 0.04)) return null;
   const x = Math.random(), sr = 0.03 * stageNo * (boss ? 2 : 1), rr = 0.12 * stageNo * (boss ? 1.5 : 1);
   const r = x < sr ? 2 : x < sr + rr ? 1 : 0;
   return giveEgg(r) ? r : "full";
 }
 
 // 正解するたびに、すべてのタマゴが育つ
-function growEggs() {
+function growEggs(n = 1) {
   let ready = false;
   for (const e of S.eggs) {
-    if (e.p < e.n) { e.p++; if (e.p >= e.n) ready = true; }
+    if (e.p < e.n) { e.p = Math.min(e.n, e.p + n); if (e.p >= e.n) ready = true; }
   }
   return ready;
 }
@@ -135,6 +137,7 @@ function updPet() {
   const pet = partner(), el = $("pch");
   if (!pet || !el) return;
   const cd = petSp(pet.sp).cd;
+  if (petSp(pet.sp).ab === "revive") { el.innerHTML = B.revived ? "" : "<i class='on'></i>"; return; }
   el.innerHTML = Array.from({ length: cd }, (_, i) => `<i class="${i < B.petC ? "on" : ""}"></i>`).join("");
   $("petb").classList.toggle("ready", B.petC >= cd);
 }
@@ -148,7 +151,9 @@ function petInfo() {
 function petCharge() {
   const pet = partner();
   if (!pet) return;
-  B.petC = Math.min(petSp(pet.sp).cd, B.petC + 1);
+  if (petSp(pet.sp).ab === "revive") return;
+  const fast = hsp().petfast && Math.random() < 0.5 ? 1 : 0;
+  B.petC = Math.min(petSp(pet.sp).cd, B.petC + 1 + fast);
   if (petGainXp()) { fxText(`${petSp(pet.sp).em} レベルアップ！ Lv${pet.lv}`, "card"); snd("coin"); }
   updPet();
 }
@@ -158,7 +163,7 @@ async function petAct() {
   const pet = partner();
   if (!pet) return;
   const sp = petSp(pet.sp), e = B.e;
-  if (B.petC < sp.cd) return;
+  if (B.petC < sp.cd || sp.ab === "revive") return;
   B.petC = 0;
   const pw = petPow(pet);
   anim($("petb"), "petgo");
@@ -183,6 +188,34 @@ async function petAct() {
     case "stun": e.turn += 1; fxText("💫 てきが うごけない！", "card"); break;
     case "hint": B.hint = true; fxText("💡 つぎの 問題で ヒント！", "card"); break;
     case "gauge": B.gauge = Math.min(5, B.gauge + pw); fxText("✨ ゲージ アップ！", "card"); break;
+    case "multi": {
+      const x = effect(sp.el, e.el, e.imm);
+      for (let i = 0; i < 3 && e.hp > 0; i++) {
+        const d = x === 0 ? 0 : Math.max(1, Math.round(pAtk() * pw * 0.4 * x));
+        e.hp -= d; anim($("enemy"), "hurt"); snd("hit"); fxText(`${d}`, effCls(x)); await wait(250);
+      }
+      break;
+    }
+    case "drain": {
+      const x = effect(sp.el, e.el, e.imm);
+      const d = x === 0 ? 0 : Math.max(1, Math.round(pAtk() * pw * x));
+      e.hp -= d; anim($("enemy"), "hurt"); snd("hit"); fxText(`${d}${effFx(x)}`, effCls(x));
+      const h = Math.round(d / 2); B.php = Math.min(pMaxHp(), B.php + h); setTimeout(() => fxText(`+${h}`, "heal"), 250);
+      break;
+    }
+    case "poison": B.poison = { n: 3, d: Math.max(1, Math.round(pAtk() * pw)) }; fxText("☠️ てきは どくに なった！", "card"); break;
+    case "critnext": B.critNext = true; fxText("🎯 つぎは かならず かいしん！", "card"); break;
+    case "combo": B.combo += pw; fxText(`🔥 コンボ +${pw}！`, "card"); break;
+    case "mat": if (B.st.ch) { addMat(B.st.mat); B.mats[B.st.mat] = (B.mats[B.st.mat] || 0) + 1; fxText(`${MATS[B.st.mat].em} 見つけた！`, "card"); } else { S.coins += 10; B.coins += 10; fxText("🪙 +10", "card"); } break;
+    case "egg": if (S.eggs.length) { growEggs(pw); fxText(`🥚 タマゴが ${pw}問ぶん そだった！`, "card"); } else { S.coins += 10; B.coins += 10; fxText("🪙 +10", "card"); } break;
+    case "barrier": B.barrier = pw; fxText(`🔰 バリア ${pw}回ぶん！`, "card"); break;
+    case "reflect": B.reflect = pw; fxText("🪞 カウンター じゅんび！", "card"); break;
+    case "chgel": {
+      const wEl = itemById(S.eq.weapon).el;
+      if (BEATS[wEl]) { e.el = BEATS[wEl]; e.imm = null; fxText(`🔄 てきが ${ELEMENTS[e.el].icon} に なった！`, "card"); }
+      else fxText("🔄 ぞくせいの ある ぶきで つかってね", "card");
+      break;
+    }
   }
   updBars(); updPet(); save();
   await wait(600);
