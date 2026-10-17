@@ -75,7 +75,7 @@ function loginView(msg) {
       <label class="pg-chk"><input type="checkbox" id="prem" checked> この端末に コードを 記憶する</label>
       <button class="big-btn primary" onclick="doLogin()">学習の ようすを 見る</button>
       ${msg ? `<p class="pg-err">${msg}</p>` : ""}
-      <p class="pg-note">このページは 見るだけです。お子さんの データが 書きかわることは ありません。</p>
+      <p class="pg-note">ここで 変えられるのは「出題の 設定」だけです。お子さんの もちものや 進み具合が 書きかわることは ありません。</p>
     </div></div>`;
 }
 

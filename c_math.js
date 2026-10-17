@@ -136,7 +136,7 @@
     xs.sort((a, b) => a - b);
     const kind = P(["mean", "median", "mode"]);
     if (kind === "median") return { q: `${shuffle(xs).join("、")}（点）の 中央値は？`, a: xs[2], unit: "点", ex: "小さい順に ならべて まん中" };
-    if (kind === "mode") { const ys = [...xs, xs[1]].sort((a, b) => a - b); return { q: `${shuffle(ys).join("、")}（点）の 最頻値は？`, a: xs[1], unit: "点", ex: "いちばん 多く 出てくる 値" }; }
+    if (kind === "mode") { const ys = [m - 20, m - 10, m, m + 10, m + 20, m - 10].sort((a, b) => a - b); xs[1] = m - 10; return { q: `${shuffle(ys).join("、")}（点）の 最頻値は？`, a: xs[1], unit: "点", ex: "いちばん 多く 出てくる 値" }; }
     const s = xs.reduce((a, b) => a + b, 0), adj = s % 5;
     xs[4] -= adj;
     return { q: `${shuffle(xs).join("、")}（点）の 平均は？`, a: (s - adj) / 5, unit: "点", ex: "合計 ÷ 個数" };
@@ -251,7 +251,8 @@
     return { q: `${p * k}/${r * k} を 約分すると？`, a: `${p}/${r}`, ng: uniq3(`${p}/${r}`, [`${r}/${p}`, `${p * 2}/${r}`, `${p}/${r * 2}`, `${p + 1}/${r}`, `${p}/${r + 1}`]) };
   });
   const bunsuuTasu = def("bunsuu_tasu", "分母が 同じ 分数の たし算・ひき算", "分母は そのまま、分子だけ 計算する", () => {
-    const d = R(5, 12), a = R(1, d - 2), b = R(1, d - 1 - a);
+    // 分母は 素数に して、答えが 約分できない ように する
+    const d = P([5, 7, 11]), a = R(1, d - 2), b = R(1, d - 1 - a);
     if (Math.random() < 0.5) { const ans = `${a + b}/${d}`; return { q: `${a}/${d} ＋ ${b}/${d} ＝ ？`, a: ans, ng: uniq3(ans, [`${a + b}/${d * 2}`, `${a * b}/${d}`, `${a + b + 1}/${d}`, `${a + b - 1}/${d}`, `${a + b}/${d + 1}`]) }; }
     const x = a + b, ans = `${b}/${d}`;
     return { q: `${x}/${d} － ${a}/${d} ＝ ？`, a: ans, ng: uniq3(ans, [`${b}/${d * 2}`, `${b + 1}/${d}`, `${b}/${d - a}`, `${x + a}/${d}`, `${b}/${d + 1}`]) };

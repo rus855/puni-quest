@@ -158,7 +158,7 @@ const stageName = (ch, n) => (STAGE_NAMES[ch.w] || STAGE_NAMES.kanji)[n - 1];
 function stageInfo(ch, n) {
   return {
     key: `${ch.id}-${n}`, ch, n, tier: ch.tier, id: ch.tier,
-    name: `${stageName(ch, n)}${n === 4 ? "" : ` ${n}`}`, bg: TBG[ch.tier],
+    name: stageName(ch, n), bg: TBG[ch.tier],
     mat: TMAT[ch.tier][0], bmat: TMAT[ch.tier][1], final: ch.last && n === 4,
   };
 }

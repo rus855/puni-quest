@@ -146,6 +146,23 @@ function snd(type) {
   try {
     if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
     if (AC.state === "suspended") AC.resume();
+    // 正解の「ピンポン！」（チャイムのような 2つの 音）
+    if (type === "pinpon") {
+      const t0 = AC.currentTime;
+      [[1319, 0], [1047, 0.2]].forEach(([f, dt]) => {
+        [1, 2].forEach((h) => {
+          const o = AC.createOscillator(), g = AC.createGain();
+          o.type = "sine"; o.frequency.value = f * h;
+          const v = h === 1 ? 0.16 : 0.03;
+          g.gain.setValueAtTime(0.0001, t0 + dt);
+          g.gain.exponentialRampToValueAtTime(v, t0 + dt + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.6);
+          o.connect(g).connect(AC.destination);
+          o.start(t0 + dt); o.stop(t0 + dt + 0.65);
+        });
+      });
+      return;
+    }
     const seq = {
       ok: [[660, 0.07], [990, 0.12]], ng: [[260, 0.12], [200, 0.2]], hit: [[160, 0.07]], coin: [[988, 0.05], [1319, 0.12]],
       win: [[523, 0.1], [659, 0.1], [784, 0.1], [1047, 0.3]], hurt: [[120, 0.18]], tap: [[700, 0.04]],
@@ -828,6 +845,7 @@ function submitInput() {
   if (!B.inp || B.inp === ".") { toast("数字を 入れてね"); return; }
   const ok = Math.abs(Number(B.inp) - B.q.ans) < 1e-9;
   $("inv").classList.add(ok ? "right" : "wrong");
+  if (ok) showMaru($("inv"));
   judge(ok);
 }
 
@@ -841,6 +859,7 @@ function orderTap(i) {
   el.classList.add("on"); el.firstElementChild.textContent = q.picked.length;
   if (q.picked.length === q.items.length) {
     const ok = q.picked.every((x, k) => x === k);
+    if (ok) showMaru(el.parentElement);
     judge(ok);
   }
 }
@@ -850,6 +869,16 @@ function orderReset() {
   document.querySelectorAll(".oitem").forEach((el) => { el.classList.remove("on"); el.firstElementChild.textContent = ""; });
 }
 
+// 正解したところに 赤い 丸を 一瞬 出す
+function showMaru(el) {
+  if (!el) return;
+  const m = document.createElement("div");
+  m.className = "maru";
+  el.classList.add("marubox");
+  el.appendChild(m);
+  setTimeout(() => m.remove(), 900);
+}
+
 // 4択
 function answer(i) {
   if (B.busy) return;
@@ -857,6 +886,7 @@ function answer(i) {
   const btns = document.querySelectorAll(".ch");
   btns[q.ai].classList.add("right");
   if (!ok) btns[i].classList.add("wrong");
+  else showMaru(btns[i]);
   judge(ok);
 }
 
@@ -867,7 +897,8 @@ async function judge(ok) {
   const q = B.q;
   const isNigate = B.sid === "nigate";
   if (ok) {
-    snd(q.special ? "special" : "ok");
+    snd("pinpon");
+    if (q.special) setTimeout(() => snd("special"), 450);
     const ev = onCorrect(q.id);
     if (ev === "new") B.news.push(q.id);
     if (ev === "up") B.ups.push(q.id);
@@ -1451,7 +1482,7 @@ function missions() {
     return `<div class="mis ${got ? "got" : ""}"><div class="mtext"><b>${m.text}</b><div class="bar mb"><i style="width:${(p / m.goal) * 100}%"></i><span>${p} / ${m.goal}</span></div></div>
       <button class="sbtn ${done && !got ? "" : "no"}" ${done && !got ? `onclick="claim('${m.id}')"` : "disabled"}>${got ? "うけとった" : rw}</button></div>`;
   }).join("");
-  setScreen(`${topBar("きょうの ミッション")}<div class="mlist">${list}</div>
+  setScreen(`${topBar("ミッション")}<div class="mlist">${list}</div>
     <p class="note">ミッションは まいにち あたらしくなるよ</p>`, "bg-shop");
 }
 function claim(id) {
