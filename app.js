@@ -1653,13 +1653,71 @@ function doRestore() {
     S = Object.assign(newSave(), o); save(); closeModal(); toast("復元しました"); home();
   } catch (e) { toast("コードが正しくありません"); }
 }
-function resetAll() {
-  modal(`<div class="mtitle">ぼうけんのしょ${SL.cur + 1} を けす？</div><p class="small">「${esc(S.name)}」の コイン・そうび・カードが すべて きえます。<br>ほかの ぼうけんのしょは きえません。</p>
-    <div class="row"><button class="big-btn" onclick="closeModal()">やめる</button><button class="big-btn danger" onclick="deleteSlot()">けす</button></div>`);
+function resetAll() { delConfirm1(SL.cur); }
+
+// ---------- データを けす（タイトル画面から） ----------
+// けした データは クラウドに のこるので、ふっかつコードで もどせる。けした 記録は 5こまで のこす
+const DEL_KEY = PQ_DEBUG ? "puniquest_debug_deleted_v1" : "puniquest_deleted_v1";
+const delHistory = () => { try { return JSON.parse(localStorage.getItem(DEL_KEY) || "[]"); } catch (e) { return []; } };
+function delMenu() {
+  snd("tap");
+  const has = SL.slots.some((d) => d && d.name);
+  modal(`<div class="mtitle">🗑 データを けす</div>
+    <p class="small">けしたい ぼうけんのしょを えらんでね。</p>
+    <div class="rslots">${[0, 1, 2].map((i) => { const d = SL.slots[i]; return d && d.name
+      ? `<button class="big-btn" onclick="delConfirm1(${i})">ぼうけんのしょ${i + 1}：${esc(d.name)}<small>⭐${Object.values(d.stClear || {}).reduce((a, b) => a + b, 0)}・🪙${d.coins}・さいごに あそんだ日 ${d.savedAt ? new Date(d.savedAt).toLocaleDateString("ja-JP") : "-"}</small></button>`
+      : `<button class="big-btn" disabled>ぼうけんのしょ${i + 1}：からっぽ</button>`; }).join("")}</div>
+    ${has ? "" : `<p class="small">けせる データが ないよ。</p>`}
+    <button class="big-btn" onclick="closeModal()">やめる</button>`);
 }
-function deleteSlot() {
-  SL.slots[SL.cur] = null; writeSlots(); Cloud.markDirty(SL.cur);
-  S = null; closeModal(); title();
+// 1回目の かくにん
+function delConfirm1(i) {
+  const d = SL.slots[i];
+  if (!d) return;
+  snd("tap");
+  modal(`<div class="mtitle">ぼうけんのしょ${i + 1} を けす？</div>
+    <div class="hero xs">${charSVG(d.eq, d.color)}</div>
+    <p>「<b>${esc(d.name)}</b>」の コイン・そうび・カード・なかまが このスマホから きえます。<br>ほかの ぼうけんのしょは きえません。</p>
+    <div class="row"><button class="big-btn primary" onclick="closeModal()">やめる</button><button class="big-btn danger" onclick="delConfirm2(${i})">けす</button></div>`);
+}
+// 2回目の かくにん
+function delConfirm2(i) {
+  const d = SL.slots[i];
+  if (!d) return;
+  snd("ng");
+  modal(`<div class="mtitle">⚠️ さいごの かくにん</div>
+    <p>ほんとうに「<b>${esc(d.name)}</b>」を けして いいですか？</p>
+    <p class="small">けした あとでも、「🗂 けした データの ふっかつコード」で コードを たしかめて、「🔑 ふっかつコードで もどす」に 入れると もとに もどせます（ネットに つながっている とき）。</p>
+    <div class="row"><button class="big-btn primary" onclick="closeModal()">やめる</button><button class="big-btn danger" onclick="doDelete(${i})">ほんとうに けす</button></div>`);
+}
+async function doDelete(i) {
+  const d = SL.slots[i];
+  if (!d) return;
+  modal(`<div class="mtitle">けしています…</div><div class="bigicon">🗑</div>`);
+  const r = await Cloud.detach(i).catch(() => ({ code: "", saved: false }));
+  const hist = delHistory();
+  hist.unshift({ name: d.name, code: r.code, at: Date.now(), saved: r.saved });
+  try { localStorage.setItem(DEL_KEY, JSON.stringify(hist.slice(0, 5))); } catch (e) { /* 無視 */ }
+  SL.slots[i] = null; writeSlots();
+  if (SL.cur === i) S = null;
+  snd("tap");
+  title();
+  modal(`<div class="mtitle">けしました</div>
+    <p>「${esc(d.name)}」を けしました。</p>
+    ${r.code ? `<p class="small">もどす ときの ふっかつコード：</p><p class="codebig">${r.code}</p>${r.saved ? "" : `<p class="small">⚠️ さいごの セーブを クラウドに 送れませんでした。もどすと、すこし 前の データに なります。</p>`}`
+      : `<p class="small">クラウドに ほぞんしていない データなので、もとに もどすことは できません。</p>`}
+    <button class="big-btn" onclick="closeModal()">とじる</button>`);
+}
+// けした データの 記録（5こまで）
+function delList() {
+  snd("tap");
+  const h = delHistory();
+  modal(`<div class="mtitle">🗂 けした データの ふっかつコード</div>
+    <p class="small">さいきん けした 5こまで のこっているよ。もどしたい ときは コードを「🔑 ふっかつコードで もどす」に 入れてね。</p>
+    ${h.length ? `<div class="dellist">${h.map((x) => `<div class="delrow"><b>${esc(x.name)}</b><small>けした日：${new Date(x.at).toLocaleDateString("ja-JP")} ${new Date(x.at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</small>
+      ${x.code ? `<span class="codebig sm">${x.code}</span><button class="big-btn" onclick="restoreMenu('${x.code}')">🔑 この コードで もどす</button>` : `<small>（クラウドに なかった ので もどせません）</small>`}</div>`).join("")}</div>`
+      : `<p class="small">まだ けした データは ないよ。</p>`}
+    <button class="big-btn" onclick="closeModal()">とじる</button>`);
 }
 async function cloudNow() {
   $("cstat").textContent = "⏳ 保存しています…";
@@ -1695,6 +1753,7 @@ function title() {
     ${updateV ? `<button class="big-btn primary" onclick="goTitle()">🆕 アップデートする</button>` : ""}
     ${Cloud.enabled() ? `<button class="big-btn" onclick="restoreMenu()">🔑 ふっかつコードで もどす</button>` : ""}
     <a class="big-btn manualbtn" href="${window.PQ_BASE || ""}manual/kids.html">📘 せつめいしょ を 見る</a>
+    <div class="row titlesub"><button class="big-btn" onclick="delMenu()">🗑 データを けす</button>${delHistory().length ? `<button class="big-btn" onclick="delList()">🗂 けした データの ふっかつコード</button>` : ""}</div>
     <p class="note">ver.${window.APP_V || "-"}</p>
   </div>`, "bg-home");
   // ほかのスマホで遊んだ分があれば取りこんで表示しなおす
@@ -1751,10 +1810,10 @@ async function manualSave(i) {
     <p>ぼうけんのしょ${i + 1} に ${where}</p><button class="big-btn primary" onclick="closeModal();home()">OK</button>`);
 }
 
-function restoreMenu() {
+function restoreMenu(pre) {
   snd("tap");
   modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">⚙️せってい画面に のっていた 12文字の コードを 入れて、もどす ばしょを えらんでね。</p>
-    <input id="rcode" class="rinput" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">
+    <input id="rcode" class="rinput" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${pre || ""}">
     <div class="rslots">${[0, 1, 2].map((i) => `<button class="big-btn" onclick="doCloudRestore(${i})">ぼうけんのしょ${i + 1} に もどす<small>${SL.slots[i] && SL.slots[i].name ? `いまの「${esc(SL.slots[i].name)}」は きえます` : "からっぽ"}</small></button>`).join("")}</div>
     <button class="big-btn" onclick="closeModal()">やめる</button>`);
 }

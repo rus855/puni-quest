@@ -703,3 +703,13 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 .rslots { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
 .rslots .big-btn { margin: 0; font-size: 15px; }
 .rslots .big-btn small { display: block; font-size: 11px; font-weight: normal; opacity: .75; }
+
+/* データを けす */
+.titlesub { gap: 6px; }
+.titlesub .big-btn { font-size: 13px; padding: 10px 6px; background: #f3eef6; color: #6b5b8a; box-shadow: 0 3px 0 #ddd3e6; }
+.big-btn.danger { background: #ff5c6c; color: #fff; box-shadow: 0 4px 0 #c62f3e; }
+.dellist { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; max-height: 52vh; overflow-y: auto; }
+.delrow { background: #fff7f8; border: 2px solid #ffd1d6; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.delrow small { font-size: 12px; color: #6b5b8a; }
+.delrow .big-btn { margin: 4px 0 0; font-size: 14px; padding: 8px; }
+.codebig.sm { font-size: 18px; margin: 2px 0; }

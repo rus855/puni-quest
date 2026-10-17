@@ -167,5 +167,13 @@ const Cloud = (() => {
   window.addEventListener("online", () => push());
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") push(); });
 
-  return { enabled, code: (i) => fmt(code(i)), hasCode: (i) => !!st.codes[i], markDirty, freshCode, push, pullAll, restore, status, fetchCfg, lastOk: () => lastOk };
+  // ぼうけんのしょを けす とき：さいしんの データを 送ってから コードを はずす。クラウドには のこるので、コードで もどせる
+  async function detach(i) {
+    const c = st.codes[i];
+    if (enabled() && SL.slots[i]) { if (!c) code(i); st.dirty[i] = true; await push(); }
+    const out = st.codes[i] || "", ok = !st.dirty[i];
+    st.codes[i] = ""; st.dirty[i] = false; st.clean[i] = false; persist();
+    return { code: out ? fmt(out) : "", saved: ok && !!out };
+  }
+  return { enabled, detach, code: (i) => fmt(code(i)), hasCode: (i) => !!st.codes[i], markDirty, freshCode, push, pullAll, restore, status, fetchCfg, lastOk: () => lastOk };
 })();
