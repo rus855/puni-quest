@@ -82,7 +82,7 @@ function codeView(msg) {
     ${has ? `<div class="pg-top"><button class="back" onclick="load()">◀ もどる</button><b>コードの 追加・変更</b><span></span></div>` : `<h1 class="pg-title">🐣 ぷにまるクエスト<br><small>保護者ページ</small></h1>`}
     <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>
     <div class="pg-card">
-      <p>お子さんの ゲームの ⚙️せってい画面に 表示される <b>ふっかつコード（12文字）</b> を 入れてください。お子さんが 複数いる ときは、<b>最大 3人分</b> 登録できます。</p>
+      <p>お子さんの ゲームの ⚙️せってい画面に 表示される <b>ふっかつコード（12文字）</b> を 入れてください。コードは <b>ぼうけんのしょ（セーブデータ）ごとに ちがいます</b>。1台の スマホを きょうだいで 使っている ときなども、<b>最大 3つ</b> 登録して、それぞれ 出題の 設定が できます。</p>
       ${msg ? `<p class="pg-err">${msg}</p>` : ""}
       ${[0, 1, 2].map((i) => `<div class="pg-codebox ${P.codes[i] && i === P.ci ? "on" : ""}">
         <div class="pg-codehead"><b>コード ${i + 1}</b>${P.labels[i] ? `<span>${esc(P.labels[i])}</span>` : ""}</div>
@@ -161,7 +161,7 @@ function render() {
 
   $("papp").innerHTML = `<div class="pg-wrap">
     ${head()}
-    <div class="pg-tabs">${tabs}</div>
+    ${P.slots.filter(Boolean).length > 1 ? `<div class="pg-tabs">${tabs}</div>` : ""}
     <div class="pg-card pg-row3">
       <div><small>最後に 遊んだ</small><b>${fmtTime(S.savedAt)}</b></div>
       <div><small>きょう</small><b>${td.tot}問</b><small>正答率 ${pct(td.cor, td.tot)}</small></div>

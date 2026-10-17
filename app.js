@@ -1561,8 +1561,8 @@ function parent() {
       <div class="sndrow"><span>🎵 BGM</span><button class="big-btn ${S.bgm ? "primary" : ""}" onclick="S.bgm=!S.bgm;save();BGM.refresh();parent()">${S.bgm ? "🔊 オン" : "🔇 オフ"}</button></div>
       <div class="sndrow"><span>🔔 効果音</span><button class="big-btn ${S.sound ? "primary" : ""}" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
       <p class="small">マナーモードの ときは、イヤホンを つけていなければ 鳴らないように しています。<br>もし マナーモードで 音が 出てしまったら、ここで オフに してね。</p></div>
-    ${Cloud.enabled() ? `<div class="panel"><div class="sub">🔑 ふっかつコード</div><p class="codebig">${Cloud.code()}</p>
-      <p class="small">データが きえて しまった ときに つかう コードだよ。<br>おうちの人にも おしえてあげてね（おうちの人の スマホから 学習の ようすが 見られるよ）。</p></div>` : ""}`, "bg-shop");
+    ${Cloud.enabled() ? `<div class="panel"><div class="sub">🔑 ふっかつコード（ぼうけんのしょ${SL.cur + 1}）</div><p class="codebig">${Cloud.code(SL.cur)}</p>
+      <p class="small">この ぼうけんのしょ だけの コードだよ。データが きえて しまった ときに つかうよ。<br>おうちの人にも おしえてあげてね（おうちの人の スマホから 学習の ようすが 見られるよ）。</p></div>` : ""}`, "bg-shop");
 }
 function checkGate() {
   if (Number($("gate").value) === gateAns) parentPanel();
@@ -1586,8 +1586,8 @@ function parentPanel() {
       <p>苦手（ニガテ）：${ng.length ? ng.map(esc).join("、") : "なし"}</p></div>
     ${cfgPanel()}
     <div class="panel"><div class="sub">クラウドセーブ</div>${Cloud.enabled() ? `
-      <p class="small">データは自動でクラウドにも保存されています。アプリやデータが消えても、タイトル画面の「ふっかつコードで もどす」に下のコードを入れると、3つのぼうけんのしょが すべて元に戻ります。<b>スクリーンショットやメモで控えておいてください。</b></p>
-      <div class="rcode">${Cloud.code()}</div>
+      <p class="small">データは自動でクラウドにも保存されています。アプリやデータが消えても、タイトル画面の「ふっかつコードで もどす」に下のコードを入れると、このぼうけんのしょが元に戻ります（ぼうけんのしょごとに別のコードです）。<b>スクリーンショットやメモで控えておいてください。</b></p>
+      <div class="rcode">${Cloud.code(SL.cur)}</div>
       <p class="small" id="cstat">${Cloud.status().icon} ${Cloud.status().text}</p>
       <button class="big-btn" onclick="cloudNow()">いますぐ クラウドに 保存</button>
       <div class="abox left"><b>📱 別のスマホや PC から 見る</b><br>保護者用ページ（見るだけ）で、このコードを 入れると 学習の ようすを 確認できます。<br><span class="purl">${location.origin}${location.pathname.replace(/[^/]*$/, "")}parent.html</span></div>` : `<p class="small">クラウドセーブは準備中です（Firebaseの設定後に使えるようになります）。それまでは下のバックアップをご利用ください。</p>`}</div>
@@ -1717,7 +1717,7 @@ function slotTap(i, mode) {
       Object.keys(S.cleared || {}).forEach((k) => { S.tierClear[k] = true; });
       SL.slots[i] = S;
       ensureDaily(); home();
-    } else { S = newSave(); setup(); }
+    } else { Cloud.freshCode(i); S = newSave(); setup(); }
     return;
   }
   // 手動セーブ：いまのぼうけんのしょ、または別のぼうけんのしょ（コピー）に保存
@@ -1753,12 +1753,15 @@ async function manualSave(i) {
 
 function restoreMenu() {
   snd("tap");
-  modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">保護者メニューに のっている 12文字の コードを 入れてね。<br>このスマホの 3つの ぼうけんのしょは、コードの データに おきかわります。</p>
+  modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">⚙️せってい画面に のっていた 12文字の コードを 入れて、もどす ばしょを えらんでね。</p>
     <input id="rcode" class="rinput" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">
-    <div class="row"><button class="big-btn" onclick="closeModal()">やめる</button><button class="big-btn primary" onclick="doCloudRestore()">もどす</button></div>`);
+    <div class="rslots">${[0, 1, 2].map((i) => `<button class="big-btn" onclick="doCloudRestore(${i})">ぼうけんのしょ${i + 1} に もどす<small>${SL.slots[i] && SL.slots[i].name ? `いまの「${esc(SL.slots[i].name)}」は きえます` : "からっぽ"}</small></button>`).join("")}</div>
+    <button class="big-btn" onclick="closeModal()">やめる</button>`);
 }
-async function doCloudRestore() {
-  const r = await Cloud.restore($("rcode").value);
+async function doCloudRestore(i) {
+  const d = SL.slots[i];
+  if (d && d.name && !confirm(`ぼうけんのしょ${i + 1} の「${d.name}」は きえて しまうよ。ほんとうに もどす？`)) return;
+  const r = await Cloud.restore($("rcode").value, i);
   const msg = { bad: "コードは 12文字だよ", off: "クラウドセーブが 使えません", notfound: "その コードの データが みつからないよ", net: "ネットに つながっているか たしかめてね" }[r];
   if (msg) { snd("ng"); toast(msg); return; }
   snd("win"); closeModal(); toast("データを もどしたよ！"); title();
@@ -1778,8 +1781,7 @@ async function checkUpdate() {
 // 保護者ページで 変えた 出題の設定を 取りこむ（新しい ほうを 使う）
 async function syncCfg() {
   if (!S) return;
-  const cs = await Cloud.fetchCfg();
-  const c = cs && cs[SL.cur];
+  const c = await Cloud.fetchCfg(SL.cur);
   if (c && (c.at || 0) > ((S.cfg && S.cfg.at) || 0)) { S.cfg = c; save(); }
 }
 function showUpdBar() {

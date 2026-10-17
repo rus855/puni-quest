@@ -60,6 +60,11 @@
           <button onclick="dbg.heal()">体力 ぜんかいふく</button>
           <button onclick="dbg.auto()">自動プレイ（全問正解）</button>
         </div>
+        <h3>BGM を きく（せっていが オフでも 鳴るよ）</h3>
+        <div class="dgrid">
+          ${BGM.songs().map((x) => `<button class="${BGM.previewing() === x.id ? "on" : ""}" onclick="dbg.bgm('${x.id}')">🎵 ${x.name}</button>`).join("")}
+          <button onclick="dbg.bgm('')">⏹ とめる（ふつうに もどす）</button>
+        </div>
         <h3>そのほか</h3>
         <div class="dgrid">
           <button onclick="closeModal();parentPanel()">保護者メニュー（旧）</button>
@@ -116,6 +121,7 @@
       if (!S.eq.acc) S.eq.acc = "x_none";
       done(`アクセサリーを ${acc.length}こ ぜんぶ そろえたよ`);
     },
+    bgm(id) { BGM.preview(id); closeModal(); openDebug(); toast(id ? "🎵 さいせい中（まわりの 音に 注意）" : "BGMを ふつうに もどしたよ"); },
     toggleOpen() { window.PQ_OPEN = !window.PQ_OPEN; closeModal(); openDebug(); },
     toggleZukan() { window.PQ_ZUKANALL = !window.PQ_ZUKANALL; ss("pq_debug_zukan", window.PQ_ZUKANALL ? "1" : "0"); closeModal(); openDebug(); },
     clearAll() {

@@ -699,3 +699,7 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 @keyframes tshine { 0%, 100% { filter: drop-shadow(0 0 4px #ffe066); } 50% { filter: drop-shadow(0 0 16px #ffd23f); } }
 .tname { display: block; font-size: 18px; margin-top: 4px; }
 #modal .mbox.tmodal { max-height: 92vh; overflow-y: auto; }
+
+.rslots { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.rslots .big-btn { margin: 0; font-size: 15px; }
+.rslots .big-btn small { display: block; font-size: 11px; font-weight: normal; opacity: .75; }
