@@ -1,0 +1,686 @@
+<title>ぷにまるクエスト ぼうけんガイド</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* レイアウト：絵本の ページのように、左に ゲーム画面・右に せつめい（スマホでは たてに ならぶ） */
+:root {
+  color-scheme: light;
+  --paper: #fff8fb;      /* 紙の色 */
+  --ink: #3b2a55;        /* 文字（ゲームと 同じ 紫がかった こい色） */
+  --ink-soft: #6b5b8a;
+  --pink: #f0569a;       /* ゲームの ロゴの ピンク */
+  --pink-soft: #ffe1ee;
+  --mint: #2fae7c;
+  --mint-soft: #ddf6ea;
+  --sun: #ffc93c;
+  --sun-soft: #fff4cf;
+  --sky-soft: #e3f1ff;
+  --line: #f1d6e4;
+  --parent: #2f5d8a;     /* おうちの方むけの 色 */
+  --parent-soft: #eaf2fb;
+  --f-display: "Dela Gothic One", "Hiragino Maru Gothic ProN", "Zen Maru Gothic", sans-serif;
+  --f-body: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-weight: 500;
+  font-size: 16px; line-height: 1.85;
+  background-image: radial-gradient(circle at 12px 12px, rgba(240,86,154,.07) 2px, transparent 2.5px);
+  background-size: 28px 28px;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; margin: 0; }
+p { margin: 0; }
+b, strong { font-weight: 900; }
+ruby rt { font-size: .5em; }
+
+/* ---- 表紙 ---- */
+.cover { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 28px; align-items: center; padding-block: 40px 24px; }
+.cover .kicker { display: inline-block; background: var(--ink); color: #fff; font-weight: 900; font-size: 13px; letter-spacing: .12em; padding: 4px 14px; border-radius: 99px; }
+.cover h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(40px, 7vw, 68px); color: var(--pink); line-height: 1.12; margin-top: 14px;
+  text-shadow: 3px 3px 0 #fff, -3px 3px 0 #fff, 3px -3px 0 #fff, -3px -3px 0 #fff, 0 7px 0 rgba(240,86,154,.22); }
+.cover h1 small { display: block; font-size: .42em; color: var(--ink); text-shadow: none; margin-top: 10px; letter-spacing: .04em; }
+.cover .lead { font-size: 18px; margin-top: 18px; max-width: 30em; }
+.cover .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chip { background: #fff; border: 2px solid var(--line); border-radius: 99px; padding: 4px 12px; font-weight: 700; font-size: 14px; }
+.toc { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { text-decoration: none; color: var(--ink); background: var(--sun-soft); border-radius: 12px; padding: 6px 12px; font-weight: 700; font-size: 14px; border-bottom: 3px solid #f3d27a; }
+.toc a.par { background: var(--parent-soft); border-bottom-color: #b9cfe8; }
+.toc a:focus-visible, a:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+
+/* ---- スマホの わく ---- */
+.phone { position: relative; width: 100%; max-width: 270px; margin: 0 auto; border-radius: 30px; padding: 9px; background: var(--ink);
+  box-shadow: 0 14px 30px rgba(59,42,85,.22); }
+.phone img { display: block; width: 100%; height: auto; border-radius: 22px; }
+.phone.tilt { transform: rotate(2.5deg); }
+.cap { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 10px; font-weight: 700; }
+/* 画面の上の 番号ピン */
+.pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 900; font-size: 14px;
+  display: grid; place-items: center; border: 2.5px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); line-height: 1; }
+.pin.y { background: #e08a00; }
+
+/* ---- 章 ---- */
+.chapter { margin-top: 56px; }
+.chead { display: flex; align-items: center; gap: 14px; }
+.chead .no { flex: none; width: 54px; height: 54px; border-radius: 18px; background: var(--pink); color: #fff; font-family: var(--f-display); font-size: 26px; display: grid; place-items: center; transform: rotate(-6deg); box-shadow: 0 4px 0 #c43c7b; }
+.chead h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(24px, 4vw, 34px); }
+.chead p { color: var(--ink-soft); font-weight: 700; }
+.row { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 32px; align-items: start; margin-top: 26px; }
+.row.flip { grid-template-columns: minmax(0, 1fr) 270px; }
+.row.flip .shot { order: 2; }
+.txt { min-width: 0; display: grid; gap: 14px; }
+.txt h3 { font-size: 21px; font-weight: 900; }
+.txt h3 .tag { font-size: 13px; vertical-align: middle; background: var(--mint-soft); color: var(--mint); border-radius: 99px; padding: 2px 10px; margin-left: 6px; }
+
+/* 番号つきの せつめい */
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.legend li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; }
+.legend li .n { width: 26px; height: 26px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 900; font-size: 14px; display: grid; place-items: center; margin-top: 3px; }
+.legend li .n.y { background: #e08a00; }
+/* 手順 */
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; gap: 10px; }
+.steps li { counter-increment: s; position: relative; padding: 10px 14px 10px 50px; background: #fff; border: 2px solid var(--line); border-radius: 16px; }
+.steps li::before { content: counter(s); position: absolute; left: 12px; top: 10px; width: 28px; height: 28px; border-radius: 9px; background: var(--sun); color: var(--ink); font-weight: 900; display: grid; place-items: center; }
+.tap { display: inline-block; background: #fff; border: 2px solid #ffc6dd; border-bottom-width: 4px; border-radius: 10px; padding: 0 8px; font-weight: 900; font-size: .92em; white-space: nowrap; }
+
+/* ふきだし・メモ */
+.tip { background: var(--sun-soft); border-radius: 18px; padding: 12px 16px 12px 52px; position: relative; }
+.tip::before { content: "💡"; position: absolute; left: 14px; top: 10px; font-size: 24px; }
+.tip.warn { background: var(--pink-soft); }
+.tip.warn::before { content: "⚠️"; }
+.tip.star::before { content: "⭐"; }
+.say { display: flex; gap: 12px; align-items: flex-start; }
+.say .face { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--pink-soft); display: grid; place-items: center; font-size: 30px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.say .bubble { background: #fff; border: 2px solid var(--line); border-radius: 4px 18px 18px 18px; padding: 10px 14px; min-width: 0; }
+
+/* 画面を ならべる */
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 22px; margin-top: 22px; }
+.gallery .phone { max-width: 220px; }
+.gallery .g { display: grid; gap: 8px; align-content: start; }
+.gallery h4 { margin: 4px 0 0; font-size: 17px; font-weight: 900; text-align: center; }
+.gallery p { font-size: 14.5px; line-height: 1.75; }
+
+/* 表 */
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; background: #fff; border-radius: 14px; overflow: hidden; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--pink-soft); font-weight: 900; white-space: nowrap; }
+
+/* ---- おうちの方へ ---- */
+.parent { margin-top: 64px; background: var(--parent-soft); border-radius: 28px; padding-block: 28px; padding-inline: clamp(16px, 4vw, 40px); border: 2px solid #c9dbef; }
+.parent .label { display: inline-block; background: var(--parent); color: #fff; font-size: 13px; letter-spacing: .1em; font-weight: 900; padding: 3px 12px; border-radius: 99px; }
+.parent h2 { font-size: clamp(22px, 3.4vw, 30px); font-weight: 900; color: var(--parent); margin-top: 10px; }
+.parent .pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px; }
+.parent .pc { background: #fff; border-radius: 18px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.parent .pc h3 { font-size: 17px; font-weight: 900; color: var(--parent); }
+.parent .pc p, .parent .pc li { font-size: 15px; line-height: 1.8; }
+.parent ul { margin: 0; padding-left: 1.2em; }
+.parent .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 18px; }
+.parent .fig { background: #fff; border-radius: 16px; padding: 12px; text-align: center; }
+.parent .fig b { display: block; font-size: 28px; color: var(--parent); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.parent .fig span { font-size: 13px; font-weight: 700; color: #4d6a87; }
+.url { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: var(--parent-soft); padding: 2px 8px; border-radius: 6px; word-break: break-all; user-select: all; }
+
+.qa { display: grid; gap: 10px; margin-top: 18px; }
+.qa details { background: #fff; border-radius: 16px; padding: 12px 16px; border: 2px solid var(--line); }
+.qa summary { font-weight: 900; cursor: pointer; }
+.qa details p { margin-top: 8px; }
+
+footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+
+@media (max-width: 760px) {
+  .cover { grid-template-columns: minmax(0, 1fr); padding-top: 28px; }
+  .cover .phone { max-width: 230px; }
+  .row, .row.flip { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .row.flip .shot { order: 0; }
+  .shot .phone { max-width: 250px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cover .phone.tilt { animation: bob 4s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: rotate(2.5deg) translateY(0); } 50% { transform: rotate(2.5deg) translateY(-8px); } }
+}
+</style>
+
+<div class="wrap">
+
+  <!-- ===== 表紙 ===== -->
+  <header class="cover">
+    <div>
+      <span class="kicker">ぼうけんガイド</span>
+      <h1>ぷにまる<br>クエスト<small>もんだいを とくほど、ぷにまるが つよくなる！</small></h1>
+      <p class="lead">漢字・算数・理科・社会・ことばの <b>5つの国</b> を ぼうけんする ゲームだよ。<br>もんだいに せいかいすると、てきに こうげき！ コインを あつめて そうびを かったり、タマゴから なかまを そだてたりしよう。</p>
+      <div class="chips"><span class="chip">📖 漢字 1026字</span><span class="chip">🔢 算数の 公式</span><span class="chip">🔬 理科</span><span class="chip">🗾 社会</span><span class="chip">💬 ことば</span><span class="chip">🐣 なかま 53しゅるい</span><span class="chip">✍️ かきとり道場</span><span class="chip">🌑 まおう</span></div>
+      <nav class="toc" aria-label="もくじ">
+        <a href="#start">1 はじめかた</a><a href="#home">2 ホーム</a><a href="#map">3 ぼうけん</a><a href="#battle">4 バトル</a><a href="#answer">5 こたえかた</a><a href="#boss">6 ボスと クリア</a><a href="#write">7 かきとり道場</a><a href="#power">8 つよくなる</a><a href="#nakama">9 なかま</a><a href="#zukan">10 ずかん</a><a href="#maou">11 まおう</a><a href="#settings">12 せってい</a><a href="#parents" class="par">おうちの方へ</a>
+      </nav>
+    </div>
+    <div>
+      <div class="phone tilt"><img src="img/01_title.jpg" alt="タイトル画面。ぼうけんのしょを 3つから えらべる" width="750" height="1440"></div>
+    </div>
+  </header>
+
+  <!-- ===== 1 はじめかた ===== -->
+  <section class="chapter" id="start">
+    <div class="chead"><span class="no">1</span><div><h2>はじめかた</h2><p>きみだけの ぷにまるを つくろう</p></div></div>
+
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/01_title.jpg" alt="タイトル画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:50%;top:28%">1</span><span class="pin" style="left:50%;top:41%">2</span><span class="pin" style="left:50%;top:68%">3</span><span class="pin" style="left:50%;top:78%">4</span>
+        </div>
+        <p class="cap">タイトル画面</p>
+      </div>
+      <div class="txt">
+        <h3>ぼうけんのしょを えらぶ</h3>
+        <ol class="legend">
+          <li><span class="n">1</span><span><b>ぼうけんのしょ</b>は 3つ あるよ。きょうだいや ともだちと べつべつに あそべるよ。</span></li>
+          <li><span class="n">2</span><span>はじめての ときは <span class="tap">＋ あたらしく はじめる</span> を タップ。つづきから あそぶ ときは、じぶんの ぼうけんのしょを タップしてね。</span></li>
+          <li><span class="n">3</span><span><span class="tap">🔑 ふっかつコードで もどす</span> は、データが きえて しまった ときに つかうよ（おうちの人と いっしょに）。</span></li>
+          <li><span class="n">4</span><span><span class="tap">📘 せつめいしょ を 見る</span> で、この せつめいしょが 見られるよ。</span></li>
+        </ol>
+        <div class="tip">アップデートが あると、画面の 下に おしらせが 出るよ。<span class="tap">タイトル</span> に もどると、あたらしい ゲームに かわるよ。</div>
+      </div>
+    </div>
+
+    <div class="row flip">
+      <div class="shot">
+        <div class="phone"><img src="img/02_setup.jpg" alt="なまえと からだの いろを えらぶ 画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:50%;top:44%">1</span><span class="pin" style="left:50%;top:58%">2</span><span class="pin" style="left:50%;top:68%">3</span>
+        </div>
+        <p class="cap">なまえと いろを きめる 画面</p>
+      </div>
+      <div class="txt">
+        <h3>ぷにまるに なまえを つけよう</h3>
+        <ol class="steps">
+          <li>白い わくを タップして、<b>なまえ</b>を 入れよう。</li>
+          <li><b>からだの いろ</b>を 5しょくから えらぼう。タップすると 上の ぷにまるの いろが かわるよ。</li>
+          <li><span class="tap">ぼうけんを はじめる！</span> を おしたら スタート！</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2 ホーム ===== -->
+  <section class="chapter" id="home">
+    <div class="chead"><span class="no">2</span><div><h2>ホーム画面</h2><p>ぼうけんの きち。ここから どこへでも 行けるよ</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/03_home.jpg" alt="ホーム画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:17%;top:4.5%">1</span><span class="pin" style="left:91%;top:4.5%">2</span>
+          <span class="pin" style="left:22%;top:50%">3</span><span class="pin" style="left:12%;top:56%">4</span><span class="pin" style="left:50%;top:65%">5</span>
+          <span class="pin y" style="left:17%;top:77%">6</span><span class="pin y" style="left:50%;top:77%">7</span><span class="pin y" style="left:83%;top:77%">8</span>
+          <span class="pin y" style="left:17%;top:91%">9</span><span class="pin y" style="left:50%;top:91%">10</span><span class="pin y" style="left:83%;top:91%">11</span>
+        </div>
+        <p class="cap">ホーム画面</p>
+      </div>
+      <div class="txt">
+        <ol class="legend">
+          <li><span class="n">1</span><span><span class="tap">🏠 タイトル</span>：タイトル画面に もどるよ。</span></li>
+          <li><span class="n">2</span><span><span class="tap">⚙️</span>：せってい（音の オン・オフなど）。</span></li>
+          <li><span class="n">3</span><span>ぷにまるの つよさ。⚔️こうげき・🛡️ぼうぎょ・❤️たいりょく。そうびを かえると かわるよ。</span></li>
+          <li><span class="n">4</span><span>もっている <b>タマゴ</b>。あと なん問 せいかいすると かえるか わかるよ。</span></li>
+          <li><span class="n">5</span><span><span class="tap">⚔️ ぼうけんに でる！</span>：もんだいバトルへ しゅっぱつ！</span></li>
+          <li><span class="n y">6</span><span><b>ショップ</b>：そうびを かう（あたらしい しなものには <b>NEW</b>）。</span></li>
+          <li><span class="n y">7</span><span><b>そうび</b>：ぶき・よろい・ぼうしを つけかえる。</span></li>
+          <li><span class="n y">8</span><span><b>なかま</b>：なかまや タマゴの ようす。</span></li>
+          <li><span class="n y">9</span><span><b>ずかん</b>：あつめた カード・そざい。</span></li>
+          <li><span class="n y">10</span><span><b>ミッション</b>：まいにちの おだい。</span></li>
+          <li><span class="n y">11</span><span><b>セーブ</b>：きろくを のこす（ふだんは じどうで セーブされるよ）。</span></li>
+        </ol>
+        <div class="tip">どの 画面でも、左上の <span class="tap">◀ もどる</span> で 1つ まえに もどれるよ。画面を 下に スクロールしても、もどるボタンは ずっと 上に あるよ。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3 ぼうけん ===== -->
+  <section class="chapter" id="map">
+    <div class="chead"><span class="no">3</span><div><h2>ぼうけんに でよう</h2><p>国 → 章 → ステージ の じゅんに えらぶよ</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/04_map.jpg" alt="ぼうけんの 国を えらぶ 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>① 国を えらぶ</h4>
+        <p>5つの 国から すきな 国へ。いちばん上の <b>⭐きょうの おすすめ</b> を えらぶと、まよわず すすめるよ。<b>📘ぞくせいの あいしょう</b> も ここで 見られるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/05_world.jpg" alt="漢字の国の 章を えらぶ 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>② 章を えらぶ</h4>
+        <p>国の 中には「章」が ならんでいるよ。漢字の国は <b>わかばの森 → はなの丘 → … → ほしの塔</b> と、上の タブで エリアを きりかえよう。🔒は まえの 章を クリアすると ひらくよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/06_chapter.jpg" alt="ステージを えらぶ 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>③ ステージを えらぶ</h4>
+        <p>1つの 章は <b>ステージ 3つ ＋ ボス</b>。「もじの 入り口」「すみの 森」みたいに、ステージごとに なまえが あるよ。右の ⭐は クリアした ときの ほし。</p>
+      </div>
+    </div>
+    <div class="say" style="margin-top:22px">
+      <div class="face">👻</div>
+      <div class="bubble"><b>ニガテモンスター たいじ</b>（国の いちばん下）：まちがえた もんだいは ニガテモンスターに なって うろつくよ。2回 せいかいすると たおせて、💎ほうせきが もらえる！（1日 3こまで）</div>
+    </div>
+  </section>
+
+  <!-- ===== 4 バトル ===== -->
+  <section class="chapter" id="battle">
+    <div class="chead"><span class="no">4</span><div><h2>バトルの 画面</h2><p>もんだいに せいかい ＝ こうげき！</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/07_battle.jpg" alt="バトル画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:13%;top:4%">1</span><span class="pin" style="left:62%;top:14%">2</span><span class="pin" style="left:22%;top:17.5%">3</span><span class="pin" style="left:88%;top:17.5%">4</span>
+          <span class="pin" style="left:29%;top:41%">5</span><span class="pin" style="left:44%;top:44.5%">6</span><span class="pin" style="left:70%;top:49.5%">7</span>
+          <span class="pin y" style="left:50%;top:60%">8</span><span class="pin y" style="left:50%;top:80%">9</span>
+        </div>
+        <p class="cap">バトル画面（漢字の よみの もんだい）</p>
+      </div>
+      <div class="txt">
+        <ol class="legend">
+          <li><span class="n">1</span><span><span class="tap">にげる</span>：バトルを やめる。ここまでの コインは もらえるよ。</span></li>
+          <li><span class="n">2</span><span>てきの <b>たいりょく</b>。0に すれば たおせる！</span></li>
+          <li><span class="n">3</span><span>てきの <b>じゃくてん</b>。この ぞくせいの ぶきで こうげきすると 2ばいダメージ。<b>❓</b>の てきは 出てくるまで わからないよ。</span></li>
+          <li><span class="n">4</span><span><b>あと3</b>：あと 3回 こたえると、てきが こうげきしてくるよ。</span></li>
+          <li><span class="n">5</span><span>いっしょに たたかう <b>なかま</b>。ときどき わざで たすけてくれる。</span></li>
+          <li><span class="n">6</span><span><span class="tap">🔄 ぶき</span>：たたかいながら ぶきを かえられる。◎は「よく きく」、△は「いまひとつ」。</span></li>
+          <li><span class="n">7</span><span><span class="tap">✨ ひっさつわざ</span>：せいかいで ゲージが たまると つかえる。せいかいで <b>3ばいダメージ</b>！</span></li>
+          <li><span class="n y">8</span><span>もんだい。</span></li>
+          <li><span class="n y">9</span><span>こたえを タップ！</span></li>
+        </ol>
+        <div class="tip star">れんぞくで せいかいすると <b>コンボ</b>！ ダメージも コインも ふえるよ。まちがえると すぐ こうげきされるから、おちついて こたえよう。</div>
+      </div>
+    </div>
+
+    <div class="row flip">
+      <div class="shot">
+        <div class="phone"><img src="img/12_special.jpg" alt="ひっさつわざの ボタンが ひかっている バトル画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:82%;top:50.5%">!</span>
+        </div>
+        <p class="cap">ゲージ MAX！ ひっさつわざが 光ってる</p>
+      </div>
+      <div class="txt">
+        <h3>ひっさつわざの つかいかた</h3>
+        <ol class="steps">
+          <li>もんだいに せいかいするたび、ボタンの 下の <b>ゲージ</b>が たまるよ。</li>
+          <li>ゲージが いっぱいに なると、<span class="tap">✨ ひっさつわざ</span> が にじいろに 光るよ。</li>
+          <li>タップすると「ひっさつわざ！」の もんだいが 出るよ。せいかいすれば <b>3ばいダメージ</b>！ まちがえると ゲージは 0に もどるよ。</li>
+        </ol>
+        <div class="tip">ボスの とき まで ゲージを とっておくのも 作戦の ひとつ！</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5 こたえかた ===== -->
+  <section class="chapter" id="answer">
+    <div class="chead"><span class="no">5</span><div><h2>こたえかた</h2><p>もんだいは 3つの 形が あるよ</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/08_maru.jpg" alt="4つの こたえから えらんで せいかいし、赤い まるが 出た 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>えらぶ もんだい</h4>
+        <p>4つの こたえから 1つ タップ。せいかいすると <b>「ピンポン！」</b>と なって、えらんだ こたえに <b style="color:#e8264a">赤い まる</b> が 出るよ。そのまま こうげき！</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/10_input.jpg" alt="数字を 入力する もんだいの 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>数字を 入れる もんだい</h4>
+        <p>計算の もんだいは、下の ボタンで 数字を 入れて <span class="tap">こたえる</span>。<span class="tap">⌫</span> で 1文字 けせる。<span class="tap">.</span> で 小数も 入れられるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/11_order.jpg" alt="時代を 古い順に ならべる もんだいの 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>ならべかえ もんだい</h4>
+        <p>「古い じゅん」などに なるように、<b>1ばんめから じゅんばんに タップ</b>。タップした じゅんに 番号が つくよ。まちがえたら <span class="tap">やりなおす</span>。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/09_wrong.jpg" alt="まちがえた ときに 正しい こたえが 出る 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>まちがえた ときは</h4>
+        <p>正しい こたえが 出るよ。たしかめたら <span class="tap">つぎへ</span>。まちがえた もんだいは ニガテモンスターに なるけど、だいじょうぶ。あとで たおせば おぼえられる！</p>
+      </div>
+    </div>
+    <div class="tip" style="margin-top:22px">漢字の もんだいは「よみかた」「□に 入る 漢字」「ひらがなを 漢字に」「2つの □に 共通する 漢字」など、いろんな 聞かれかたが あるよ。<b>いつも せいかいしている もんだいは だんだん 出なくなって、にがてな もんだいが よく 出る</b> ように なっているよ。</div>
+  </section>
+
+  <!-- ===== 6 ボスと クリア ===== -->
+  <section class="chapter" id="boss">
+    <div class="chead"><span class="no">6</span><div><h2>ボスと ステージクリア</h2><p>さいごの ステージには ヌシ（ボス）が いるよ</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/13_trace.jpg" alt="漢字を なぞって トドメを さす 画面" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">漢字の ボスは「かきとり」で トドメ！</p>
+      </div>
+      <div class="txt">
+        <h3>トドメの かきとり <span class="tag">漢字の国</span></h3>
+        <ol class="steps">
+          <li>漢字の国の ボスは、たいりょくを 0に すると「かきとり」が はじまるよ。</li>
+          <li>うすく 出ている 字を、ゆびで <b>なぞって</b> 書こう。</li>
+          <li>書けたら <span class="tap">できた！</span>。<span class="tap">けす</span> で 書きなおせるよ。上手に 書けると「パーフェクト！」で コインが 多く もらえる。</li>
+        </ol>
+        <div class="tip">ボス ステージでは、きんちょうかんの ある BGMに かわるよ（BGMを オンに している とき）。</div>
+      </div>
+    </div>
+    <div class="row flip">
+      <div class="shot">
+        <div class="phone"><img src="img/14_clear.jpg" alt="ステージクリア画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:30%;top:9.5%">1</span><span class="pin" style="left:30%;top:32%">2</span><span class="pin" style="left:12%;top:55%">3</span><span class="pin" style="left:20%;top:72%">4</span><span class="pin" style="left:30%;top:80%">5</span>
+        </div>
+        <p class="cap">ステージクリア！</p>
+      </div>
+      <div class="txt">
+        <ol class="legend">
+          <li><span class="n">1</span><span><b>ほし</b>：ミス 0回で ⭐3、2回までで ⭐2、それ以上は ⭐1。はじめて ⭐3を とると ボーナスコイン！</span></li>
+          <li><span class="n">2</span><span>もらった <b>コイン</b>。</span></li>
+          <li><span class="n">3</span><span>あたらしく 手に入れた <b>カード</b>（NEW）や、ほしが ふえた カード（★UP）。</span></li>
+          <li><span class="n">4</span><span>てきが おとした <b>そざい</b>。ショップで つかうよ。ボスは かならず おとす！</span></li>
+          <li><span class="n">5</span><span><b>タマゴ</b>を 手に入れる ことも あるよ。</span></li>
+        </ol>
+        <div class="tip">てきを 1たい たおすたびに、たいりょくが すこし かいふくするよ。</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===== 7 かきとり道場 ===== -->
+  <section class="chapter" id="write">
+    <div class="chead"><span class="no">7</span><div><h2>かきとり道場</h2><p>お手本なしで 漢字を 書いて たたかう！ ごほうび たっぷり</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/30_writebtn.jpg" alt="漢字の国の 章の 下に ある かきとり道場の ボタン" width="750" height="1440" loading="lazy"></div>
+        <h4>① 道場に 入る</h4>
+        <p>漢字の国の エリア（わかばの森 など）ごとに <b>✍️かきとり道場</b> が あるよ。その エリアの 章を 1つ クリアすると ひらくよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/28_write.jpg" alt="わくの 中に 漢字を 書いている 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>② わくの 中に 書く</h4>
+        <p>よみがなと 熟語を 見て、□に 入る 漢字を ゆびで 書こう。<span class="tap">けす</span> で 書きなおし、<span class="tap">わからない</span> で こたえを 見られるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/29_writemaru.jpg" alt="書いた 字が せいかいで 赤い まるが 出た 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>③ 書けたら「できた！」</h4>
+        <p>すこし ずれたり ゆがんだりしても だいじょうぶ。せいかいなら <b>ダメージ 2ばい</b>＋コインが もらえるよ。</p>
+        <p>もし ○に ならなかったら、<b>お手本の 字</b>が 出るよ。じぶんで くらべて、同じ 字が 書けていたら <span class="tap">○ 書けてた！</span>、ちがったら <span class="tap">✕ ちがった</span> を おしてね。しょうじきに えらぼう！</p>
+      </div>
+    </div>
+    <div class="say" style="margin-top:22px">
+      <div class="face">🎁</div>
+      <div class="bubble"><b>道場の ごほうび</b>：コインが 2ばい・💎ほうせき・レアな そざい「🖋️きんの すみ」。ボスを はじめて たおすと、<b>エリアごとに ちがう めずらしい アクセサリー</b>（キラキラの目、ふわふわぐも、くじら、おうまさん、きんの オーラ、ドラゴン）が もらえる！</div>
+    </div>
+  </section>
+
+  <!-- ===== 8 つよくなる ===== -->
+  <section class="chapter" id="power">
+    <div class="chead"><span class="no">8</span><div><h2>つよく なろう</h2><p>コインと そざいで そうびを そろえよう</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/15_shop.jpg" alt="ショップ画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:8%;top:13%">1</span><span class="pin" style="left:70%;top:18.5%">2</span><span class="pin" style="left:46%;top:34%">3</span><span class="pin" style="left:88%;top:36%">4</span>
+        </div>
+        <p class="cap">ショップ</p>
+      </div>
+      <div class="txt">
+        <h3>ショップ</h3>
+        <ol class="legend">
+          <li><span class="n">1</span><span>いま もっている <b>そざい</b>。</span></li>
+          <li><span class="n">2</span><span><span class="tap">ぶき</span>・<span class="tap">よろい</span>・<span class="tap">ぼうし</span>・<span class="tap">アクセ</span> を きりかえ。</span></li>
+          <li><span class="n">3</span><span>つよさと とくしゅのうりょく。ピンクの わくは ひつような そざい（たりないと 赤く なる）。</span></li>
+          <li><span class="n">4</span><span>ねだん。タップで かうと、すぐ そうびするよ。</span></li>
+        </ol>
+        <div class="tip">つよい てきの 章を クリアすると、あたらしい しなものが ならぶよ。「？？？」は まだ ひみつ！</div>
+      </div>
+    </div>
+    <div class="row flip">
+      <div class="shot">
+        <div class="phone"><img src="img/16_equip.jpg" alt="そうび画面" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">そうび</p>
+      </div>
+      <div class="txt">
+        <h3>そうび</h3>
+        <p>キャラの 下の <span class="tap">⚔️ ぶき</span> <span class="tap">🛡️ よろい</span> <span class="tap">🎩 ぼうし</span> <span class="tap">🎀 アクセ</span> <span class="tap">🎨 いろ</span> で しゅるいを えらぶと、その そうびだけが 下に ならぶよ。タップすると すぐに つけかわって、ぷにまるの 見た目も かわるよ。</p>
+        <div class="tbl"><table>
+          <tr><th>しゅるい</th><th>かわる つよさ</th><th>れい</th></tr>
+          <tr><td>⚔️ ぶき</td><td>こうげき・ぞくせい</td><td>ほのおの つえ 🔥、しずくの けん 💧</td></tr>
+          <tr><td>🛡️ よろい</td><td>ぼうぎょ</td><td>にがてな ぞくせいの こうげきを へらす ものも</td></tr>
+          <tr><td>🎩 ぼうし</td><td>たいりょく</td><td>タマゴが 早く そだつ、そざいが 出やすい など</td></tr>
+          <tr><td>🎀 アクセ</td><td>ほとんど 見た目だけ</td><td>ハートの目、なみだ目、のりもの、オーラ（たまに とくしゅのうりょくつき）</td></tr>
+        </table></div>
+        <div class="say"><div class="face">🎉</div><div class="bubble"><b>見た目が たのしい そうび</b>も あるよ！<br>
+          <b>おもしろ</b>：ハリセン、フランスパン、まぐろソード、アフロ、ちょんまげ<br>
+          <b>かわいい</b>：ハートの ステッキ、フリルの ドレス、うさみみ<br>
+          <b>キラキラ</b>：ながれぼしの つえ、きらきら ティアラ<br>
+          <b>かっこいい</b>：タキシード、うちゅうふく、サングラス</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/33_costume.jpg" alt="ナイトの フルアーマーを きて ドラゴンに のった ぷにまる" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">からだ ぜんぶが かわる いしょう＋のりもの</p>
+      </div>
+      <div class="txt">
+        <h3>きせかえを たのしもう</h3>
+        <p><b>からだ ぜんぶが かわる いしょう</b>（よろい）：くまの きぐるみ、なつの みずぎ、にんじゃ しょうぞく、ナイトの フルアーマー、ロボット スーツ。<b>いなずまの よろい</b>や <b>ほしぞらの ドレス</b>は、うしろにも キラキラが 出るよ。</p>
+        <p><b>アクセサリー</b>（4つめの そうび）：目や まゆげ、スケートボード・ロケット・ほうき などの のりもの、オーラや マント。ドラゴンや くじらに のれる アクセサリーは、ショップでは 売っていない めずらしい ものだよ。</p>
+        <div class="phone" style="max-width:260px"><img src="img/35_dressup.jpg" alt="いろいろな いしょうと アクセサリーの ぷにまる" width="750" height="1440" loading="lazy"></div>
+      </div>
+    </div>
+    <div class="row flip">
+      <div class="shot">
+        <div class="phone"><img src="img/22_mats.jpg" alt="そざいずかん" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">そざいずかんで 手に入る 場所が わかる</p>
+      </div>
+      <div class="txt">
+        <h3>レアな そざいと さいきょうの そうび</h3>
+        <ul class="legend">
+          <li><span class="n">1</span><span><b>国の そざい</b>：その 国の 章でしか 手に 入らない（例：漢字の国 → 📜もじのかけら、🖋️きんの すみ、🐉りゅうの ふで毛）。</span></li>
+          <li><span class="n">2</span><span><b>レアな そざい</b>：<b>むずかしい 章ほど</b>、そして <b>ボスほど</b> 出やすいよ。いちばん レアな ものは とても むずかしい 章の ボスが まれに おとす。</span></li>
+          <li><span class="n">3</span><span><b>ぞくせいの たま</b>：🔴ひ・🔵みず・🟡いかずち・🟢みどり。その ぞくせいの てきが おとすよ。</span></li>
+        </ul>
+        <div class="tip star">さいきょうクラスの そうびは、<b>いろいろな 国の レアそざいや ぞくせいの たまを くみあわせて</b> つくるよ。たとえば「むげん ギア ソード」は 算数の国の そざい＋🟡いかずちの たま。いちばん つよい「にじの せいけん」には まおうの そざいも いる！</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/25_chart.jpg" alt="ぞくせいの あいしょう表" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">ぞくせいの あいしょう（ぼうけん画面で 見られる）</p>
+      </div>
+      <div class="txt">
+        <h3>ぞくせいの あいしょう</h3>
+        <p>🔥ほのお → 🌿くさ → ⚡かみなり → 💧みず → 🔥ほのお … と、やじるしの <b>先の あいてに つよい</b>よ。</p>
+        <div class="tbl"><table>
+          <tr><th>しるし</th><th>いみ</th></tr>
+          <tr><td>◎ こうかばつぐん</td><td>ダメージ 2ばい</td></tr>
+          <tr><td>○ ふつう</td><td>そのまま</td></tr>
+          <tr><td>△ いまひとつ</td><td>ダメージ 半分</td></tr>
+          <tr><td>✕ きかない</td><td>ダメージ 0（とくべつな てき）</td></tr>
+          <tr><td>✨ ほしの ぶき</td><td>どの あいてにも よく きく</td></tr>
+        </table></div>
+        <div class="tip">ぶきを 1つだけで なく、いろんな ぞくせいを そろえておくと、どんな てきにも つよく なれるよ。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 8 なかま ===== -->
+  <section class="chapter" id="nakama">
+    <div class="chead"><span class="no">9</span><div><h2>なかまと タマゴ</h2><p>タマゴを そだてて、なかまを ふやそう</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/18_egg.jpg" alt="タマゴの 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>タマゴを そだてる</h4>
+        <p>タマゴは バトルで 手に入るよ。<b>もんだいに せいかいするたびに、ぜんぶの タマゴが そだつ</b>。「かえる！」に なったら <span class="tap">かえす！</span> を タップ。タマゴは 4こまで もてるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/27_hatch.jpg" alt="なかまが うまれた 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>なかまが うまれた！</h4>
+        <p>どの なかまが 出るかは おたのしみ。ノーマル・レア・スーパーレア・レジェンドの タマゴが あって、めずらしい タマゴほど かえるまで 時間が かかるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/17_nakama.jpg" alt="なかまの 一覧" width="750" height="1440" loading="lazy"></div>
+        <h4>あいぼうを えらぶ</h4>
+        <p>上の ボタンで <b>あたらしい・ふるい・レベル・しゅるい・レア</b> の じゅんに ならびかえられるよ。なかまを タップすると くわしく 見られるよ。<b>あいぼう</b>に した なかまが バトルで いっしょに たたかって、かいふく・こうげき・ガードなどの わざで たすけてくれる。いっしょに たたかうと レベルが 上がるよ（さいだい Lv10）。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/19_breed.jpg" alt="かけあわせの 画面" width="750" height="1440" loading="lazy"></div>
+        <h4>かけあわせ</h4>
+        <p><span class="tap">＋ えらぶ</span> で 2ひき えらんで <span class="tap">かけあわせる！</span>。あたらしい タマゴが うまれるよ。下の <b>🔍なかまの ようす</b> に「〇〇と 仲が よさそうだ…」と ヒントが 出るよ。ひみつの くみあわせも ある！</p>
+      </div>
+    </div>
+    <div class="tip" style="margin-top:22px">かけあわせの じょうけん：どちらも <b>Lv5いじょう</b>、<b>🪙150</b>、1ぴき 1日 1回まで、タマゴが 4こ より 少ない とき。</div>
+  </section>
+
+  <!-- ===== 9 ずかん ===== -->
+  <section class="chapter" id="zukan">
+    <div class="chead"><span class="no">10</span><div><h2>ずかんと ミッション</h2><p>あつめるほど、ぷにまるが つよくなる</p></div></div>
+    <div class="gallery">
+      <div class="g">
+        <div class="phone"><img src="img/21_zukan.jpg" alt="カードずかん" width="750" height="1440" loading="lazy"></div>
+        <h4>カードずかん</h4>
+        <p>せいかいした もんだいは <b>カード</b>に なるよ。<b>ちがう日に</b> また せいかいすると ★が 1つ ふえて、★5で キラカードに！ ★を 10こ あつめるごとに ❤️たいりょくが 1 ふえるよ。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/22_mats.jpg" alt="そざいずかん" width="750" height="1440" loading="lazy"></div>
+        <h4>そざいずかん</h4>
+        <p>いちばん右の 🧺タブ。<b>一度 手に入れた そざい</b>は、どこで 手に入るか 見られるよ。ショップで そざいが たりない ときは ここを 見てね。</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/20_dex.jpg" alt="なかまずかん" width="750" height="1440" loading="lazy"></div>
+        <h4>なかまずかん</h4>
+        <p>なかまは ぜんぶで <b>53しゅるい</b>。かけあわせでしか うまれない なかまも いるよ。ぜんぶ そろえられるかな？</p>
+      </div>
+      <div class="g">
+        <div class="phone"><img src="img/23_missions.jpg" alt="ミッション画面" width="750" height="1440" loading="lazy"></div>
+        <h4>ミッション</h4>
+        <p>まいにち 3つの おだいが 出るよ。たっせいしたら 右の ボタンで ごほうびを もらおう。ミッションは まいにち あたらしく なるよ。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 11 まおう ===== -->
+  <section class="chapter" id="maou">
+    <div class="chead"><span class="no">11</span><div><h2>まおうの しろ</h2><p>5つの 国を すくった ゆうしゃだけが いどめる</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/31_maoumap.jpg" alt="ぼうけん画面の いちばん下に ある まおうの しろの ボタン" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">ぼうけん画面の いちばん下</p>
+      </div>
+      <div class="txt">
+        <h3>2つの まおう</h3>
+        <div class="tbl"><table>
+          <tr><th></th><th>ひらく じょうけん</th><th>ごほうび（はじめて）</th></tr>
+          <tr><td>🌑 まおうの しろ</td><td>どの 国でも ボスを <b>5体ずつ</b> たおす</td><td>えいゆうの マント・にじの ほうぎょく・💎20</td></tr>
+          <tr><td>🌌 しんの まおうの しろ</td><td>まおうを たおして、<b>すべての 国の 章</b>を クリア</td><td>にじの オーラ・にじの ほうぎょく×2・💎30</td></tr>
+        </table></div>
+        <p>まおうは とても つよいよ。<b>2回 こたえるごとに こうげき</b>してきて、たいりょくが へると ぞくせいが かわる。もんだいは クリアした 国の むずかしめの もんだいから 出るよ。ボタンに いまの すすみぐあい（国ごとの たおした ボスの 数）が 出ているよ。</p>
+        <div class="tip">いろいろな ぞくせいの ぶき・つよい なかま・ひっさつわざ を じゅんびして いどもう！</div>
+      </div>
+    </div>
+    <div class="phone" style="max-width:250px;margin-top:22px"><img src="img/32_maou.jpg" alt="まおうとの バトル画面" width="750" height="1440" loading="lazy"></div>
+    <p class="cap">まおう ドンヨリ との たたかい</p>
+  </section>
+
+  <!-- ===== 12 せってい ===== -->
+  <section class="chapter" id="settings">
+    <div class="chead"><span class="no">12</span><div><h2>せってい・セーブ</h2><p>音や きろくの こと</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/24_settings.jpg" alt="せってい画面" width="750" height="1440" loading="lazy">
+          <span class="pin" style="left:50%;top:26%">1</span><span class="pin" style="left:78%;top:45%">2</span><span class="pin" style="left:78%;top:54%">3</span><span class="pin y" style="left:50%;top:85%">4</span>
+        </div>
+        <p class="cap">せってい（ホームの ⚙️）</p>
+      </div>
+      <div class="txt">
+        <ol class="legend">
+          <li><span class="n">1</span><span><span class="tap">📖 タイトルに もどる</span>：べつの ぼうけんのしょに かえる とき。</span></li>
+          <li><span class="n">2</span><span><b>🎵 BGM</b>：国ごとに ちがう 音楽が ながれるよ（和風の 漢字の国、なぞめいた 理科の国、いさましい 社会の国 など）。</span></li>
+          <li><span class="n">3</span><span><b>🔔 効果音</b>：せいかいの「ピンポン！」や こうげきの 音。</span></li>
+          <li><span class="n y">4</span><span><b>🔑 ふっかつコード</b>：データが きえた ときに もどす コード。おうちの人にも おしえてあげてね。</span></li>
+        </ol>
+        <div class="tip warn">音は <b>はじめは オフ</b> に なっているよ。「ピンポン！」を ききたい ときは 効果音を オンに してね。マナーモードの ときは、イヤホンを つけていなければ 鳴らないように しているよ。</div>
+        <div class="tip">ゲームの きろくは <b>じどうで セーブ</b>されるよ。ホームの <span class="tap">💾 セーブ</span> では、べつの ぼうけんのしょに コピーを のこすことも できるよ。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== おうちの方へ ===== -->
+  <section class="parent" id="parents">
+    <span class="label">おうちの方へ</span>
+    <h2>ぷにまるクエストは、小学校の 学習内容を RPG の バトルで くり返し練習する ゲームです</h2>
+    <p style="margin-top:12px">問題に正解すると敵に攻撃でき、集めたコインや素材で装備をそろえたり、タマゴからなかまを育てたりできます。問題は暗算や知識で答えられるものにしぼっており、1問あたり数秒〜十数秒で解けます。</p>
+
+    <div class="figs">
+      <div class="fig"><b>1,026</b><span>小学校の漢字（全学年）</span></div>
+      <div class="fig"><b>5</b><span>教科の国</span></div>
+      <div class="fig"><b>115</b><span>章（各 3ステージ＋ボス）</span></div>
+      <div class="fig"><b>6</b><span>かきとり道場</span></div>
+      <div class="fig"><b>約1,660</b><span>問題の種類</span></div>
+      <div class="fig"><b>53</b><span>なかま</span></div>
+    </div>
+
+    <div class="pgrid">
+      <div class="pc">
+        <h3>📚 出題される内容</h3>
+        <ul>
+          <li><b>漢字</b>：1〜6年の全1,026字。読み・書き・熟語・同じ字が入る熟語の4形式。ボスではなぞり書き、「かきとり道場」ではお手本なしの手書き。線の向きと位置をくらべる甘めの自動判定で、自動で○にならなかったときはお手本を見せて、お子さん自身が「書けてた／ちがった」を選びます（自分で○にした場合はボーナスコインなし）。</li>
+          <li><b>算数</b>：面積・体積・速さ・割合・比・平均などの公式と、旅人算・つるかめ算など特殊算の考え方（暗算で解ける数値）。</li>
+          <li><b>理科</b>：水よう液・気体・電気・てこ・人体・天体・地層など。</li>
+          <li><b>社会</b>：歴史（できごと・人物の並べかえ）・政治・地理・雨温図・県庁所在地など。</li>
+          <li><b>ことば</b>：難読語・送りがな・同音異字・四字熟語・ことわざ・慣用句・敬語など。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🧠 くり返しのしくみ</h3>
+        <ul>
+          <li>正解した問題はカードになり、<b>別の日に</b>正解するたびに★が増えます（最大★5）。同じ日に何度正解しても★は増えないため、日をあけた復習が自然に起こります。</li>
+          <li>続けて正解している問題は出る回数が減り、<b>まちがえた問題は「ニガテモンスター」</b>として残ります。2回正解すると解除されます。</li>
+          <li>クリア済みの章の問題も、およそ4問に1問の割合で復習として混ざります。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🔐 保護者ページ</h3>
+        <p>学習のようすの確認と出題の設定は、ゲームとは別の<b>保護者ページ</b>で行います（ゲームの中からは開けません）。</p>
+        <p><span class="url">https://rus855.github.io/puni-quest/parent.html</span></p>
+        <p>お子さんのゲームの ⚙️せってい画面に出ている12文字の「ふっかつコード」を入力して開きます。このURLはお子さんには伝えないでください。</p>
+      </div>
+      <div class="pc">
+        <h3>⚙️ 出題範囲の設定</h3>
+        <p>保護者ページの「出題の設定」で、<b>「◯年生まで」</b>のおおまかな設定と、<b>章ごとのオン・オフ</b>ができます。子どもの画面には学年は表示されません。</p>
+        <p><b>「中学受験用の 問題を 出さない」</b>にチェックすると、特殊算（旅人算・つるかめ算など）・難読語・浮力などの【中学受験用】の章と問題が出なくなります。章ごとの設定画面では、該当する章に【中学受験用】と表示されます。</p>
+        <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/41_parentcfg.jpg" alt="保護者ページの出題の設定" width="750" height="1440" loading="lazy"></div>
+      </div>
+      <div class="pc">
+        <h3>📈 学習記録</h3>
+        <p>保護者ページで、最後に遊んだ日時、今日と直近の解答数、正答率、国ごとの進み具合、苦手な問題を確認できます。ゲームで遊ぶと数秒〜数分で反映されます。</p>
+        <div class="phone" style="max-width:200px;margin-top:6px"><img src="img/40_parent.jpg" alt="保護者ページの学習記録" width="750" height="1440" loading="lazy"></div>
+      </div>
+      <div class="pc">
+        <h3>💾 データの保存</h3>
+        <ul>
+          <li>進み具合は自動で端末とクラウドに保存されます。ぼうけんのしょは3つまで。</li>
+          <li>ブラウザのデータが消えても、タイトル画面の「ふっかつコードで もどす」に12文字のコードを入れると元に戻ります。コードは控えておいてください。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🔇 音とマナーモード</h3>
+        <ul>
+          <li>BGM・効果音とも<b>初期設定はオフ</b>です。⚙️のせってい画面でそれぞれオンにできます。</li>
+          <li>iPhone のマナーモードに従う種類の音で鳴らしており、イヤホンを付けていなければスピーカーからは鳴らない設計です。ただし、ブラウザの種類によっては従わない場合があるため、一度マナーモードで確かめてからオンにしてください。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>🛡️ 安心して使えるように</h3>
+        <ul>
+          <li>広告・課金はありません。コインや宝石はゲーム内だけのものです。</li>
+          <li>ほかのユーザーとのやり取り（チャットなど）はありません。</li>
+          <li>アプリのインストールは不要で、ブラウザで動きます。ホーム画面やブックマークから開けます。</li>
+        </ul>
+      </div>
+      <div class="pc">
+        <h3>⏱️ 遊び方の目安</h3>
+        <p>1ステージは数分で終わります。毎日のミッション（3つ）をこなすと、ちょうどよい復習量になります。ニガテモンスターがたまってきたら「ニガテモンスター たいじ」を優先するよう声をかけてあげてください。</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <details><summary>Q. 音が鳴りません</summary><p>⚙️のせってい画面で BGM・効果音をオンにしてください。初期設定はオフです。それでも鳴らない場合は、マナーモードや音量を確認してください（マナーモード中はイヤホン使用時だけ鳴ります）。</p></details>
+      <details><summary>Q. 新しい問題や機能が追加されたのに反映されません</summary><p>画面の下に更新のおしらせが出ているときは、ホームの「🏠 タイトル」に戻ると新しい版に切り替わります。</p></details>
+      <details><summary>Q. 問題がむずかしすぎる／かんたんすぎる</summary><p>保護者ページの「出題の設定」で学年の範囲や章を調整できます。中学受験用の問題だけを外すこともできます。設定はゲームに数分以内に届き、次のバトルから反映されます。</p></details>
+      <details><summary>Q. データを別のスマホに移したい</summary><p>新しい端末でゲームを開き、タイトル画面の「ふっかつコードで もどす」に、⚙️せってい画面に表示されている12文字のコードを入力してください。</p></details>
+    </div>
+  </section>
+
+  <footer>ぷにまるクエスト ぼうけんガイド　・　画面は ver.20 の ものです</footer>
+</div>
