@@ -158,30 +158,31 @@ const ELEMENTS = {
 // --- ショップのアイテム ---
 // type: weapon / armor / hat, atk: こうげき, def: ぼうぎょ, hp: たいりょく, el: 属性
 // price: コイン, gem: ほうせき（ニガテモンスターからもらえる）
+// unlock: このステージをクリアするとショップに並ぶ（0 は最初から）
 const ITEMS = [
-  { id: "w_stick", type: "weapon", name: "きのぼう", atk: 4, el: "none", price: 0 },
-  { id: "w_fire1", type: "weapon", name: "ほのおのつえ", atk: 12, el: "fire", price: 100 },
-  { id: "w_water1", type: "weapon", name: "しずくのけん", atk: 12, el: "water", price: 100 },
-  { id: "w_thunder1", type: "weapon", name: "いなずまハンマー", atk: 12, el: "thunder", price: 120 },
-  { id: "w_leaf1", type: "weapon", name: "はっぱブーメラン", atk: 12, el: "leaf", price: 120 },
-  { id: "w_fire2", type: "weapon", name: "ドラゴンフレイム", atk: 28, el: "fire", price: 450 },
-  { id: "w_water2", type: "weapon", name: "オーシャンブレード", atk: 28, el: "water", price: 450 },
-  { id: "w_thunder2", type: "weapon", name: "サンダーボルト", atk: 28, el: "thunder", price: 500 },
-  { id: "w_leaf2", type: "weapon", name: "せいれいのゆみ", atk: 28, el: "leaf", price: 500 },
-  { id: "w_star", type: "weapon", name: "スターロッド", atk: 45, el: "star", price: 800, gem: 5 },
+  { id: "w_stick", type: "weapon", name: "きのぼう", atk: 4, el: "none", price: 0, unlock: 0 },
+  { id: "w_fire1", type: "weapon", name: "ほのおのつえ", atk: 12, el: "fire", price: 100, unlock: 0 },
+  { id: "w_thunder1", type: "weapon", name: "いなずまハンマー", atk: 12, el: "thunder", price: 150, unlock: 1 },
+  { id: "w_water1", type: "weapon", name: "しずくのけん", atk: 14, el: "water", price: 250, unlock: 2 },
+  { id: "w_fire2", type: "weapon", name: "ドラゴンフレイム", atk: 26, el: "fire", price: 600, unlock: 3 },
+  { id: "w_leaf1", type: "weapon", name: "はっぱブーメラン", atk: 16, el: "leaf", price: 350, unlock: 4 },
+  { id: "w_leaf2", type: "weapon", name: "せいれいのゆみ", atk: 30, el: "leaf", price: 900, unlock: 4 },
+  { id: "w_water2", type: "weapon", name: "オーシャンブレード", atk: 32, el: "water", price: 1100, unlock: 5 },
+  { id: "w_thunder2", type: "weapon", name: "サンダーボルト", atk: 32, el: "thunder", price: 1100, unlock: 5 },
+  { id: "w_star", type: "weapon", name: "スターロッド", atk: 48, el: "star", price: 2500, gem: 8, unlock: 6 },
 
-  { id: "a_cloth", type: "armor", name: "ぬののふく", def: 0, price: 0, color: "#ffffff" },
-  { id: "a_leather", type: "armor", name: "かわのよろい", def: 5, price: 80, color: "#c98a4b" },
-  { id: "a_iron", type: "armor", name: "てつのよろい", def: 12, price: 300, color: "#9fb3c8" },
-  { id: "a_gold", type: "armor", name: "ゴールドアーマー", def: 20, price: 700, color: "#ffd24a" },
-  { id: "a_star", type: "armor", name: "ほしぞらのローブ", def: 30, price: 1000, gem: 5, color: "#6a5cff" },
+  { id: "a_cloth", type: "armor", name: "ぬののふく", def: 0, price: 0, color: "#ffffff", unlock: 0 },
+  { id: "a_leather", type: "armor", name: "かわのよろい", def: 5, price: 80, color: "#c98a4b", unlock: 0 },
+  { id: "a_iron", type: "armor", name: "てつのよろい", def: 12, price: 400, color: "#9fb3c8", unlock: 2 },
+  { id: "a_gold", type: "armor", name: "ゴールドアーマー", def: 20, price: 900, color: "#ffd24a", unlock: 4 },
+  { id: "a_star", type: "armor", name: "ほしぞらのローブ", def: 30, price: 2000, gem: 6, color: "#6a5cff", unlock: 6 },
 
-  { id: "h_none", type: "hat", name: "なし", hp: 0, price: 0 },
-  { id: "h_ribbon", type: "hat", name: "リボン", hp: 10, price: 50 },
-  { id: "h_cat", type: "hat", name: "ネコみみ", hp: 15, price: 120 },
-  { id: "h_wizard", type: "hat", name: "まほうのぼうし", hp: 25, price: 300 },
-  { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 600, gem: 3 },
-  { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 900, gem: 6 },
+  { id: "h_none", type: "hat", name: "なし", hp: 0, price: 0, unlock: 0 },
+  { id: "h_ribbon", type: "hat", name: "リボン", hp: 10, price: 50, unlock: 0 },
+  { id: "h_cat", type: "hat", name: "ネコみみ", hp: 15, price: 150, unlock: 1 },
+  { id: "h_wizard", type: "hat", name: "まほうのぼうし", hp: 25, price: 400, unlock: 3 },
+  { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 800, gem: 3, unlock: 5 },
+  { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 1500, gem: 6, unlock: 6 },
 ];
 
 // --- ステージ（ワールド6） ---
@@ -221,3 +222,67 @@ const MISSIONS = [
   { id: "nigate1", text: "ニガテモンスターを1体たおす", goal: 1, reward: { gem: 1 } },
   { id: "starup3", text: "カードの★を3つアップする", goal: 3, reward: { coin: 80 } },
 ];
+
+// --- なかま（タマゴからうまれる動物・モンスター） ---
+// r: レア度（0 ノーマル / 1 レア / 2 スーパーレア / 3 レジェンド）
+// ab: とくいわざの種類, pow: わざの強さ, cd: わざを使うまでに必要な正解の数
+// fusion: かけあわせでしか生まれないなかま
+const PETS = [
+  { id: "pyomaru", name: "ピヨまる", em: "🐥", el: "none", r: 0, ab: "heal", pow: 15, cd: 3, waza: "ピヨピヨのうた" },
+  { id: "nyanta", name: "ニャンタ", em: "🐱", el: "none", r: 0, ab: "attack", pow: 0.8, cd: 3, waza: "ねこパンチ" },
+  { id: "wanta", name: "ワンタ", em: "🐶", el: "none", r: 0, ab: "atkup", pow: 0.3, cd: 3, waza: "がんばれワンワン" },
+  { id: "pyonkichi", name: "ピョンキチ", em: "🐰", el: "leaf", r: 0, ab: "coin", pow: 15, cd: 2, waza: "コインさがし" },
+  { id: "kamessy", name: "カメッシー", em: "🐢", el: "water", r: 0, ab: "shield", pow: 0.5, cd: 4, waza: "こうらガード" },
+  { id: "kerosuke", name: "ケロスケ", em: "🐸", el: "water", r: 0, ab: "attack", pow: 0.8, cd: 3, waza: "みずでっぽう" },
+  { id: "konta", name: "コンタ", em: "🦊", el: "fire", r: 1, ab: "attack", pow: 1.5, cd: 3, waza: "きつねび" },
+  { id: "kumagoro", name: "クマゴロー", em: "🐻", el: "none", r: 1, ab: "shield", pow: 1, cd: 5, waza: "どっしりガード" },
+  { id: "hoho", name: "ホーホー", em: "🦉", el: "thunder", r: 1, ab: "hint", pow: 1, cd: 3, waza: "ちえのささやき" },
+  { id: "pandan", name: "パンダン", em: "🐼", el: "leaf", r: 1, ab: "heal", pow: 25, cd: 4, waza: "ささのはヒール" },
+  { id: "takorin", name: "タコリン", em: "🐙", el: "water", r: 1, ab: "stun", pow: 1, cd: 5, waza: "すみはき" },
+  { id: "penta", name: "ペンタ", em: "🐧", el: "water", r: 1, ab: "gauge", pow: 2, cd: 3, waza: "ペンギンダンス" },
+  { id: "gaou", name: "ガオウ", em: "🦁", el: "fire", r: 2, ab: "atkup", pow: 0.8, cd: 4, waza: "ライオンのほえごえ" },
+  { id: "yuniko", name: "ユニコ", em: "🦄", el: "star", r: 2, ab: "heal", pow: 40, cd: 4, waza: "にじいろヒール" },
+  { id: "draco", name: "ドラコ", em: "🐲", el: "fire", r: 2, ab: "attack", pow: 2.5, cd: 4, waza: "ドラゴンブレス" },
+  { id: "birihamu", name: "ビリハム", em: "🐹", el: "thunder", r: 2, ab: "stun", pow: 1, cd: 4, waza: "しびれほっぺ" },
+  // ここから下は かけあわせ でしか生まれない
+  { id: "toramaru", name: "トラマル", em: "🐯", el: "fire", r: 1, ab: "attack", pow: 1.8, cd: 3, waza: "タイガークロー", fusion: true },
+  { id: "kujiran", name: "クジラン", em: "🐳", el: "water", r: 1, ab: "heal", pow: 35, cd: 4, waza: "しおふきシャワー", fusion: true },
+  { id: "washitaka", name: "ワシタカ", em: "🦅", el: "thunder", r: 1, ab: "attack", pow: 1.8, cd: 3, waza: "いなずまダイブ", fusion: true },
+  { id: "goriran", name: "ゴリラン", em: "🦍", el: "none", r: 1, ab: "atkup", pow: 0.6, cd: 3, waza: "ドラミング", fusion: true },
+  { id: "tokagen", name: "トカゲン", em: "🦎", el: "leaf", r: 1, ab: "stun", pow: 1, cd: 4, waza: "かくれんぼ", fusion: true },
+  { id: "koaran", name: "コアラン", em: "🐨", el: "leaf", r: 1, ab: "coin", pow: 40, cd: 2, waza: "おたからハンター", fusion: true },
+  { id: "tiranon", name: "ティラノン", em: "🦖", el: "fire", r: 2, ab: "attack", pow: 3.2, cd: 4, waza: "ダイナソーバイト", fusion: true },
+  { id: "ryuou", name: "リュウオウ", em: "🐉", el: "star", r: 3, ab: "attack", pow: 4.5, cd: 4, waza: "てんくうのいかずち", fusion: true },
+];
+
+// かけあわせのレシピ（順番は関係なし）
+const RECIPES = [
+  [["nyanta", "konta"], "toramaru"],
+  [["kamessy", "takorin"], "kujiran"],
+  [["pyomaru", "hoho"], "washitaka"],
+  [["wanta", "kumagoro"], "goriran"],
+  [["kerosuke", "pandan"], "tokagen"],
+  [["pyonkichi", "penta"], "koaran"],
+  [["kumagoro", "draco"], "tiranon"],
+  [["draco", "gaou"], "ryuou"],
+];
+
+// レア度ごとの情報（need: かえるまでに必要な正解の数）
+const RARITY = [
+  { name: "ノーマル", stars: "★", need: 15, egg: ["#ffffff", "#ffb3d1"] },
+  { name: "レア", stars: "★★", need: 25, egg: ["#d6ecff", "#4aa8ff"] },
+  { name: "スーパーレア", stars: "★★★", need: 40, egg: ["#fff3b0", "#ffb800"] },
+  { name: "レジェンド", stars: "★★★★", need: 50, egg: ["#f3e0ff", "#c77dff"] },
+];
+
+// とくいわざの説明（pow は レベルで強くなる）
+const ABILITY = {
+  heal: { icon: "💚", name: "かいふく", desc: (p) => `たいりょくを ${p}% かいふく` },
+  attack: { icon: "💥", name: "こうげき", desc: (p) => `てきに こうげき（つよさ ${Math.round(p * 100)}%）` },
+  atkup: { icon: "💪", name: "パワーアップ", desc: (p) => `つぎの 2回の こうげきが ${Math.round(p * 100)}% アップ` },
+  coin: { icon: "🪙", name: "コイン", desc: (p) => `コインを ${p}まい ひろってくる` },
+  shield: { icon: "🛡️", name: "ガード", desc: (p) => (p >= 1 ? "てきの こうげきを 1回 ふせぐ" : `てきの こうげきを ${Math.round(p * 100)}% へらす`) },
+  stun: { icon: "💫", name: "ストップ", desc: () => "てきの うごきを 1ターン とめる" },
+  hint: { icon: "💡", name: "ヒント", desc: () => "まちがいの 答えを 1つ けしてくれる" },
+  gauge: { icon: "✨", name: "ゲージ", desc: (p) => `ひっさつゲージを ${p} ためる` },
+};

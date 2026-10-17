@@ -27,6 +27,7 @@ function newSave() {
     v: 1, name: "", color: BODY_COLORS[0], coins: 150, gems: 0, sound: true,
     owned: ["w_stick", "a_cloth", "h_none"], eq: { weapon: "w_stick", armor: "a_cloth", hat: "h_none" },
     cards: {}, cleared: {}, stats: { tot: 0, cor: 0, days: {} },
+    eggs: [], pets: [], partner: 0, petDex: {}, petUid: 0,
     daily: { date: "", prog: {}, claimed: {}, ngGems: 0 }, login: { last: "", streak: 0 }, tut: {},
   };
 }
@@ -87,6 +88,8 @@ function onCorrect(id) {
   } else if (c.s === 0) { c.s = 1; c.last = d; ev = "new"; }
   else if (c.last !== d && c.s < 5) { c.s++; c.last = d; ev = "up"; }
   if (ev === "new" || ev === "up") addProg("starup3");
+  // タマゴもいっしょに育つ
+  if (growEggs() && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
   return ev;
 }
 function onWrong(id) {
@@ -254,7 +257,7 @@ function setScreen(html, cls = "") {
 }
 function go(name, arg) {
   snd("tap");
-  ({ home, map, shop, equip, zukan, missions, parent })[name](arg);
+  ({ home, map, shop, equip, zukan, missions, parent, nakama })[name](arg);
 }
 function topBar(title, back = "home") {
   return `<div class="topbar"><button class="back" onclick="go('${back}')">◀ もどる</button><div class="ttl">${title}</div>
@@ -306,24 +309,37 @@ function home() {
   const claimable = MISSIONS.some((m) => (S.daily.prog[m.id] || 0) >= m.goal && !S.daily.claimed[m.id]);
   const ng = nigateIds().length;
   setScreen(`<div class="homewrap">
-    <div class="topbar"><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="saveMenu()" aria-label="セーブ">💾</button><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
+    <div class="topbar"><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
     <h1 class="logo sm">ぷにまるクエスト</h1>
-    <div class="hero" onclick="snd('tap');this.firstElementChild.classList.remove('jump');void this.offsetWidth;this.firstElementChild.classList.add('jump')">${charSVG(S.eq, S.color, "bounce")}</div>
+    <div class="herowrap"><div class="hero" onclick="snd('tap');this.firstElementChild.classList.remove('jump');void this.offsetWidth;this.firstElementChild.classList.add('jump')">${charSVG(S.eq, S.color, "bounce")}</div>
+      ${partner() ? `<button class="homepet" onclick="go('nakama','pets')" style="--pc:${ELEMENTS[petSp(partner().sp).el].color}">${petSp(partner().sp).em}</button>` : ""}</div>
     <div class="pname">${esc(S.name)}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>
+    ${eggStrip()}
     <button class="big-btn primary" onclick="go('map')">⚔️ ぼうけんに でる！</button>
-    <div class="menu4">
-      <button onclick="go('shop')"><span class="mi">🛒</span>ショップ</button>
+    <div class="menu4 m6">
+      <button onclick="go('shop')"><span class="mi">🛒</span>ショップ${newShop() ? `<i class="badge">NEW</i>` : ""}</button>
       <button onclick="go('equip')"><span class="mi">🎽</span>そうび</button>
+      <button onclick="go('nakama')"><span class="mi">🐾</span>なかま${readyEggs().length ? `<i class="badge">🐣</i>` : ""}</button>
       <button onclick="go('zukan')"><span class="mi">🃏</span>ずかん${ng ? `<i class="badge">${ng}</i>` : ""}</button>
       <button onclick="go('missions')"><span class="mi">📜</span>ミッション${claimable ? `<i class="badge">!</i>` : ""}</button>
+      <button onclick="saveMenu()"><span class="mi">💾</span>セーブ</button>
     </div></div>`, "bg-home");
-  loginBonus();
+  // ログインボーナス → タマゴがかえる の順に1つずつ見せる
+  if (!loginBonus()) petEvents();
+}
+
+// ホームのタマゴ表示（いちばん早くかえるタマゴまでの問題数）
+function eggStrip() {
+  if (!S.eggs.length) return "";
+  const left = Math.min(...S.eggs.map((e) => Math.max(0, e.n - e.p)));
+  return `<button class="eggstrip" onclick="go('nakama','egg')">${S.eggs.map((e) => eggSVG(e, e.p >= e.n ? "wobble" : "")).join("")}
+    <span>${left === 0 ? "タマゴが かえるよ！" : `あと <b>${left}問</b> 正解で タマゴが かえる！`}</span></button>`;
 }
 
 function loginBonus() {
   const d = today();
-  if (S.login.last === d) return;
+  if (S.login.last === d) return false;
   S.login.streak = S.login.last === yesterday() ? S.login.streak + 1 : 1;
   S.login.last = d;
   const bonus = 30 + 10 * Math.min(S.login.streak - 1, 7);
@@ -334,6 +350,7 @@ function loginBonus() {
       <p><b>${S.login.streak}日れんぞく</b> ログイン！</p><p class="reward">🪙 +${bonus}</p>
       <p class="small">まいにち くると ボーナスが ふえるよ</p><button class="big-btn primary" onclick="closeModal();home()">やったー！</button>`);
   }, 300);
+  return true;
 }
 
 // ---------- マップ ----------
@@ -450,6 +467,7 @@ function startBattle(sid) {
   B = {
     st, sid, enemies, ei: 0, php: pMaxHp(), combo: 0, gauge: 0, coins: 0, gems: 0,
     news: [], ups: [], recent: [], busy: false, pools: sid === "nigate" ? null : stagePools(st), traceFails: 0,
+    petC: 0, buff: 0, buffPow: 0, shield: 0, hint: false, eggs: [],
   };
   nextEnemy();
   if (!S.tut.battle) {
@@ -484,7 +502,7 @@ function renderBattle() {
         <div class="enemy ${e.boss ? "bossy" : ""}" id="enemy">${enemySVG(e)}</div>
       </div>
       <div class="pbox">
-        <div class="pchr" id="pchr">${charSVG(S.eq, S.color)}</div>
+        <div class="pchr" id="pchr">${charSVG(S.eq, S.color)}</div>${petBattleHTML()}
         <div class="pstat">
           <div class="bar php"><i id="phpbar"></i><span id="phptxt"></span></div>
           <div class="prow"><button class="wbtn" onclick="swapWeapon()">🔄 ぶき <b id="wel">${ELEMENTS[w.el].icon}</b></button><span class="combo" id="combo"></span></div>
@@ -496,7 +514,7 @@ function renderBattle() {
     </div>
     <div class="qpanel" id="qpanel"></div>
   </div>`, "bg-battle");
-  updBars();
+  updBars(); updPet();
 }
 
 function updBars() {
@@ -537,6 +555,12 @@ function showQ() {
   else head = `<div class="qlabel">📐 ${q.name}</div><div class="qtext">${q.text}</div>`;
   const cls = q.kind === "kwrite" ? "kch" : q.kind === "ffill" ? "fch" : "";
   $("qpanel").innerHTML = `${head}<div class="choices ${cls}">${q.opts.map((o, i) => `<button class="ch" onclick="answer(${i})">${o}</button>`).join("")}</div>`;
+  if (B.hint) {
+    B.hint = false;
+    const wrongs = q.opts.map((_, i) => i).filter((i) => i !== q.ai);
+    const b = document.querySelectorAll(".ch")[pick(wrongs)];
+    b.classList.add("gone"); b.disabled = true;
+  }
 }
 
 // ダメージ数字などの演出
@@ -566,6 +590,7 @@ async function answer(i) {
     if (!q.special) B.gauge = Math.min(5, B.gauge + 1); else B.gauge = 0;
     const got = 5 + Math.min(B.combo, 10);
     B.coins += got; S.coins += got;
+    petCharge();
     await attack(q.special ? 3 : 1, q.special ? formulaOf(q.id).skill : null);
   } else {
     snd("ng");
@@ -591,6 +616,7 @@ async function attack(mult, skillName) {
   const e = B.e, w = itemById(S.eq.weapon);
   const weak = w.el === e.weak;
   let d = pAtk() * (weak ? 2 : w.el === "star" ? 1.3 : 1) * (1 + 0.1 * Math.min(B.combo, 10)) * mult;
+  if (B.buff > 0) { d *= 1 + B.buffPow; B.buff--; }
   d = Math.max(1, Math.round(d * (0.9 + Math.random() * 0.2)));
   anim($("pchr"), "atk");
   if (skillName) fxText(skillName + "！", "skill");
@@ -611,6 +637,8 @@ async function attack(mult, skillName) {
       <p>じゃくてんが <b style="font-size:1.6em">${ELEMENTS[e.weak].icon}</b> に かわった！</p><p class="small">「🔄 ぶき」で そうびを かえよう</p>
       <button class="big-btn primary" onclick="closeModal()">まけないぞ！</button>`);
   }
+  // なかまのわざ（チャージがたまっていれば）
+  if (e.hp > 0) await petAct();
   if (e.hp <= 0) {
     if (e.boss && B.sid !== "nigate") { e.hp = 0; updBars(); startTrace(); return; }
     return enemyDown();
@@ -625,7 +653,9 @@ async function attack(mult, skillName) {
 
 async function enemyAttack() {
   const e = B.e;
-  const d = Math.max(1, Math.round((e.atk - pDef()) * (0.9 + Math.random() * 0.2)));
+  let d = Math.max(1, Math.round((e.atk - pDef()) * (0.9 + Math.random() * 0.2)));
+  // なかまのガード
+  if (B.shield > 0) { d = Math.round(d * (1 - B.shield)); B.shield = 0; fxText("🛡️ ガード！", "card"); }
   anim($("enemy"), "lunge");
   await wait(250);
   snd("hurt");
@@ -647,10 +677,15 @@ async function enemyDown() {
     ensureDaily();
     if (S.daily.ngGems < 3) { S.daily.ngGems++; S.gems++; B.gems++; fxText("💎 +1", "card"); }
     else { S.coins += 30; B.coins += 30; fxText("🪙 +30", "card"); }
+    if (Math.random() < 0.15) dropEgg(giveEgg(0) ? 0 : "full");
   } else {
     const c = 15 * B.st.id;
     S.coins += c; B.coins += c;
     fxText(`🪙 +${c}`, "card");
+    // ボスを はじめて たおしたときは かならず タマゴ
+    const sure = e.boss && !S.cleared[B.st.id];
+    const r = rollEgg(B.st.id, e.boss, sure);
+    if (r !== null) dropEgg(r);
   }
   save();
   await wait(900);
@@ -660,6 +695,12 @@ async function enemyDown() {
   B.php = Math.min(pMaxHp(), B.php + Math.round(pMaxHp() * 0.3));
   nextEnemy();
   toast("❤️ 体力が すこし かいふくした！");
+}
+
+function dropEgg(r) {
+  if (r === "full") { setTimeout(() => toast("タマゴが いっぱいで もてなかった…"), 400); return; }
+  B.eggs.push(r);
+  setTimeout(() => { snd("special"); fxText(`🥚 ${RARITY[r].name}の タマゴ！`, "skill"); }, 300);
 }
 
 function retreat() {
@@ -693,7 +734,7 @@ function stageClear() {
     if (first) {
       const bonus = 100 * st.id;
       S.coins += bonus; B.coins += bonus;
-      const cand = ITEMS.filter((x) => x.type === "hat" && !x.gem && x.price > 0 && !S.owned.includes(x.id));
+      const cand = ITEMS.filter((x) => x.type === "hat" && !x.gem && x.price > 0 && !S.owned.includes(x.id) && unlocked(x));
       if (st.final) { S.gems += 5; B.gems += 5; treasure = { icon: "💎", text: "ほうせき ×5" }; }
       else if (cand.length && st.id >= 2) { const it = cand[0]; S.owned.push(it.id); treasure = { icon: "🎩", text: `${it.name} を てにいれた！`, item: it.id }; }
       else { S.coins += 100; B.coins += 100; treasure = { icon: "🪙", text: "コイン +100" }; }
@@ -704,12 +745,17 @@ function stageClear() {
   const cards = B.news.length || B.ups.length ? `<div class="gotcards">${tiles(B.news, "NEW")}${tiles(B.ups, "★UP")}</div>` : "";
   const box = treasure ? `<div class="tbox" id="tbox" onclick="openBox()"><div class="chest">🎁</div><small>タップして あけよう！</small></div>
     <div class="treasure hidden" id="treasure"><div class="bigicon">${treasure.icon}</div><b>${treasure.text}</b>${treasure.item ? `<div class="hero xs">${charSVG({ ...S.eq, hat: treasure.item }, S.color)}</div>` : ""}</div>` : "";
+  const newItems = first ? ITEMS.filter((x) => x.unlock === st.id && x.price > 0) : [];
+  const eggs = B.eggs.length ? `<div class="sub">タマゴを てにいれた！</div><div class="gotcards">${B.eggs.map((r) => `<div class="mini-egg">${eggSVG({ r })}<small>${RARITY[r].name}</small></div>`).join("")}</div>` : "";
+  const hatch = readyEggs().length ? `<p class="tip">🐣 タマゴが かえりそう！ ホームに もどってみよう</p>` : "";
+  const shopNew = newItems.length ? `<p class="tip">🛒 ショップに あたらしい そうびが ならんだ！<br><small>${newItems.map((x) => x.name).join("・")}</small></p>` : "";
   const finalMsg = st.final && first ? `<p class="final">🎉 ラスボスを たおした！ きみは ほんものの ゆうしゃだ！<br><small>つぎの ワールドは アップデートで とうじょう予定</small></p>` : "";
   setScreen(`<div class="clear">
     <div class="ctitle">${B.sid === "nigate" ? "ニガテ たいじ せいこう！" : "ステージ クリア！"}</div>
     <div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>${finalMsg}
     <div class="rewards"><span>🪙 +${B.coins}</span>${B.gems ? `<span>💎 +${B.gems}</span>` : ""}</div>
     ${cards ? `<div class="sub">あたらしい カード・★アップ</div>${cards}` : ""}
+    ${eggs}${hatch}${shopNew}
     ${box}
     <div class="row"><button class="big-btn" onclick="go('home')">ホームへ</button><button class="big-btn primary" onclick="go('map')">つぎへ ▶</button></div>
   </div>`, "bg-clear");
@@ -858,10 +904,22 @@ function traceJudge() {
 
 // ---------- ショップ ----------
 let shopTab = "weapon";
+// ステージクリアでショップに並ぶ
+const unlocked = (it) => !it.unlock || !!S.cleared[it.unlock];
+// まだ見ていない新商品があるか
+function newShop() { return ITEMS.some((x) => x.price > 0 && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]); }
+
 function shop(tab) {
   if (tab) shopTab = tab;
   const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"]];
+  S.seen = S.seen || {};
+  ITEMS.forEach((x) => { if (unlocked(x)) S.seen[x.id] = 1; });
+  save();
   const list = ITEMS.filter((x) => x.type === shopTab && x.price > 0).map((it) => {
+    if (!unlocked(it)) {
+      const stg = STAGES.find((x) => x.id === it.unlock);
+      return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>「${stg.name}」を クリアすると ならぶよ</small></div><button class="sbtn" disabled>🔒</button></div>`;
+    }
     const own = S.owned.includes(it.id);
     const can = S.coins >= it.price && S.gems >= (it.gem || 0);
     const stat = it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}${ELEMENTS[it.el].name}` : it.type === "armor" ? `🛡️${it.def}` : `❤️+${it.hp}`;
