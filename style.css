@@ -273,7 +273,8 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
   display: flex; align-items: center; gap: 12px; border: 0; border-radius: 22px; padding: 12px 14px; text-align: left;
   background: linear-gradient(135deg, var(--b1, #fff), var(--b2, #eee)); box-shadow: 0 5px 0 rgba(59,42,85,.2);
 }
-.stage.final { color: #fff; }
+.stage.sfinal { color: #fff; }
+.stage.sfinal small { color: #e8dcff; }
 .stage.nigate { --b1: #efe3ff; --b2: #c9b2f2; }
 .stage.locked { filter: grayscale(.9); opacity: .55; }
 .snum {
