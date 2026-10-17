@@ -1,6 +1,6 @@
 // ===== クラウドセーブ（Firebase Firestore の REST API を使う） =====
 // Firebaseの設定。空のあいだはクラウドセーブを使わず、スマホの中だけに保存する
-const FIREBASE = { apiKey: "", projectId: "" };
+const FIREBASE = { apiKey: "AIzaSyDUNwtZ4KxpvrIKuGl9X48qWjTzHqGG3As", projectId: "puni-quest" };
 
 const Cloud = (() => {
   const KEY = "puniquest_cloud_v1";
