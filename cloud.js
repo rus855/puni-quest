@@ -122,7 +122,8 @@ const Cloud = (() => {
         if (!docs) { if (SL.slots[i]) markDirty(i); return; }
         const { d, t, has, cfg } = docs[0];
         const lt = (SL.slots[i] && SL.slots[i].savedAt) || 0;
-        if (has && d && t > lt && !st.dirty[i]) { SL.slots[i] = d; changed = true; }
+        // ほかの スマホで けされた データは 取りこまない
+        if (has && d && !d.deletedAt && t > lt && !st.dirty[i]) { SL.slots[i] = d; changed = true; }
         else if (lt > t) markDirty(i);
         if (newerCfg(SL.slots[i], cfg)) { SL.slots[i].cfg = cfg; changed = true; }
       }));
@@ -142,11 +143,15 @@ const Cloud = (() => {
       if (!hit) return "notfound";
       const d = hit.d;
       if (newerCfg(d, hit.cfg)) d.cfg = hit.cfg;
+      const wasDeleted = !!d.deletedAt;
+      delete d.deletedAt;
       // ほかの ばしょで 同じ コードを つかっていたら はずす（同じ データが 2つに ならないように）
       st.codes.forEach((x, j) => { if (x === c && j !== i) { st.codes[j] = ""; SL.slots[j] = null; } });
       st.codes[i] = c; st.dirty[i] = false; st.clean[i] = docs.filter((x) => x.d).length > 1;
       persist();
       SL.slots[i] = d; SL.cur = i; writeSlots();
+      // けされた しるしを クラウドからも はずす
+      if (wasDeleted) { st.dirty[i] = true; persist(); push(); }
       return "ok";
     } catch (e) { return "net"; }
   }
@@ -170,6 +175,8 @@ const Cloud = (() => {
   // ぼうけんのしょを けす とき：さいしんの データを 送ってから コードを はずす。クラウドには のこるので、コードで もどせる
   async function detach(i) {
     const c = st.codes[i];
+    // クラウドの データに「ゲームで けした」しるしを つける（保護者ページに 表示する）
+    if (SL.slots[i]) SL.slots[i].deletedAt = Date.now();
     if (enabled() && SL.slots[i]) { if (!c) code(i); st.dirty[i] = true; await push(); }
     const out = st.codes[i] || "", ok = !st.dirty[i];
     st.codes[i] = ""; st.dirty[i] = false; st.clean[i] = false; persist();
