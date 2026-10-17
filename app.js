@@ -670,21 +670,31 @@ function showQ() {
     body = `<div class="choices ${q.cls || ""}">${q.opts.map((o, i) => `<button class="ch" onclick="answer(${i})">${o}</button>`).join("")}</div>`;
   } else if (q.kind === "input") {
     B.inp = "";
-    const keys = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "⌫"];
-    body = `<div class="inbox"><span id="inv" class="inv"> </span><span class="inu">${q.unit}</span></div>
-      <div class="keypad">${keys.map((k) => `<button class="key" onclick="keyIn('${k}')">${k}</button>`).join("")}</div>
-      <button class="big-btn primary okbtn" onclick="submitInput()">こたえる</button>`;
+    const keys = ["7", "8", "9", "⌫", "4", "5", "6", ".", "1", "2", "3", "0"];
+    body = `<div class="inbox"><span id="inv" class="inv"> </span><span class="inu">${q.unit}</span><button class="okbtn" onclick="submitInput()">こたえる</button></div>
+      <div class="keypad">${keys.map((k) => `<button class="key ${k === "⌫" ? "del" : ""}" onclick="keyIn('${k}')">${k}</button>`).join("")}</div>`;
   } else {
     body = `<p class="note">じゅんばんに タップしてね</p><div class="olist">${q.shown.map((i) => `<button class="oitem" id="oi${i}" onclick="orderTap(${i})"><i></i>${q.items[i]}</button>`).join("")}</div>
       <button class="big-btn" onclick="orderReset()">やりなおす</button>`;
   }
   $("qpanel").innerHTML = sp + q.head + body;
+  fitBattle();
   if (B.hint && q.kind === "choice") {
     B.hint = false;
     const wrongs = q.opts.map((_, i) => i).filter((i) => i !== q.ai);
     const b = document.querySelectorAll(".ch")[pick(wrongs)];
     b.classList.add("gone"); b.disabled = true;
   }
+}
+
+// 画面に 入りきらないときは 敵やキャラを 小さくして つめる（2だんかい）
+function fitBattle() {
+  const bt = $("app").firstElementChild;
+  if (!bt || !bt.classList.contains("battle")) return;
+  bt.classList.remove("compact", "compact2");
+  const over = () => document.documentElement.scrollHeight > window.innerHeight + 2;
+  if (over()) bt.classList.add("compact");
+  if (over()) bt.classList.add("compact2");
 }
 
 // 数字の入力
@@ -746,7 +756,9 @@ async function judge(ok) {
     if (ev === "new" || ev === "up") fxText(ev === "new" ? "🃏 NEW カード！" : "⭐ ★アップ！", "card");
     B.combo++;
     if (!q.special) B.gauge = Math.min(5, B.gauge + 1 + (wsp().gauge || 0)); else B.gauge = 0;
-    const got = Math.round((1 + Math.floor(Math.min(B.combo, 9) / 3)) * (1 + (wsp().coin || 0) + (hsp().coin || 0)));
+    // コイン：はんぱは 確率で もらえる（+30%なら 平均で 1.3ばい）
+    const raw = (1 + Math.floor(Math.min(B.combo, 9) / 3)) * (1 + (wsp().coin || 0) + (hsp().coin || 0));
+    const got = Math.floor(raw) + (Math.random() < raw % 1 ? 1 : 0);
     const rg = (asp().regen || 0) + (hsp().regen || 0);
     if (rg) B.php = Math.min(pMaxHp(), B.php + Math.max(1, Math.round(pMaxHp() * rg)));
     B.coins += got; S.coins += got;
@@ -797,7 +809,8 @@ function hitEnemy(d, label, cls) {
 async function attack(mult, skillName) {
   const e = B.e, w = itemById(S.eq.weapon), sp = wsp();
   let x = effNow(w.el);
-  if (sp.pierce && x > 0 && x < 1) x = 1;
+  // つらぬき：いまひとつ・きかない を むしする
+  if (sp.pierce && x < 1) x = 1;
   anim($("pchr"), "atk");
   if (skillName) fxText(skillName + "！", "skill");
   await wait(220);
@@ -1005,7 +1018,8 @@ function stageClear() {
   const hatch = readyEggs().length ? `<p class="tip">🐣 タマゴが かえりそう！ ホームに もどってみよう</p>` : "";
   const shopNew = newItems.length ? `<p class="tip">🛒 ショップに あたらしい そうびが ならんだ！<br><small>${newItems.map((x) => x.name).join("・")}</small></p>` : "";
   const chMsg = isStage && st.n === 4 && first ? `<p class="final">${st.final ? `🎉 ${WORLDS.find((w) => w.id === st.ch.w).name}を ぜんぶ クリア！ すごい！` : `👑 「${st.ch.name}」の 章を クリア！`}</p>` : "";
-  const next = isStage && st.n < 4 ? `startBattle('${st.ch.id}-${st.n + 1}')` : "backFromBattle()";
+  // つぎへ：ステージ1〜3 → つぎの ステージ、ボス → 国の 章えらび（つぎの 章へ）
+  const next = isStage ? (st.n < 4 ? `startBattle('${st.ch.id}-${st.n + 1}')` : `openWorld('${st.ch.w}')`) : "map()";
   setScreen(`<div class="clear">
     <div class="ctitle">${isStage ? (st.n === 4 ? "ボス たおした！" : "ステージ クリア！") : "ニガテ たいじ せいこう！"}</div>
     ${isStage ? `<div class="bigstars">${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}</div><small>${stars === 3 ? "ノーミス！ かんぺき！" : `ミス ${B.miss}回`}</small>` : ""}
@@ -1217,8 +1231,10 @@ function buy(id) {
 function equip() {
   const sec = (type, label) => {
     const its = ITEMS.filter((x) => x.type === type && S.owned.includes(x.id));
-    return `<div class="esec"><div class="sub">${label}</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
-      ${type === "weapon" ? ELEMENTS[it.el].icon + " " : ""}${it.name}<small>${itemStat(it)}</small></button>`).join("")}</div></div>`;
+    // みじかい せつめい（数字と 属性だけ）＋ とくしゅ能力
+    const short = (it) => (it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}` : it.type === "armor" ? `🛡️${it.def}${it.res === "all" ? " ✨" : it.res ? ` ${ELEMENTS[it.res].icon}◎` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}✕` : ""}` : `❤️+${it.hp}`);
+    return `<div class="esec"><div class="sub">${label}（${its.length}）</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
+      <b>${it.series ? WORLDS.find((w) => w.id === it.series).icon : ""}${it.name}</b><small>${short(it)}</small>${it.sp ? `<span class="spt">${spText(it.sp)}</span>` : ""}</button>`).join("")}</div></div>`;
   };
   setScreen(`${topBar("そうび")}
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>

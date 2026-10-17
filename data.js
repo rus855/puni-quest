@@ -152,7 +152,7 @@ function spText(sp) {
   if (sp.stun) t.push(`しびれ${Math.round(sp.stun * 100)}%`);
   if (sp.drain) t.push(`ダメージの${Math.round(sp.drain * 100)}%を きゅうしゅう`);
   if (sp.boss) t.push("ボスに 1.5ばい");
-  if (sp.pierce) t.push("いまひとつを むし");
+  if (sp.pierce) t.push("いまひとつ・きかないを むし");
   if (sp.exec) t.push("のこり少ない てきに 2ばい");
   if (sp.first) t.push("さいしょの 一撃 2ばい");
   if (sp.combo) t.push("コンボで さらに 強くなる");

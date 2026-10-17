@@ -233,7 +233,7 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .chhead b { font-size: 20px; }
 .chhead small { font-size: 12px; }
 .bigstars { font-size: 34px; letter-spacing: 4px; }
-.splabel { text-align: center; font-weight: bold; color: #9b5fd1; font-size: 13px; }
+.splabel { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #ff9cc6, #c77dff); color: #fff; font-weight: bold; font-size: 12px; border-radius: 99px; padding: 3px 12px; white-space: nowrap; box-shadow: 0 2px 0 #9b5fd1; z-index: 2; }
 .qtext .big, .big { font-size: 34px; font-weight: bold; letter-spacing: 2px; }
 .qtext.sm { font-size: 14px; }
 .fml.sm { font-size: 16px; }
@@ -242,14 +242,16 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .mtab { border-collapse: collapse; margin: 6px auto; }
 .mtab td { width: 40px; height: 40px; border: 2px solid #c9b2f2; text-align: center; font-size: 20px; font-weight: bold; background: #fff; }
 .inbox { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0 8px; }
-.inv { min-width: 140px; text-align: right; font-size: 30px; font-weight: bold; border: 3px solid #ece1f5; border-radius: 14px; padding: 4px 12px; background: #fbf8ff; }
+.inv { min-width: 120px; flex: 1; max-width: 180px; text-align: right; font-size: 30px; font-weight: bold; border: 3px solid #ece1f5; border-radius: 14px; padding: 4px 12px; background: #fbf8ff; }
 .inv.right { border-color: #3cc45a; background: #d8ffd9; }
 .inv.wrong { border-color: #ff4d6d; background: #ffe0e5; }
 .inu { font-size: 18px; font-weight: bold; }
-.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .key { border: 0; border-radius: 14px; padding: 10px; font-size: 22px; font-weight: bold; background: #fbf8ff; box-shadow: 0 3px 0 #ddd0ea; }
 .key:active { transform: translateY(2px); box-shadow: 0 1px 0 #ddd0ea; }
-.okbtn { margin-top: 8px; }
+.okbtn { border: 0; border-radius: 14px; padding: 10px 14px; font-size: 16px; font-weight: bold; color: #fff; background: linear-gradient(#ff9cc6, var(--pink)); box-shadow: 0 4px 0 var(--pink-d); white-space: nowrap; }
+.okbtn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--pink-d); }
+.key.del { background: #ffe0e5; }
 .olist { display: flex; flex-direction: column; gap: 6px; }
 .oitem { display: flex; align-items: center; gap: 8px; border: 3px solid #ece1f5; background: #fbf8ff; border-radius: 14px; padding: 9px 10px; font-size: 15px; font-weight: bold; text-align: left; }
 .oitem i { width: 26px; height: 26px; flex: none; border-radius: 50%; background: #eee; font-style: normal; display: grid; place-items: center; color: #fff; }
@@ -521,3 +523,43 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .hintbox { background: #fff; border-radius: 18px; padding: 10px 12px; margin-top: 10px; text-align: left; box-shadow: var(--shadow); }
 .hintbox p { margin: 6px 0; font-size: 13px; }
 .hintbox .secret { color: #9b5fd1; font-weight: bold; }
+
+/* ---- 小さい画面の バトル（入りきらないとき 自動で つめる） ---- */
+.battle.compact .enemy { width: 96px; height: 88px; }
+.battle.compact .enemy.bossy { width: 110px; height: 100px; }
+.battle.compact .pchr { width: 72px; height: 66px; }
+.battle.compact .einfo { margin-top: 1px; }
+.battle.compact .qsvg { width: 112px; height: 112px; margin-bottom: 4px; }
+.battle.compact .qsvg.wide { max-width: 280px; }
+.battle.compact .qword { font-size: 34px; margin-bottom: 4px; }
+.battle.compact .qtext { font-size: 17px; margin: 4px 4px 8px; }
+.battle.compact .ch { min-height: 48px; padding: 9px 6px; font-size: 17px; }
+.battle.compact .kch .ch { font-size: 30px; padding: 6px; }
+.battle.compact .key { padding: 7px; font-size: 19px; }
+.battle.compact .inv { font-size: 24px; }
+.battle.compact .oitem { padding: 6px 10px; font-size: 14px; }
+.battle.compact .mtab td { width: 32px; height: 32px; font-size: 17px; }
+.battle.compact .qpanel { padding-top: 10px; margin-top: 4px; }
+.battle.compact2 .ename { font-size: 13px; padding: 1px 10px; }
+.battle.compact2 .enemy { width: 70px; height: 64px; margin-top: -2px; }
+.battle.compact2 .enemy.bossy { width: 80px; height: 72px; }
+.battle.compact2 .pchr { width: 58px; height: 54px; }
+.battle.compact2 .special { padding: 3px; font-size: 12px; }
+.battle.compact2 .qsvg { width: 96px; height: 96px; }
+.battle.compact2 .key { padding: 5px; font-size: 18px; }
+.battle.compact2 .olist + .big-btn { padding: 10px; margin: 6px 0; }
+.battle.compact2 .note { margin: 2px 0; }
+.battle.compact2 .mtab td { width: 28px; height: 28px; font-size: 15px; }
+.battle.compact2 .mtab { margin: 2px auto; }
+.inv { min-height: 44px; line-height: 34px; }
+.battle.compact .petb { left: 52px; top: -12px; width: 40px; height: 40px; }
+.battle.compact .pem { font-size: 22px; }
+.battle.compact2 .petb { left: 38px; top: -16px; width: 34px; height: 34px; }
+.battle.compact2 .pem { font-size: 18px; }
+.battle.compact2 .pch i { width: 5px; height: 5px; }
+
+/* そうび画面：2れつで そろえる */
+.elist { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.eitem { align-items: flex-start; text-align: left; gap: 2px; min-height: 58px; }
+.eitem b { font-size: 13px; }
+.eitem .spt { font-size: 10px; line-height: 1.3; }
