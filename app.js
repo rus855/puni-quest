@@ -28,7 +28,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 // ---------- セーブデータ ----------
 function newSave() {
   return {
-    v: 1, name: "", color: BODY_COLORS[0], coins: 50, gems: 0, sound: true, mats: {},
+    v: 1, name: "", color: BODY_COLORS[0], coins: 50, gems: 0, sound: false, bgm: false, aud: 1, mats: {},
     owned: ["w_stick", "a_cloth", "h_none"], eq: { weapon: "w_stick", armor: "a_cloth", hat: "h_none" },
     cards: {}, cleared: {}, stClear: {}, tierClear: {}, stats: { tot: 0, cor: 0, days: {} },
     eggs: [], pets: [], partner: 0, petDex: {}, petUid: 0,
@@ -92,7 +92,9 @@ function baseStat(it) {
   }
   return `❤️+${it.hp}`;
 }
-function addMat(k, n = 1) { S.mats[k] = (S.mats[k] || 0) + n; }
+function addMat(k, n = 1) { S.mats[k] = (S.mats[k] || 0) + n; S.matSeen = S.matSeen || {}; S.matSeen[k] = 1; }
+// 一度でも 手に入れた そざいか（前の版の データは もちものに 名前が あれば）
+const matSeen = (k) => (PQ_DEBUG && window.PQ_ZUKANALL) || !!((S.matSeen || {})[k] || (S.mats || {})[k] !== undefined);
 const pDef = () => itemById(S.eq.armor).def;
 // カードの★10こで たいりょく+1（さいだい+100）
 const starHp = () => Math.min(100, Math.floor(totalStars() / 10));
@@ -181,7 +183,7 @@ function charSVG(eq, color, cls = "") {
     <ellipse cx="100" cy="186" rx="62" ry="8" fill="rgba(0,0,0,.13)"/>
     <ellipse cx="68" cy="172" rx="27" ry="14" fill="${FEET[color] || dark}"/>
     <ellipse cx="132" cy="172" rx="27" ry="14" fill="${FEET[color] || dark}"/>
-    ${["h_none", "h_ribbon", "h_halo", "h_flower", "h_bow", "h_starclip", "h_goggles"].includes(h.id) ? `
+    ${["h_none", "h_ribbon", "h_halo", "h_flower", "h_bow", "h_starclip", "h_goggles", "h_glasses", "h_helmet"].includes(h.id) ? `
     <path d="M100 54 C100 42 101 36 103 30" stroke="#47a84a" stroke-width="4" fill="none" stroke-linecap="round"/>
     <path d="M103 31 C 90 16, 76 22, 79 31 C 89 37, 98 35, 103 31Z" fill="#6ccf6a"/>
     <path d="M103 31 C 116 15, 131 21, 128 30 C 118 36, 108 35, 103 31Z" fill="#8ee08a"/>` : ""}
@@ -200,7 +202,11 @@ function charSVG(eq, color, cls = "") {
   </svg>`;
 }
 
+// きらきらの 小さな 星
+const spark = (x, y, r = 5, c = "#fff") => `<path d="M${x} ${y - r} Q${x} ${y} ${x + r} ${y} Q${x} ${y} ${x} ${y + r} Q${x} ${y} ${x - r} ${y} Q${x} ${y} ${x} ${y - r}Z" fill="${c}"/>`;
+
 function armorSVG(a) {
+  if (a.pattern) return patternSVG(a);
   if (a.id === "a_cloth") {
     return `<rect x="30" y="136" width="140" height="13" rx="6" fill="#fff" stroke="#e7d9e9" stroke-width="2"/>
       <path d="M128 146 l10 22 l9 -4 l-8 -20Z" fill="#fff" stroke="#e7d9e9" stroke-width="2"/>`;
@@ -211,6 +217,30 @@ function armorSVG(a) {
   if (a.id === "a_star") deco = `<circle cx="70" cy="160" r="2.5" fill="#fff"/><circle cx="125" cy="150" r="2" fill="#fff"/><circle cx="140" cy="166" r="2.5" fill="#fff"/><path d="M100 146 l3 7 7 0 -6 4 2 7 -6 -4 -6 4 2 -7 -6 -4 7 0Z" fill="#ffe066"/>`;
   return `<rect x="30" y="134" width="140" height="60" fill="${c}"/>
     <rect x="30" y="134" width="140" height="8" fill="${d}"/>${deco}`;
+}
+
+
+// 見た目重視の よろい（pattern）
+function patternSVG(a) {
+  const c = a.color, d = shade(c, -0.25), base = `<rect x="30" y="134" width="140" height="60" fill="${c}"/>`;
+  switch (a.pattern) {
+    case "stripes": return `${base}${[140, 156, 172, 188].map((y) => `<rect x="30" y="${y}" width="140" height="7" fill="#fff" opacity=".75"/>`).join("")}
+      <circle cx="100" cy="150" r="3.5" fill="#ffe066"/><circle cx="100" cy="166" r="3.5" fill="#ffe066"/><path d="M76 134 L100 146 L124 134" fill="none" stroke="${d}" stroke-width="3"/>`;
+    case "box": return `${base}<rect x="30" y="134" width="140" height="6" fill="${d}"/><rect x="92" y="134" width="16" height="60" fill="#e8d3a8" opacity=".85"/>
+      <path d="M50 150 l10 10 M62 148 l-14 14" stroke="#8d6e63" stroke-width="2"/><text x="136" y="166" text-anchor="middle" font-size="11" font-weight="bold" fill="#6d4c41">こわれもの</text>
+      <path d="M126 174 l6 -6 6 6 -3 0 0 6 -6 0 0 -6Z" fill="#6d4c41"/>`;
+    case "tux": return `${base}<path d="M78 134 L100 176 L122 134Z" fill="#fff"/><path d="M90 140 L100 146 L110 140 L110 152 L100 146 L90 152Z" fill="#e53935"/>
+      <circle cx="100" cy="160" r="2.5" fill="#263238"/><circle cx="100" cy="170" r="2.5" fill="#263238"/><path d="M60 150 l12 0" stroke="#fff" stroke-width="3"/><path d="M62 148 l8 -6" stroke="#ff8fb0" stroke-width="4" stroke-linecap="round"/>`;
+    case "frill": return `${base}${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => `<circle cx="${34 + i * 15}" cy="136" r="8" fill="#fff"/>`).join("")}
+      ${[[56, 160], [84, 176], [116, 162], [146, 178], [70, 186]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#fff" opacity=".8"/>`).join("")}
+      <g transform="translate(100 152)"><path d="M0 0 L-14 -9 L-14 9Z" fill="#ff5c8a"/><path d="M0 0 L14 -9 L14 9Z" fill="#ff5c8a"/><circle r="4.5" fill="#ff8fb0"/></g>`;
+    case "space": return `${base}<rect x="30" y="134" width="140" height="7" fill="#b0bec5"/><rect x="80" y="148" width="40" height="26" rx="5" fill="#455a64"/>
+      <circle cx="90" cy="157" r="4" fill="#ff5252"/><circle cx="100" cy="157" r="4" fill="#ffd23f"/><circle cx="110" cy="157" r="4" fill="#69f0ae"/><rect x="86" y="165" width="28" height="4" rx="2" fill="#80deea"/>
+      <circle cx="56" cy="156" r="8" fill="#1e88e5"/>${spark(56, 156, 5)}<rect x="132" y="150" width="20" height="12" fill="#ef5350"/><rect x="132" y="150" width="8" height="6" fill="#1565c0"/>`;
+    case "sparkle": return `<defs><linearGradient id="gsp" x1="0" x2="1"><stop offset="0" stop-color="#d6a8ff"/><stop offset=".5" stop-color="#ffb3e6"/><stop offset="1" stop-color="#9fd8ff"/></linearGradient></defs>
+      <rect x="30" y="134" width="140" height="60" fill="url(#gsp)"/>${[[50, 150, 6], [74, 172, 4], [100, 152, 8], [126, 176, 5], [150, 154, 6], [88, 186, 3], [138, 140, 3]].map(([x, y, r]) => spark(x, y, r)).join("")}`;
+  }
+  return base;
 }
 
 function hatSVG(h, color, dark) {
@@ -282,6 +312,15 @@ function lookSVG(w) {
     case "harp": return g(10, `<path d="M-14 0 Q-20 -60 10 -80 L14 -76 Q-6 -56 0 0Z" fill="#ffd23f" stroke="#c99a00" stroke-width="2"/><path d="M-10 -6 L10 -76 M-6 -6 L12 -60 M-2 -6 L12 -44" stroke="#fff" stroke-width="1.5"/>`);
     case "ruler": return g(15, `<rect x="-7" y="-96" width="14" height="110" rx="2" fill="${w.atk >= 38 ? "#80deea" : "#ffe082"}" stroke="#f9a825" stroke-width="2"/>${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<line x1="-7" y1="${-88 + i * 12}" x2="${i % 2 ? -1 : 2}" y2="${-88 + i * 12}" stroke="#795548" stroke-width="1.5"/>`).join("")}`);
     case "flask": return g(0, `<rect x="-3" y="-30" width="6" height="40" rx="3" fill="#8d6e63"/><path d="M-6 -66 L-6 -52 L-20 -30 Q-22 -22 -14 -22 L14 -22 Q22 -22 20 -30 L6 -52 L6 -66Z" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/><path d="M-16 -30 L16 -30 L19 -25 L-19 -25Z" fill="${c}"/><circle cx="-2" cy="-74" r="5" fill="${c}" opacity=".7"/>`);
+    case "ladle": return g(18, `<rect x="-3" y="-66" width="6" height="82" rx="3" fill="#b0bec5" stroke="#78909c" stroke-width="1.5"/><path d="M-18 -80 Q-18 -58 0 -58 Q18 -58 18 -80Z" fill="#cfd8dc" stroke="#78909c" stroke-width="2"/><ellipse cx="0" cy="-80" rx="18" ry="4" fill="#ffcc80"/><circle cx="0" cy="12" r="4" fill="#78909c"/>`);
+    case "harisen": return g(18, `<rect x="-6" y="-24" width="12" height="40" rx="3" fill="#fff" stroke="#9e9e9e" stroke-width="2"/><rect x="-6" y="-6" width="12" height="8" fill="#e53935"/><path d="M-6 -24 L-26 -100 L26 -100 L6 -24Z" fill="#fff" stroke="#9e9e9e" stroke-width="2" stroke-linejoin="round"/>${[-16, -8, 0, 8, 16].map((x) => `<path d="M${x / 4} -24 L${x} -100" stroke="#bdbdbd" stroke-width="1.5"/>`).join("")}`);
+    case "bread": return g(22, `<ellipse cx="0" cy="-42" rx="12" ry="62" fill="#e0a85a" stroke="#a86b2d" stroke-width="2.5"/>${[-80, -60, -40, -20, 0].map((y) => `<path d="M-7 ${y + 6} Q0 ${y - 2} 7 ${y - 8}" stroke="#fff3d6" stroke-width="3" fill="none" stroke-linecap="round"/>`).join("")}`);
+    case "heart": return g(15, `<rect x="-3" y="-66" width="6" height="82" rx="3" fill="#fff" stroke="#ff8fb0" stroke-width="2"/><path d="M0 -62 C-30 -80 -24 -106 -10 -104 C-4 -104 0 -98 0 -94 C0 -98 4 -104 10 -104 C24 -106 30 -80 0 -62Z" fill="#ff5c8a" stroke="#d81b60" stroke-width="2.5" stroke-linejoin="round"/>${spark(-10, -92, 4)}<path d="M-6 -60 q6 8 12 0" stroke="#ffd23f" stroke-width="3" fill="none"/>`);
+    case "tuna": return g(12, `<path d="M0 8 L-12 22 L12 22Z" fill="#455a64"/><path d="M0 10 Q-18 -40 0 -108 Q18 -40 0 10Z" fill="#78909c" stroke="#37474f" stroke-width="2.5"/><path d="M0 4 Q-10 -40 0 -96" stroke="#eceff1" stroke-width="3" fill="none"/><circle cx="-4" cy="-92" r="3.5" fill="#fff" stroke="#212121" stroke-width="1.5"/><path d="M6 -60 l10 -6 -2 12Z" fill="#ffd23f"/>`);
+    case "starwand": return g(10, `<circle cx="0" cy="-86" r="32" fill="#c77dff" opacity=".2"/><rect x="-3" y="-66" width="6" height="82" rx="3" fill="#ffd23f"/><path d="M0 -114 l8 17 19 2 -14 13 4 19 -17 -9 -17 9 4 -19 -14 -13 19 -2Z" fill="#fff6c2" stroke="#ffb300" stroke-width="2.5" stroke-linejoin="round"/>
+      ${spark(-28, -70, 6, "#ffe066")}${spark(26, -108, 5, "#9fd8ff")}${spark(-22, -112, 4, "#ffb3e6")}${spark(20, -60, 4, "#fff")}`);
+    case "shine": return g(20, `<circle cx="0" cy="-60" r="34" fill="#fff6c2" opacity=".35"/><rect x="-4" y="-6" width="8" height="22" rx="3" fill="#7e57c2"/><path d="M-16 -12 Q0 -4 16 -12 L14 -4 Q0 2 -14 -4Z" fill="#ffd23f" stroke="#c99a00" stroke-width="1.5"/><circle cx="0" cy="-8" r="4" fill="#4aa8ff"/>
+      <path d="M-8 -12 L-8 -92 L0 -108 L8 -92 L8 -12Z" fill="#e3f2fd" stroke="#90caf9" stroke-width="2"/><path d="M0 -18 L0 -96" stroke="#fff" stroke-width="3"/>${spark(-18, -90, 7)}${spark(16, -50, 5, "#ffe066")}${spark(-14, -36, 4, "#ffb3e6")}`);
     case "katana": return g(22, `<rect x="-4" y="-4" width="8" height="22" rx="3" fill="#263238"/><ellipse cx="0" cy="-6" rx="11" ry="4" fill="#ffd23f"/><path d="M-4 -8 Q-8 -60 6 -104 L8 -102 Q0 -60 4 -8Z" fill="#eceff1" stroke="#90a4ae" stroke-width="1.5"/>`);
   }
   return "";
@@ -295,6 +334,21 @@ function hatLook(h) {
     case "h_mortar": return `<path d="M72 62 Q100 48 128 62 L126 70 Q100 60 74 70Z" fill="#283593"/><path d="M58 50 L100 34 L142 50 L100 66Z" fill="#3949ab" stroke="#1a237e" stroke-width="2"/><path d="M128 54 L132 78" stroke="#ffd23f" stroke-width="3"/><circle cx="132" cy="80" r="4" fill="#ffd23f"/>`;
     case "h_bow": return `<g transform="translate(140 62) rotate(20)"><path d="M0 0 L-20 -13 L-20 13Z" fill="#4aa8ff"/><path d="M0 0 L20 -13 L20 13Z" fill="#4aa8ff"/><circle r="7" fill="#8fd3ff"/></g>`;
     case "h_starclip": return `<path d="M136 46 l5 10 11 1 -8 7 3 11 -11 -6 -11 6 3 -11 -8 -7 11 -1Z" fill="#ffe066" stroke="#e0a800" stroke-width="2" stroke-linejoin="round"/>`;
+    case "h_party": return `<g transform="rotate(-12 100 56)"><path d="M78 60 L100 0 L122 60Z" fill="#4aa8ff" stroke="#1e6fd1" stroke-width="2" stroke-linejoin="round"/><path d="M90 30 L110 30 L114 42 L86 42Z" fill="#ffe066"/><path d="M83 50 L117 50 L120 58 L80 58Z" fill="#ff5c8a"/><circle cx="100" cy="0" r="7" fill="#ff8fb0"/></g>`;
+    case "h_chonmage": return `<path d="M58 70 Q100 30 142 70 Q100 54 58 70Z" fill="#cfe8ff" opacity=".9"/><path d="M92 54 Q86 36 108 30 Q122 28 128 36 Q114 36 106 42 Q100 48 104 56Z" fill="#212121"/><rect x="96" y="46" width="12" height="7" rx="2" fill="#fff"/>`;
+    case "h_bunny": return `<path d="M76 62 Q58 6 72 0 Q90 6 88 58Z" fill="#fff" stroke="#e0c4d4" stroke-width="2.5"/><path d="M76 54 Q66 16 73 10 Q83 18 83 52Z" fill="#ffc1d9"/>
+      <path d="M124 62 Q142 6 128 0 Q110 6 112 58Z" fill="#fff" stroke="#e0c4d4" stroke-width="2.5"/><path d="M124 54 Q134 16 127 10 Q117 18 117 52Z" fill="#ffc1d9"/>`;
+    case "h_glasses": return `<rect x="66" y="88" width="32" height="22" rx="9" fill="#212121"/><rect x="102" y="88" width="32" height="22" rx="9" fill="#212121"/><path d="M98 94 L102 94" stroke="#212121" stroke-width="4"/>
+      <path d="M66 94 L44 88 M134 94 L156 88" stroke="#212121" stroke-width="3"/><path d="M72 92 L80 92" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/><path d="M108 92 L116 92" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
+    case "h_afro": return `${[[56, 66, 20], [70, 44, 24], [100, 34, 28], [130, 44, 24], [144, 66, 20], [86, 56, 20], [114, 56, 20]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#3e2723"/>`).join("")}
+      ${[[78, 36], [104, 22], [128, 40], [62, 58], [140, 60]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#5d4037"/>`).join("")}<g transform="translate(136 22) rotate(20)"><rect x="-3" y="0" width="6" height="18" fill="#ff5c8a"/><rect x="-9" y="-12" width="18" height="12" rx="2" fill="#ff5c8a"/></g>`;
+    case "h_pumpkin": return `<path d="M100 22 Q100 10 108 6" stroke="#5d4037" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M108 10 Q122 2 126 14 Q114 16 108 10Z" fill="#4cc46a"/>
+      <ellipse cx="78" cy="48" rx="22" ry="24" fill="#ff8f1f" stroke="#e65100" stroke-width="2"/><ellipse cx="122" cy="48" rx="22" ry="24" fill="#ff8f1f" stroke="#e65100" stroke-width="2"/><ellipse cx="100" cy="46" rx="22" ry="26" fill="#ffa726" stroke="#e65100" stroke-width="2"/>
+      <path d="M90 40 l5 -8 5 8Z M104 40 l5 -8 5 8Z" fill="#5d2a00"/><path d="M88 54 Q100 62 112 54 l-4 4 -4 -3 -4 3 -4 -3 -4 3Z" fill="#5d2a00"/>`;
+    case "h_helmet": return `<circle cx="100" cy="112" r="76" fill="#b3e5fc" opacity=".22" stroke="#eceff1" stroke-width="7"/><circle cx="100" cy="112" r="76" fill="none" stroke="#90a4ae" stroke-width="2"/>
+      <path d="M52 64 Q66 46 86 42" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" opacity=".8"/><path d="M100 36 L100 18" stroke="#90a4ae" stroke-width="4"/><circle cx="100" cy="14" r="6" fill="#ff5252"/>`;
+    case "h_tiara": return `<path d="M68 62 L74 40 L86 52 L100 26 L114 52 L126 40 L132 62 Q100 54 68 62Z" fill="#eceff1" stroke="#90a4ae" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="100" cy="44" r="6" fill="#ff5c8a"/><circle cx="82" cy="56" r="3.5" fill="#4aa8ff"/><circle cx="118" cy="56" r="3.5" fill="#c77dff"/>${spark(100, 18, 6, "#ffe066")}${spark(66, 32, 4, "#fff6c2")}${spark(136, 30, 4, "#fff6c2")}`;
     case "h_kabuto": return `<path d="M50 74 Q50 30 100 28 Q150 30 150 74 Z" fill="#37474f" stroke="#212121" stroke-width="2.5"/><path d="M44 74 L156 74 L150 82 L50 82Z" fill="#455a64"/><path d="M100 30 L78 4 L88 30Z M100 30 L122 4 L112 30Z" fill="#ffd23f" stroke="#c99a00" stroke-width="2"/><circle cx="100" cy="46" r="7" fill="#e53935"/>`;
   }
   return "";
@@ -331,6 +385,7 @@ function setScreen(html, cls = "") {
   const app = $("app");
   app.className = cls;
   app.innerHTML = html;
+  if (typeof BGM !== "undefined") BGM.auto(cls);
   if (typeof updateV !== "undefined" && updateV) $("updbar").classList.toggle("hidden", cls === "bg-battle");
   // 固定した 帯の 高さを はかって、タブを その下に 固定する
   const tb = app.querySelector(".topbar");
@@ -1240,6 +1295,9 @@ function traceJudge() {
 }
 
 // ---------- ショップ ----------
+// 見た目 重視の そうびの 札
+const FUN_CLS = { "おもしろ": "f1", "かわいい": "f2", "キラキラ": "f3", "かっこいい": "f4" };
+const funTag = (it) => (it.fun ? `<i class="fun ${FUN_CLS[it.fun] || ""}">${it.fun}</i>` : "");
 let shopTab = "weapon";
 // ステージクリアでショップに並ぶ
 const unlocked = (it) => (PQ_DEBUG && window.PQ_OPEN) || !it.unlock || !!(S.tierClear || {})[it.unlock] || !!S.cleared[it.unlock];
@@ -1267,7 +1325,7 @@ function shop(tab) {
     const prev = { ...S.eq, [it.type]: it.id };
     return `<div class="sitem ${own ? "own" : ""}">
       <div class="sprev">${charSVG(prev, S.color)}</div>
-      <div class="sname"><b>${it.series ? `<i class="ser">${WORLDS.find((w) => w.id === it.series).icon}</i>` : ""}${it.name}</b><small>${stat}</small>${need}</div>
+      <div class="sname"><b>${it.series ? `<i class="ser">${WORLDS.find((w) => w.id === it.series).icon}</i>` : ""}${it.name}${funTag(it)}</b><small>${stat}</small>${need}</div>
       ${own ? `<button class="sbtn" disabled>もってる</button>` : `<button class="sbtn ${can ? "" : "no"}" onclick="buy('${it.id}')">🪙${it.price}${it.gem ? `<br>💎${it.gem}` : ""}</button>`}
     </div>`;
   }).join("");
@@ -1297,7 +1355,7 @@ function equip() {
     // みじかい せつめい（数字と 属性だけ）＋ とくしゅ能力
     const short = (it) => (it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}` : it.type === "armor" ? `🛡️${it.def}${it.res === "all" ? " ✨" : it.res ? ` ${ELEMENTS[it.res].icon}◎` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}✕` : ""}` : `❤️+${it.hp}`);
     return `<div class="esec"><div class="sub">${label}（${its.length}）</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
-      <b>${it.series ? WORLDS.find((w) => w.id === it.series).icon : ""}${it.name}</b><small>${short(it)}</small>${it.sp ? `<span class="spt">${spText(it.sp)}</span>` : ""}</button>`).join("")}</div></div>`;
+      <b>${it.series ? WORLDS.find((w) => w.id === it.series).icon : ""}${it.name}${funTag(it)}</b><small>${short(it)}</small>${it.sp ? `<span class="spt">${spText(it.sp)}</span>` : ""}</button>`).join("")}</div></div>`;
   };
   setScreen(`${topBar("そうび")}
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>
@@ -1317,24 +1375,53 @@ function worldCards(w) {
   activeChapters(w).forEach((ch) => ch.items.forEach((id) => { if (!set.includes(id)) set.push(id); }));
   return set;
 }
+// デバッグ：ずかん 全表示
+const zukanAll = () => PQ_DEBUG && window.PQ_ZUKANALL;
+function zukanTabs() {
+  return `<div class="tabs wtabs">${WORLDS.map((w) => `<button class="${zTab === w.id ? "on" : ""}" onclick="zukan('${w.id}')">${w.icon}<small>${w.name.replace("の国", "")}</small></button>`).join("")}<button class="${zTab === "mats" ? "on" : ""}" onclick="zukan('mats')">🧺<small>そざい</small></button></div>`;
+}
+// そざいずかん：どこで 手に入るか（一度 手に入れた そざいだけ）
+function matPlaces(k) {
+  const t = TMAT.findIndex((x) => x && x.includes(k));
+  if (t > 0) {
+    const chs = CHAPTERS.filter((c) => c.tier === t && chapterOn(c));
+    const by = WORLDS.map((w) => ({ w, l: chs.filter((c) => c.w === w.id) })).filter((x) => x.l.length);
+    const boss = TMAT[t][1] === k && TMAT[t][0] !== k;
+    return `${boss ? "ボスを たおすと 手に はいる。" : "てきを たおすと ときどき 手に はいる。"}<br>${by.map((x) => `${x.w.icon}「${esc(x.l[0].name)}」${x.l.length > 1 ? ` など ${x.l.length}章` : ""}`).join("<br>")}`;
+  }
+  const w = Object.keys(WORLD_MAT).find((x) => WORLD_MAT[x] === k);
+  if (w) { const W = WORLDS.find((x) => x.id === w); return `${W.icon}${W.name}の 章で 手に はいる（ボスは かならず）`; }
+  return "";
+}
+function matZukan() {
+  const keys = Object.keys(MATS), got = keys.filter(matSeen).length;
+  setScreen(`${topBar("ずかん")}${zukanTabs()}
+    <div class="zhead">あつめた そざい <b>${got} / ${keys.length}</b></div>
+    <p class="note">一度 手に入れた そざいは、どこで 手に はいるか 見られるよ</p>
+    <div class="mlist2">${keys.map((k) => matSeen(k)
+      ? `<div class="mcard"><span class="mem">${MATS[k].em}</span><div><b>${MATS[k].name}</b><small>もっている数：${(S.mats || {})[k] || 0}</small><small class="mplace">${matPlaces(k)}</small></div></div>`
+      : `<div class="mcard lock"><span class="mem">？</span><div><b>？？？</b><small>まだ 見つけていない そざい</small></div></div>`).join("")}</div>`, "bg-shop");
+}
+
 function zukan(tab) {
   if (tab) zTab = tab;
+  if (zTab === "mats") return matZukan();
   const ids = worldCards(zTab);
   const got = ids.filter((id) => S.cards[id] && S.cards[id].s > 0).length;
   const big = zTab === "kanji";
   const tiles = ids.map((id) => {
-    const c = S.cards[id];
-    if (!c || c.s === 0) return `<button class="zc lock ${big ? "" : "f"}" onclick="toast('バトルで 正解すると カードに なるよ')"><b>？</b>${c && c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
+    const c = S.cards[id] || (zukanAll() ? { s: 0 } : null);
+    if (!zukanAll() && (!c || c.s === 0)) return `<button class="zc lock ${big ? "" : "f"}" onclick="toast('バトルで 正解すると カードに なるよ')"><b>？</b>${c && c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
     return `<button class="zc ${big ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${id}')"><b>${esc(cardLabel(id))}</b><span class="stars">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</span>${c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
   }).join("");
   setScreen(`${topBar("ずかん")}
-    <div class="tabs wtabs">${WORLDS.map((w) => `<button class="${zTab === w.id ? "on" : ""}" onclick="zukan('${w.id}')">${w.icon}<small>${w.name.replace("の国", "")}</small></button>`).join("")}</div>
+    ${zukanTabs()}
     <div class="zhead">あつめた カード <b>${got} / ${ids.length}</b>　★ごうけい <b>${totalStars()}</b>（❤️+${starHp()}）</div>
     <p class="note">★は <b>ちがう日</b>に 正解すると 1つ アップ。★5で キラカードに！ 👻 は ニガテちゅう<br>★10こで ❤️+1（さいだい +100）</p>
     <div class="zgrid ${big ? "" : "f"}">${tiles}</div>`, "bg-shop");
 }
 function cardDetail(id) {
-  const c = S.cards[id];
+  const c = S.cards[id] || { s: 0, cor: 0, tot: 0, st: 0, last: "" };
   const stars = `<div class="stars big">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</div>`;
   const next = c.ng ? "👻 ニガテちゅう！ あと " + (2 - c.st) + "回 正解で ニガテ解除" : c.s >= 5 ? "✨ キラカード！ かんぺき！" : c.last === today() ? "つぎの ★アップは あした いこうに 正解！" : "きょう 正解すると ★アップ！";
   let body;
@@ -1384,7 +1471,10 @@ function parent() {
   setScreen(`${topBar("せってい")}
     <div class="panel"><div class="sub">ぼうけんのしょ</div><p class="small">いまは「ぼうけんのしょ${SL.cur + 1}」で あそんでいます。</p>
       <button class="big-btn" onclick="goTitle()">📖 タイトルに もどる</button></div>
-    <div class="panel"><div class="sub">効果音</div><button class="big-btn" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
+    <div class="panel"><div class="sub">音</div>
+      <div class="sndrow"><span>🎵 BGM</span><button class="big-btn ${S.bgm ? "primary" : ""}" onclick="S.bgm=!S.bgm;save();BGM.refresh();parent()">${S.bgm ? "🔊 オン" : "🔇 オフ"}</button></div>
+      <div class="sndrow"><span>🔔 効果音</span><button class="big-btn ${S.sound ? "primary" : ""}" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
+      <p class="small">マナーモードの ときは、イヤホンを つけていなければ 鳴らないように しています。<br>もし マナーモードで 音が 出てしまったら、ここで オフに してね。</p></div>
     <div class="panel"><div class="sub">保護者の方へ</div><p class="small">学習の記録・バックアップは、次の計算の答えを入力すると開きます。</p>
     <div class="gate"><span>${a} × ${b} ＝</span><input id="gate" inputmode="numeric" autocomplete="off"><button class="sbtn" onclick="checkGate()">ひらく</button></div></div>`, "bg-shop");
 }
@@ -1531,6 +1621,8 @@ function slotTap(i, mode) {
     if (SL.slots[i] && SL.slots[i].name) {
       S = Object.assign(newSave(), SL.slots[i]);
       S.cfg = migrateCfg(S.cfg);
+      // 音は さいしょ オフ（マナーモードで 鳴らないように。前の 版の データも 一度 オフに する）
+      if (S.aud !== 1) { S.sound = false; S.bgm = false; S.aud = 1; }
       setTimeout(syncCfg, 500);
       Object.keys(S.cleared || {}).forEach((k) => { S.tierClear[k] = true; });
       SL.slots[i] = S;

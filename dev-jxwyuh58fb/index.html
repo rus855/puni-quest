@@ -39,8 +39,9 @@
       window.PQ_DEBUG = true;
       window.PQ_BASE = "../";
       window.PQ_OPEN = true;
-      try { window.PQ_DAY = Number(sessionStorage.getItem("pq_debug_day") || 0); window.PQ_SHOWANS = sessionStorage.getItem("pq_debug_ans") === "1"; } catch (e) {}
+      try { window.PQ_DAY = Number(sessionStorage.getItem("pq_debug_day") || 0); window.PQ_SHOWANS = sessionStorage.getItem("pq_debug_ans") === "1"; window.PQ_ZUKANALL = sessionStorage.getItem("pq_debug_zukan") === "1"; } catch (e) {}
       document.getElementById("app").innerHTML = '<div class="loading">よみこみちゅう…</div>';
+      // 読みこむ ファイルの 一覧は 本番の index.html から 取る（ファイルが ふえても 自動で 同じに なる）
       var FILES = ["data.js", "world.js", "c_kanji.js", "c_kotoba.js", "c_math.js", "c_sci.js", "c_soc.js", "cloud.js", "pets.js", "app.js"];
       function load(v) {
         window.APP_V = v || 0;
@@ -53,7 +54,11 @@
           document.body.appendChild(s);
         })(0);
       }
-      fetch("../version.json?t=" + Date.now(), { cache: "no-store" })
+      fetch("../index.html?t=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { return r.text(); })
+        .then(function (t) { var m = t.match(/var FILES = (\[[^\]]*\]);/); if (m) FILES = JSON.parse(m[1]); })
+        .catch(function () {})
+        .then(function () { return fetch("../version.json?t=" + Date.now(), { cache: "no-store" }); })
         .then(function (r) { return r.json(); })
         .then(function (j) { load(j.v); })
         .catch(function () { load(0); });

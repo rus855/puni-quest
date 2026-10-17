@@ -354,14 +354,14 @@ function dexTab() {
   const got = PETS.filter((p) => S.petDex[p.id]).length;
   return `<div class="zhead">なかまずかん <b>${got} / ${PETS.length}</b></div>
     <div class="dgrid">${PETS.map((p) => {
-      if (S.petDex[p.id]) return `<button class="dcell" style="--pc:${ELEMENTS[p.el].color}" onclick="dexInfo('${p.id}')"><span>${p.em}</span><small>${p.name}</small></button>`;
+      if (S.petDex[p.id] || (PQ_DEBUG && window.PQ_ZUKANALL)) return `<button class="dcell" style="--pc:${ELEMENTS[p.el].color}" onclick="dexInfo('${p.id}')"><span>${p.em}</span><small>${p.name}</small></button>`;
       return `<button class="dcell lock" onclick="dexInfo('${p.id}')"><span>？</span><small>${p.fusion ? "かけあわせ" : RARITY[p.r].name}</small></button>`;
     }).join("")}</div>`;
 }
 function dexInfo(id) {
   const p = petSp(id);
   snd("tap");
-  if (S.petDex[id]) {
+  if (S.petDex[id] || (PQ_DEBUG && window.PQ_ZUKANALL)) {
     modal(`<div class="petbig" style="--pc:${ELEMENTS[p.el].color}">${p.em}</div><div class="pname2">${p.name} <small>${RARITY[p.r].stars}</small></div>
       <p class="small">${ELEMENTS[p.el].icon} ${ELEMENTS[p.el].name} ／「${p.waza}」<br>${ABILITY[p.ab].icon} ${ABILITY[p.ab].desc(p.pow)}</p><button class="big-btn" onclick="closeModal()">とじる</button>`);
     return;

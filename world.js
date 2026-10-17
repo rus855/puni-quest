@@ -144,11 +144,21 @@ function stageEnemies(ch, n) {
   });
 }
 
+// ステージの 名前（国ごとに ふんいきを かえる）［ステージ1, 2, 3, ボス］
+const STAGE_NAMES = {
+  kanji: ["もじの 入り口", "ふでの 小道", "すみの 森", "ヌシの 書院"],
+  kotoba: ["ことばの 門", "ささやきの 道", "こだまの 谷", "ヌシの 舞台"],
+  math: ["かずの 広場", "図形の めいろ", "計算の 塔", "ヌシの 研究室"],
+  sci: ["実験の へや", "観察の 庭", "ふしぎの どうくつ", "ヌシの ラボ"],
+  soc: ["れきしの 門", "地図の 道", "むかしの 町なみ", "ヌシの お城"],
+};
+const stageName = (ch, n) => (STAGE_NAMES[ch.w] || STAGE_NAMES.kanji)[n - 1];
+
 // ステージの情報（バトルで つかう）
 function stageInfo(ch, n) {
   return {
     key: `${ch.id}-${n}`, ch, n, tier: ch.tier, id: ch.tier,
-    name: `${ch.name} ${n === 4 ? "ボス" : n}`, bg: TBG[ch.tier],
+    name: `${stageName(ch, n)}${n === 4 ? "" : ` ${n}`}`, bg: TBG[ch.tier],
     mat: TMAT[ch.tier][0], bmat: TMAT[ch.tier][1], final: ch.last && n === 4,
   };
 }
@@ -173,6 +183,7 @@ function worldProgress(w) {
 // ---------- 地図の画面 ----------
 // 国えらび
 function map() {
+  bgmHere = "home";
   const ng = nigateIds();
   const rec = recommend();
   setScreen(`${topBar("ぼうけん")}
@@ -218,6 +229,7 @@ let curWorld = "kanji";
 const curSec = {}; // 国ごとに えらんでいる 区切り（漢字の 学年）
 function openWorld(w, sec) {
   if (w) curWorld = w;
+  bgmHere = curWorld;
   snd("tap");
   const W = WORLDS.find((x) => x.id === curWorld);
   const all = activeChapters(curWorld);
@@ -245,6 +257,7 @@ function openWorld(w, sec) {
 function openChapter(id) {
   const ch = chapterOf(id);
   curWorld = ch.w;
+  bgmHere = curWorld;
   snd("tap");
   setScreen(`${topBar(ch.name, "openWorld")}
     <div class="chhead" style="--b1:${TBG[ch.tier][0]};--b2:${TBG[ch.tier][1]}"><div class="bigicon">${ch.icon || "📘"}</div><b>${ch.name}</b>
@@ -254,7 +267,7 @@ function openChapter(id) {
       const ens = stageEnemies(ch, n);
       return `<button class="stage ${open ? "" : "locked"} ${ch.tier === 6 ? "final" : ""}" ${open ? `onclick="startBattle('${ch.id}-${n}')"` : ""} style="--b1:${TBG[ch.tier][0]};--b2:${TBG[ch.tier][1]}">
         <span class="snum">${n === 4 ? "👑" : n}</span>
-        <span class="sinfo"><b>${n === 4 ? "ボス ステージ" : `ステージ ${n}`}</b><small>${open ? `てき ${ens.map((e) => (e.rand ? "❓" : ELEMENTS[e.el].icon)).join(" ")}` : "まえの ステージを クリアしよう"}</small></span>
+        <span class="sinfo"><b>${n === 4 ? `ボス：${stageName(ch, n)}` : `ステージ${n}：${stageName(ch, n)}`}</b><small>${open ? `てき ${ens.map((e) => (e.rand ? "❓" : ELEMENTS[e.el].icon)).join(" ")}` : "まえの ステージを クリアしよう"}</small></span>
         <span class="sstate stars">${!open ? "🔒" : "⭐".repeat(st) + "☆".repeat(3 - st)}</span></button>`;
     }).join("")}</div>`, "bg-map");
 }

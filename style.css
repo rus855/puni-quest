@@ -604,3 +604,32 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .cfggr { font-size: 12px; font-weight: bold; color: var(--pink-d); margin: 8px 0 2px; }
 .ovr { font-style: normal; font-size: 10px; background: #fff3b0; border-radius: 99px; padding: 1px 6px; margin-left: auto; }
 .cfgreset { margin-top: 8px; border: 0; background: #f1ecf3; border-radius: 10px; padding: 8px; font-size: 12px; width: 100%; }
+
+/* タイトル文字：ピンクの 文字に 白い ふちどりで くっきり見せる */
+.logo, .ctitle {
+  color: #f0569a;
+  text-shadow: 0 2px 0 #fff, 2px 0 0 #fff, -2px 0 0 #fff, 0 -2px 0 #fff, 2px 2px 0 #fff, -2px 2px 0 #fff, 2px -2px 0 #fff, -2px -2px 0 #fff, 0 5px 0 rgba(224, 82, 142, .3);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* そざいずかん */
+.mlist2 { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.mcard { display: flex; gap: 10px; align-items: flex-start; background: #fff; border-radius: 16px; padding: 10px 12px; box-shadow: var(--shadow); }
+.mcard.lock { background: #f1ecf3; color: #aaa; box-shadow: none; }
+.mem { font-size: 30px; width: 40px; text-align: center; flex: none; }
+.mcard b { display: block; font-size: 15px; }
+.mcard small { display: block; font-size: 12px; }
+.mplace { margin-top: 4px; color: #6b5b8a; line-height: 1.5; }
+.wtabs button small { white-space: nowrap; }
+
+/* 見た目 重視の そうびの 札 */
+.fun { font-style: normal; font-size: 10px; font-weight: bold; border-radius: 99px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; white-space: nowrap; }
+.fun.f1 { background: #fff3b0; color: #a66b00; }
+.fun.f2 { background: #ffe0ef; color: #d81b60; }
+.fun.f3 { background: linear-gradient(90deg, #e9d5ff, #d6f0ff); color: #7b3fd1; }
+.fun.f4 { background: #e3e7ee; color: #37474f; }
+
+/* 音の せってい */
+.sndrow { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.sndrow span { flex: 1; font-weight: bold; text-align: left; }
+.sndrow .big-btn { width: auto; min-width: 120px; margin: 0; }

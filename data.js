@@ -245,6 +245,28 @@ const ITEMS = [
   { id: "h_kabuto", type: "hat", name: "しょうぐんの かぶと", hp: 35, price: 1200, mat: { rekishi: 6 }, unlock: 4, series: "soc" },
   { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 1000, gem: 3, unlock: 5 },
   { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 2400, gem: 6, unlock: 6, sp: { regen: 0.02 } },
+  // ---- 見た目 重視の そうび（fun：おもしろ／かわいい／キラキラ／かっこいい） ----
+  { id: "w_ladle", type: "weapon", name: "おたま", atk: 7, el: "fire", price: 150, unlock: 0, look: "ladle", fun: "おもしろ", sp: { first: 2.5 } },
+  { id: "w_harisen", type: "weapon", name: "ハリセン", atk: 9, el: "none", price: 300, mat: { kinoko: 4 }, unlock: 1, look: "harisen", fun: "おもしろ", sp: { stun: 0.25 } },
+  { id: "w_bread", type: "weapon", name: "フランスパン", atk: 12, el: "none", price: 500, mat: { kai: 4 }, unlock: 2, look: "bread", fun: "おもしろ", sp: { drain: 0.2 } },
+  { id: "w_heart", type: "weapon", name: "ハートの ステッキ", atk: 16, el: "leaf", price: 600, mat: { kai: 3 }, unlock: 2, look: "heart", fun: "かわいい", sp: { coin: 0.3 } },
+  { id: "w_tuna", type: "weapon", name: "まぐろ ソード", atk: 22, el: "water", price: 900, mat: { yogan: 4, kai: 4 }, unlock: 3, look: "tuna", fun: "おもしろ", sp: { extra: 0.3 } },
+  { id: "w_starwand", type: "weapon", name: "ながれぼしの つえ", atk: 30, el: "star", price: 2000, gem: 3, mat: { yuki: 4 }, unlock: 4, look: "starwand", fun: "キラキラ" },
+  { id: "w_shine", type: "weapon", name: "きらめきの つるぎ", atk: 36, el: "thunder", price: 2400, mat: { denki: 6 }, unlock: 5, look: "shine", fun: "キラキラ", sp: { crit: 0.3 } },
+  { id: "a_pajama", type: "armor", name: "しましま パジャマ", def: 5, price: 300, mat: { kinoko: 4 }, unlock: 1, color: "#a0c4ff", pattern: "stripes", fun: "かわいい", sp: { regen: 0.05 } },
+  { id: "a_box", type: "armor", name: "ダンボール よろい", def: 9, price: 400, mat: { kai: 4 }, unlock: 2, color: "#c49a6c", pattern: "box", fun: "おもしろ", sp: { reflect: 0.15 } },
+  { id: "a_tux", type: "armor", name: "タキシード", def: 12, price: 900, mat: { yogan: 4 }, unlock: 3, color: "#263238", pattern: "tux", fun: "かっこいい", sp: { dodge: 0.12 } },
+  { id: "a_dress", type: "armor", name: "フリルの ドレス", def: 12, price: 900, mat: { yogan: 4 }, unlock: 3, color: "#ffb3d1", pattern: "frill", fun: "かわいい", sp: { regen: 0.03 } },
+  { id: "a_space", type: "armor", name: "うちゅうふく", def: 16, price: 1600, mat: { yuki: 5 }, unlock: 4, color: "#eceff1", pattern: "space", fun: "かっこいい", sp: { guard1: true } },
+  { id: "a_shine", type: "armor", name: "きらきら スーツ", def: 20, price: 2600, gem: 2, mat: { denki: 5 }, unlock: 5, color: "#d6a8ff", pattern: "sparkle", fun: "キラキラ", sp: { dodge: 0.1, reflect: 0.1 } },
+  { id: "h_party", type: "hat", name: "パーティー ぼうし", hp: 10, price: 200, unlock: 0, fun: "おもしろ", sp: { coin: 0.2 } },
+  { id: "h_chonmage", type: "hat", name: "ちょんまげ", hp: 15, price: 250, unlock: 1, fun: "おもしろ" },
+  { id: "h_bunny", type: "hat", name: "うさみみ", hp: 18, price: 400, unlock: 2, fun: "かわいい", sp: { petfast: true } },
+  { id: "h_glasses", type: "hat", name: "サングラス", hp: 15, price: 400, unlock: 2, fun: "かっこいい", sp: { mat: 0.15 } },
+  { id: "h_afro", type: "hat", name: "アフロ", hp: 25, price: 700, unlock: 3, fun: "おもしろ", sp: { egg: 2 } },
+  { id: "h_pumpkin", type: "hat", name: "かぼちゃ ぼうし", hp: 30, price: 1000, unlock: 4, fun: "かわいい" },
+  { id: "h_helmet", type: "hat", name: "うちゅう ヘルメット", hp: 40, price: 1600, unlock: 5, fun: "かっこいい" },
+  { id: "h_tiara", type: "hat", name: "きらきら ティアラ", hp: 45, price: 1800, gem: 2, unlock: 5, fun: "キラキラ", sp: { regen: 0.02 } },
 ];
 
 // --- 毎日ミッション ---

@@ -49,6 +49,7 @@
           <button onclick="dbg.clearAll()">全ステージ クリア済みに</button>
           <button onclick="dbg.resetStars()">クリア状況を リセット</button>
           <button onclick="dbg.nextDay()">日付を 1日 進める（いま +${window.PQ_DAY || 0}日）</button>
+          <button class="${on(window.PQ_ZUKANALL)}" onclick="dbg.toggleZukan()">ずかん 全表示：${window.PQ_ZUKANALL ? "ON" : "OFF"}</button>
         </div>
         <h3>バトル</h3>
         <div class="dgrid">
@@ -100,6 +101,7 @@
       done("ぜんぶ そろえたよ（装備・なかま・コイン・そざい）");
     },
     toggleOpen() { window.PQ_OPEN = !window.PQ_OPEN; closeModal(); openDebug(); },
+    toggleZukan() { window.PQ_ZUKANALL = !window.PQ_ZUKANALL; ss("pq_debug_zukan", window.PQ_ZUKANALL ? "1" : "0"); closeModal(); openDebug(); },
     clearAll() {
       if (!needS()) return;
       CHAPTERS.forEach((c) => [1, 2, 3, 4].forEach((n) => { S.stClear[`${c.id}-${n}`] = 3; }));
