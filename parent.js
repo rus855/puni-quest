@@ -11,9 +11,18 @@ const dateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2
 const pct = (c, t) => (t ? Math.round((c / t) * 100) + "%" : "－");
 const fmtTime = (ts) => { if (!ts) return "－"; const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
-let P = { code: "", slots: [], cfgs: [], cur: 0, loadedAt: 0, view: "" };
-try { const t = JSON.parse(localStorage.getItem(P_KEY) || "{}"); P.code = t.code || ""; P.cur = t.cur || 0; } catch (e) { /* 無視 */ }
-const remember = () => { try { localStorage.setItem(P_KEY, JSON.stringify({ code: P.code, cur: P.cur })); } catch (e) { /* 無視 */ } };
+// codes：登録した ふっかつコード（最大3つ。お子さん ごと）、labels：コードごとの なまえ、ci：いま 見ている コード
+let P = { code: "", codes: ["", "", ""], labels: ["", "", ""], ci: 0, slots: [], cfgs: [], cur: 0, loadedAt: 0, view: "" };
+try {
+  const t = JSON.parse(localStorage.getItem(P_KEY) || "{}");
+  if (t.codes) { P.codes = t.codes; P.labels = t.labels || ["", "", ""]; P.ci = t.ci || 0; }
+  else if (t.code) P.codes[0] = t.code; // 前の 版（コード 1つ）
+  P.cur = t.cur || 0;
+  if (!P.codes[P.ci]) P.ci = Math.max(0, P.codes.findIndex(Boolean));
+  P.code = P.codes[P.ci] || "";
+} catch (e) { /* 無視 */ }
+const remember = () => { try { localStorage.setItem(P_KEY, JSON.stringify({ codes: P.codes, labels: P.labels, ci: P.ci, cur: P.cur })); } catch (e) { /* 無視 */ } };
+const fmtCode = (c) => (c ? c.replace(/(.{4})(.{4})(.{4})/, "$1-$2-$3") : "");
 
 // ---------- カードの 名前・国 ----------
 function cardLabel(id) {
@@ -66,37 +75,57 @@ function saveCfg(cfg, msgId) {
 }
 
 // ---------- 画面 ----------
-function loginView(msg) {
+// コードの 登録・変更（最大 3つ）
+function codeView(msg) {
+  const has = P.codes.some(Boolean);
   $("papp").innerHTML = `<div class="pg-wrap">
-    <h1 class="pg-title">🐣 ぷにまるクエスト<br><small>保護者ページ</small></h1>
+    ${has ? `<div class="pg-top"><button class="back" onclick="load()">◀ もどる</button><b>コードの 追加・変更</b><span></span></div>` : `<h1 class="pg-title">🐣 ぷにまるクエスト<br><small>保護者ページ</small></h1>`}
     <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>
     <div class="pg-card">
-      <p>お子さんの ゲームの ⚙️せってい画面に 表示される <b>ふっかつコード（12文字）</b> を入力してください。</p>
-      <input id="pcode" class="pg-in" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(P.code ? P.code.replace(/(.{4})(.{4})(.{4})/, "$1-$2-$3") : "")}">
-      <label class="pg-chk"><input type="checkbox" id="prem" checked> この端末に コードを 記憶する</label>
-      <button class="big-btn primary" onclick="doLogin()">学習の ようすを 見る</button>
+      <p>お子さんの ゲームの ⚙️せってい画面に 表示される <b>ふっかつコード（12文字）</b> を 入れてください。お子さんが 複数いる ときは、<b>最大 3人分</b> 登録できます。</p>
       ${msg ? `<p class="pg-err">${msg}</p>` : ""}
-      <p class="pg-note">ここで 変えられるのは「出題の 設定」だけです。お子さんの もちものや 進み具合が 書きかわることは ありません。</p>
+      ${[0, 1, 2].map((i) => `<div class="pg-codebox ${P.codes[i] && i === P.ci ? "on" : ""}">
+        <div class="pg-codehead"><b>コード ${i + 1}</b>${P.labels[i] ? `<span>${esc(P.labels[i])}</span>` : ""}</div>
+        <input id="pcode${i}" class="pg-in" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${esc(fmtCode(P.codes[i]))}">
+        <div class="pg-codebtns">
+          <button class="big-btn primary" onclick="saveCode(${i})">${P.codes[i] ? "変更して 見る" : "登録して 見る"}</button>
+          ${P.codes[i] ? `<button class="big-btn" onclick="openCode(${i})">見る</button><button class="big-btn" onclick="delCode(${i})">消す</button>` : ""}
+        </div></div>`).join("")}
+      <p class="pg-note">コードは この端末に 記憶されます。ここで 変えられるのは「出題の 設定」だけです。お子さんの もちものや 進み具合が 書きかわることは ありません。</p>
     </div></div>`;
 }
+const loginView = codeView;
 
-async function doLogin() {
-  const c = $("pcode").value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (c.length !== 12) return loginView("コードは 12文字です。");
-  P.code = c;
-  if ($("prem").checked) remember(); else localStorage.removeItem(P_KEY);
-  await load();
+async function saveCode(i) {
+  const c = $("pcode" + i).value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (c.length !== 12) return codeView(`コード ${i + 1}：コードは 12文字です。`);
+  if (P.codes.some((x, j) => x === c && j !== i)) return codeView(`コード ${i + 1}：その コードは もう 登録されています。`);
+  $("papp").innerHTML = `<div class="loading">コードを たしかめています…</div>`;
+  try {
+    const res = await fetchSlots(c);
+    if (!res) return codeView(`コード ${i + 1}：この コードの データが 見つかりません。コードを ご確認ください。`);
+  } catch (e) { return codeView("通信に 失敗しました。ネットの 接続を ご確認ください。"); }
+  P.codes[i] = c; P.labels[i] = ""; openCode(i);
+}
+function openCode(i) { P.ci = i; P.code = P.codes[i]; P.cur = 0; P.view = ""; remember(); load(); }
+function delCode(i) {
+  if (!confirm(`コード ${i + 1}${P.labels[i] ? `（${P.labels[i]}）` : ""} を この端末から 消しますか？（お子さんの データは 消えません）`)) return;
+  P.codes[i] = ""; P.labels[i] = "";
+  if (P.ci === i) { P.ci = Math.max(0, P.codes.findIndex(Boolean)); P.code = P.codes[P.ci] || ""; P.cur = 0; }
+  remember(); codeView();
 }
 
 async function load() {
   $("papp").innerHTML = `<div class="loading">データを 読みこみ中…</div>`;
   try {
     const res = await fetchSlots(P.code);
-    if (!res) return loginView("この コードの データが 見つかりません。コードを ご確認ください。");
+    if (!res) return codeView("この コードの データが 見つかりません。コードを ご確認ください。");
     P.slots = res.slots; P.cfgs = res.cfgs; P.loadedAt = Date.now();
+    // コードの なまえ（ぼうけんのしょの なまえ）を おぼえる
+    P.labels[P.ci] = P.slots.filter(Boolean).map((x) => x.name).join("・"); remember();
     if (!P.slots[P.cur]) P.cur = Math.max(0, P.slots.findIndex(Boolean));
     if (P.view === "settings") renderSettings(); else render();
-  } catch (e) { loginView("読みこみに 失敗しました。ネットの 接続を ご確認ください。"); }
+  } catch (e) { codeView("読みこみに 失敗しました。ネットの 接続を ご確認ください。"); }
 }
 
 function render() {
@@ -161,7 +190,7 @@ function render() {
     </div>
     <p class="pg-note center">読みこみ：${fmtTime(P.loadedAt)}（ゲームで 遊ぶと 数秒〜数分で 反映されます）</p>
     <button class="big-btn" onclick="load()">🔄 最新に する</button>
-    <button class="big-btn" onclick="logout()">コードを 入れなおす</button>
+    <button class="big-btn" onclick="codeView()">➕ コードを 追加・変更する</button>
   </div>`;
 }
 
@@ -238,13 +267,14 @@ function resetWorld() {
 }
 
 function head() {
+  const n = P.codes.filter(Boolean).length;
   return `<h1 class="pg-title sm">🐣 ぷにまるクエスト <small>保護者ページ</small></h1>
-    <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>`;
+    <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>
+    ${n > 1 ? `<div class="pg-kids"><small>コード</small>${P.codes.map((c, i) => (c ? `<button class="${i === P.ci ? "on" : ""}" onclick="openCode(${i})">${i + 1}. ${esc(P.labels[i] || fmtCode(c))}</button>` : "")).join("")}</div>` : ""}`;
 }
-function logout() { localStorage.removeItem(P_KEY); P.code = ""; loginView(); }
 
 // 開いたままに しておいても 新しく なるように、画面に もどったときに 読みなおす
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && P.slots.length && Date.now() - P.loadedAt > 60000) load(); });
 
 applyGrades();
-if (P.code) load(); else loginView();
+if (P.code) load(); else codeView();
