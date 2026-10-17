@@ -24,7 +24,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 // ---------- セーブデータ ----------
 function newSave() {
   return {
-    v: 1, name: "", color: BODY_COLORS[0], coins: 150, gems: 0, sound: true,
+    v: 1, name: "", color: BODY_COLORS[0], coins: 50, gems: 0, sound: true, mats: {},
     owned: ["w_stick", "a_cloth", "h_none"], eq: { weapon: "w_stick", armor: "a_cloth", hat: "h_none" },
     cards: {}, cleared: {}, stats: { tot: 0, cor: 0, days: {} },
     eggs: [], pets: [], partner: 0, petDex: {}, petUid: 0,
@@ -61,7 +61,30 @@ function addProg(key, n = 1) { ensureDaily(); S.daily.prog[key] = (S.daily.prog[
 
 // ---------- ステータス ----------
 const totalStars = () => Object.values(S.cards).reduce((a, c) => a + c.s, 0);
-const pAtk = () => 8 + itemById(S.eq.weapon).atk;
+const pAtk = () => 5 + itemById(S.eq.weapon).atk;
+// てきの じゃくてん（その属性に 強い属性）
+const weakOf = (el) => Object.keys(BEATS).find((k) => BEATS[k] === el) || null;
+const effNow = (wEl) => effect(wEl, B.e.el, B.e.imm);
+// よろいの 属性で うけるダメージが かわる
+function armorFactor(el) {
+  const a = itemById(S.eq.armor);
+  if (a.res === "all") return 0.75;
+  if (a.res && a.res === el) return 0.5;
+  if (a.weak && a.weak === el) return 1.5;
+  return 1;
+}
+const effFx = (x) => (x === 0 ? "<small>きかない…</small>" : x >= 2 ? "<small>こうかばつぐん!</small>" : x < 1 ? "<small>いまひとつ…</small>" : "");
+const effCls = (x) => (x === 0 ? "dmg nope" : x >= 2 ? "dmg weak" : x < 1 ? "dmg resist" : "dmg");
+// そうびの せつめい文
+function itemStat(it) {
+  if (it.type === "weapon") return `⚔️${it.atk} ${it.el === "none" ? "ぞくせいなし（いつも ふつう）" : it.el === "star" ? "✨ほし（ぜんぶに よくきく）" : `${ELEMENTS[it.el].icon}${ELEMENTS[it.el].name}`}`;
+  if (it.type === "armor") {
+    if (it.res === "all") return `🛡️${it.def} ぜんぶの こうげきに つよい`;
+    return `🛡️${it.def}${it.res ? ` ${ELEMENTS[it.res].icon}に つよい` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}に よわい` : ""}`;
+  }
+  return `❤️+${it.hp}`;
+}
+function addMat(k, n = 1) { S.mats[k] = (S.mats[k] || 0) + n; }
 const pDef = () => itemById(S.eq.armor).def;
 const pMaxHp = () => 100 + itemById(S.eq.hat).hp + totalStars();
 
@@ -200,7 +223,10 @@ function weaponSVG(w) {
   const handle = `<rect x="-4" y="-62" width="8" height="78" rx="4" fill="${big ? "#6d4c41" : "#a0704a"}"/>`;
   let top = "";
   switch (w.el) {
-    case "none": return `<g transform="translate(164 122) rotate(25)"><rect x="-5" y="-66" width="10" height="82" rx="5" fill="#b07a4a" stroke="#7a5230" stroke-width="2"/><circle cx="0" cy="-48" r="3" fill="#7a5230"/></g>`;
+    case "none":
+      if (w.id === "w_hammer") return `<g transform="translate(164 122) rotate(15)"><rect x="-4" y="-62" width="8" height="78" rx="4" fill="#a0704a"/><rect x="-20" y="-86" width="40" height="28" rx="8" fill="#9e9e9e" stroke="#616161" stroke-width="2.5"/><path d="M-12 -78 l8 4 M6 -70 l8 -4" stroke="#757575" stroke-width="2"/></g>`;
+      if (w.id === "w_steel") return `<g transform="translate(164 122) rotate(20)"><rect x="-4" y="-6" width="8" height="22" rx="3" fill="#455a64"/><rect x="-15" y="-11" width="30" height="7" rx="3" fill="#90a4ae"/><path d="M-7 -11 L-7 -88 L0 -100 L7 -88 L7 -11Z" fill="#eceff1" stroke="#78909c" stroke-width="2"/><path d="M0 -16 L0 -88" stroke="#b0bec5" stroke-width="2"/></g>`;
+      return `<g transform="translate(164 122) rotate(25)"><rect x="-5" y="-66" width="10" height="82" rx="5" fill="#b07a4a" stroke="#7a5230" stroke-width="2"/><circle cx="0" cy="-48" r="3" fill="#7a5230"/></g>`;
     case "fire":
       top = `<path d="M0 -100 C 18 -80, 16 -66, 0 -60 C -16 -66, -18 -80, 0 -100Z" fill="#ff7a29"/><path d="M0 -86 C 8 -76, 8 -68, 0 -64 C -8 -68, -8 -76, 0 -86Z" fill="#ffd23f"/>`;
       if (big) top += `<path d="M-14 -70 C -24 -78, -22 -90, -14 -96 C -12 -86, -6 -80, -14 -70Z" fill="#ff4d2e"/><path d="M14 -70 C 24 -78, 22 -90, 14 -96 C 12 -86, 6 -80, 14 -70Z" fill="#ff4d2e"/>`;
@@ -342,7 +368,7 @@ function loginBonus() {
   if (S.login.last === d) return false;
   S.login.streak = S.login.last === yesterday() ? S.login.streak + 1 : 1;
   S.login.last = d;
-  const bonus = 30 + 10 * Math.min(S.login.streak - 1, 7);
+  const bonus = 20 + 5 * Math.min(S.login.streak - 1, 6);
   S.coins += bonus; save();
   setTimeout(() => {
     snd("coin");
@@ -359,13 +385,15 @@ function map() {
   const nodes = STAGES.map((st) => {
     const open = st.id === 1 || S.cleared[st.id - 1];
     const done = S.cleared[st.id];
-    const weaks = [...new Set(st.enemies.map((e) => ELEMENTS[e[3]].icon))].join("");
+    const els = [...new Set(st.enemies.flatMap((e) => (e.el === "rand" ? ["❓"] : e.phases ? e.phases.map((x) => ELEMENTS[x].icon) : [ELEMENTS[e.el].icon])))].join("");
+    const mats = [...new Set([st.mat, st.bmat])].map((m) => MATS[m].em).join("");
     return `<button class="stage ${open ? "" : "locked"} ${st.final ? "final" : ""}" ${open ? `onclick="startBattle(${st.id})"` : ""} style="--b1:${st.bg[0]};--b2:${st.bg[1]}">
       <span class="snum">${st.final ? "👑" : st.id}</span>
-      <span class="sinfo"><b>${st.name}</b><small>${open ? `じゃくてん ${weaks}` : "まえの ステージを クリアしよう"}</small></span>
+      <span class="sinfo"><b>${st.name}</b><small>${open ? `てき ${els}　そざい ${mats}` : "まえの ステージを クリアしよう"}</small></span>
       <span class="sstate">${!open ? "🔒" : done ? "⭐" : "▶"}</span></button>`;
   }).join("");
   setScreen(`${topBar("ワールド6")}
+    <button class="big-btn chartbtn" onclick="showChart()">📘 ぞくせいの あいしょう</button>
     <div class="maplist">
       <button class="stage nigate ${ng.length ? "" : "locked"}" ${ng.length ? `onclick="startBattle('nigate')"` : ""}>
         <span class="snum">👻</span><span class="sinfo"><b>ニガテモンスター たいじ</b><small>${ng.length ? `${ng.length}体 うろついている！ たおすと 💎` : "まちがえた問題が モンスターになるよ"}</small></span><span class="sstate">${ng.length ? "▶" : ""}</span></button>
@@ -374,10 +402,24 @@ function map() {
   if (!S.tut.map) {
     S.tut.map = 1; save();
     modal(`<div class="mtitle">ぼうけんの ヒント</div><div class="bigicon">💡</div>
-      <p>てきには <b>じゃくてん</b> があるよ。<br>じゃくてんの ぶきで こうげきすると <b>2ばい</b> のダメージ！</p>
-      <p>さいしょの森の てきは 🔥 に よわい。<br><b>ショップで「ほのおのつえ」</b>を かってみよう！</p>
+      <p>てきには <b>ぞくせい</b> があるよ。<br>あいしょうの いい ぶきで こうげきすると <b>2ばい</b>、わるいと <b>半分</b>！</p>
+      <p>てきを たおすと <b>そざい</b>（🍄など）が 手に はいるよ。<br>そざいと コインで ショップの そうびが つくれる！</p>
+      <p>さいしょの森の てきは 🌿 が おおい。🌿 には 🔥 が つよいよ。<br>まずは「きのぼう」で 🍄 を あつめて、<b>「ほのおのつえ」</b>を つくろう！</p>
       <button class="big-btn primary" onclick="closeModal()">わかった！</button>`);
   }
+}
+
+// あいしょう表
+function showChart() {
+  snd("tap");
+  const ic = (k) => ELEMENTS[k].icon;
+  modal(`<div class="mtitle">📘 ぞくせいの あいしょう</div>
+    <div class="cycle">${ic("fire")} → ${ic("leaf")} → ${ic("thunder")} → ${ic("water")} → ${ic("fire")}</div>
+    <p class="small">やじるしの 先の あいてに つよい！<br>（${ic("fire")}は${ic("leaf")}に、${ic("leaf")}は${ic("thunder")}に、${ic("thunder")}は${ic("water")}に、${ic("water")}は${ic("fire")}に つよい）</p>
+    <div class="abox left">◎ こうかばつぐん … ダメージ 2ばい<br>△ いまひとつ … 半分（にがてな あいて・おなじ ぞくせい）<br>✖ きかない … ダメージ 0（とくべつな てき）<br>○ ぞくせいなしの ぶき … いつも ふつう<br>✨ ほしの ぶき … どの あいてにも よくきく</div>
+    <div class="abox left">🛡️ よろいにも ぞくせいが あるよ。<br>おなじ ぞくせいの こうげきは 半分、にがてな ぞくせいの こうげきは 1.5ばい うけるよ。</div>
+    <p class="small">❓ の てきは でてくるまで ぞくせいが わからない！</p>
+    <button class="big-btn primary" onclick="closeModal()">わかった！</button>`);
 }
 
 // ---------- 問題づくり ----------
@@ -457,17 +499,21 @@ function startBattle(sid) {
     const ids = shuffle(nigateIds()).slice(0, 5);
     st = { id: "nigate", name: "ニガテたいじ", bg: ["#e9d8ff", "#b39ddb"] };
     enemies = ids.map((id) => ({
-      name: id.startsWith("k:") ? `ニガテ「${id.slice(2)}」` : `ニガテ「${formulaOf(id).name}」`, hp: 0, atk: 6, weak: "none", shape: "ghost", color: "#9575cd", item: id,
+      name: id.startsWith("k:") ? `ニガテ「${id.slice(2)}」` : `ニガテ「${formulaOf(id).name}」`, hp: 0, atk: 6, el: "none", shape: "ghost", color: "#9575cd", item: id,
       label: id.startsWith("k:") ? id.slice(2) : "",
     }));
   } else {
     st = STAGES.find((x) => x.id === sid);
-    enemies = st.enemies.map(([name, hp, atk, weak, shape, color, boss, weak2]) => ({ name, hp, atk, weak, shape, color, boss: !!boss, weak2 }));
+    // ❓ の てきは ここで 属性が きまる
+    enemies = st.enemies.map((e) => ({
+      name: e.n, hp: e.hp, atk: e.atk, el: e.el === "rand" ? pick(e.els) : e.el, rand: e.el === "rand",
+      imm: e.imm, phases: e.phases, shape: e.shape, color: e.color, boss: !!e.boss,
+    }));
   }
   B = {
     st, sid, enemies, ei: 0, php: pMaxHp(), combo: 0, gauge: 0, coins: 0, gems: 0,
     news: [], ups: [], recent: [], busy: false, pools: sid === "nigate" ? null : stagePools(st), traceFails: 0,
-    petC: 0, buff: 0, buffPow: 0, shield: 0, hint: false, eggs: [],
+    petC: 0, buff: 0, buffPow: 0, shield: 0, hint: false, eggs: [], mats: {},
   };
   nextEnemy();
   if (!S.tut.battle) {
@@ -484,10 +530,11 @@ function startBattle(sid) {
 function nextEnemy() {
   const e = B.enemies[B.ei];
   if (B.sid === "nigate") e.hp = Math.round(pAtk() * 1.6);
-  e.max = e.hp; e.phase = 1; e.turn = 3;
+  e.max = e.hp; e.phase = 0; e.turn = 3;
   B.e = e;
   renderBattle();
   nextQ();
+  if (e.rand) setTimeout(() => toast(`❓ ${e.name}は ${ELEMENTS[e.el].icon}${ELEMENTS[e.el].name} だった！`), 300);
 }
 
 function renderBattle() {
@@ -523,15 +570,18 @@ function updBars() {
   $("ehptxt").textContent = `${Math.max(0, e.hp)} / ${e.max}`;
   $("phpbar").style.width = Math.max(0, (B.php / mx) * 100) + "%";
   $("phptxt").textContent = `❤️ ${Math.max(0, B.php)} / ${mx}`;
-  $("eweak").innerHTML = e.weak === "none" ? "" : `じゃくてん <b>${ELEMENTS[e.weak].icon}</b>`;
+  const wk = weakOf(e.el), immTxt = e.imm ? ` <span class="imm">きかない<b>${e.imm === "none" ? "・" : ELEMENTS[e.imm].icon}</b></span>` : "";
+  $("eweak").innerHTML = e.el === "none" ? `ぞくせい なし${immTxt}` : `${ELEMENTS[e.el].icon} じゃくてん<b>${wk ? ELEMENTS[wk].icon : ""}</b>${immTxt}`;
   $("eturn").innerHTML = `⚔️ あと<b>${e.turn}</b>`;
   $("combo").textContent = B.combo >= 2 ? `${B.combo} コンボ!` : "";
   $("gauge").style.width = (B.gauge / 5) * 100 + "%";
   $("special").classList.toggle("ready", B.gauge >= 5);
   $("special").disabled = B.gauge < 5;
   const w = itemById(S.eq.weapon);
-  $("wel").textContent = ELEMENTS[w.el].icon;
-  $("wel").parentElement.classList.toggle("good", w.el === e.weak);
+  const x = effNow(w.el);
+  $("wel").textContent = `${ELEMENTS[w.el].icon}${EFFECT_MARK(x)}`;
+  $("wel").parentElement.classList.toggle("good", x >= 2);
+  $("wel").parentElement.classList.toggle("bad", x < 1);
 }
 
 function nextQ(special = false) {
@@ -588,7 +638,7 @@ async function answer(i) {
     if (ev === "new" || ev === "up") fxText(ev === "new" ? "🃏 NEW カード！" : "⭐ ★アップ！", "card");
     B.combo++;
     if (!q.special) B.gauge = Math.min(5, B.gauge + 1); else B.gauge = 0;
-    const got = 5 + Math.min(B.combo, 10);
+    const got = 2 + Math.floor(Math.min(B.combo, 9) / 3);
     B.coins += got; S.coins += got;
     petCharge();
     await attack(q.special ? 3 : 1, q.special ? formulaOf(q.id).skill : null);
@@ -614,27 +664,29 @@ async function afterWrong() {
 
 async function attack(mult, skillName) {
   const e = B.e, w = itemById(S.eq.weapon);
-  const weak = w.el === e.weak;
-  let d = pAtk() * (weak ? 2 : w.el === "star" ? 1.3 : 1) * (1 + 0.1 * Math.min(B.combo, 10)) * mult;
+  const x = effNow(w.el);
+  let d = pAtk() * x * (1 + 0.05 * Math.min(B.combo, 10)) * mult;
   if (B.buff > 0) { d *= 1 + B.buffPow; B.buff--; }
-  d = Math.max(1, Math.round(d * (0.9 + Math.random() * 0.2)));
+  d = x === 0 ? 0 : Math.max(1, Math.round(d * (0.9 + Math.random() * 0.2)));
   anim($("pchr"), "atk");
   if (skillName) fxText(skillName + "！", "skill");
   await wait(220);
   snd("hit");
   anim($("enemy"), "hurt");
   e.hp -= d;
-  fxText(`${d}${weak ? '<small>じゃくてん!</small>' : ""}`, weak ? "dmg weak" : "dmg");
+  fxText(`${d}${effFx(x)}`, effCls(x));
   e.turn--;
   updBars();
   save();
   await wait(650);
-  // ラスボス：体力が半分になったら弱点がかわる
-  if (e.weak2 && e.phase === 1 && e.hp > 0 && e.hp <= e.max / 2) {
-    e.phase = 2; e.weak = e.weak2; updBars();
+  // ラスボス：体力が へるたびに 属性が かわる
+  const np = e.phases && e.hp > 0 ? (e.hp <= e.max / 3 ? 2 : e.hp <= (e.max * 2) / 3 ? 1 : 0) : e.phase;
+  if (np !== e.phase) {
+    e.phase = np; e.el = e.phases[np]; updBars();
     anim($("enemy"), "phase");
+    const wk = weakOf(e.el);
     await modalWait(`<div class="mtitle">${esc(e.name)}が おこった！</div><div class="bigicon">💢</div>
-      <p>じゃくてんが <b style="font-size:1.6em">${ELEMENTS[e.weak].icon}</b> に かわった！</p><p class="small">「🔄 ぶき」で そうびを かえよう</p>
+      <p>ぞくせいが <b style="font-size:1.6em">${ELEMENTS[e.el].icon}</b> に かわった！<br>じゃくてんは <b style="font-size:1.4em">${ELEMENTS[wk].icon}</b></p><p class="small">「🔄 ぶき」で そうびを かえよう</p>
       <button class="big-btn primary" onclick="closeModal()">まけないぞ！</button>`);
   }
   // なかまのわざ（チャージがたまっていれば）
@@ -653,7 +705,10 @@ async function attack(mult, skillName) {
 
 async function enemyAttack() {
   const e = B.e;
-  let d = Math.max(1, Math.round((e.atk - pDef()) * (0.9 + Math.random() * 0.2)));
+  const af = armorFactor(e.el);
+  let d = Math.max(1, Math.round((e.atk - pDef()) * af * (0.9 + Math.random() * 0.2)));
+  if (af < 1) setTimeout(() => fxText("🛡️ よろいが ふせいだ！", "card"), 200);
+  if (af > 1) setTimeout(() => fxText("💦 よろいが にがてな こうげき！", "card"), 200);
   // なかまのガード
   if (B.shield > 0) { d = Math.round(d * (1 - B.shield)); B.shield = 0; fxText("🛡️ ガード！", "card"); }
   anim($("enemy"), "lunge");
@@ -676,12 +731,16 @@ async function enemyDown() {
     addProg("nigate1");
     ensureDaily();
     if (S.daily.ngGems < 3) { S.daily.ngGems++; S.gems++; B.gems++; fxText("💎 +1", "card"); }
-    else { S.coins += 30; B.coins += 30; fxText("🪙 +30", "card"); }
+    else { S.coins += 15; B.coins += 15; fxText("🪙 +15", "card"); }
     if (Math.random() < 0.15) dropEgg(giveEgg(0) ? 0 : "full");
   } else {
-    const c = 15 * B.st.id;
+    const c = 10 * B.st.id;
     S.coins += c; B.coins += c;
     fxText(`🪙 +${c}`, "card");
+    // そざい：ボスは かならず、ふつうの てきは ときどき
+    const got = e.boss ? [B.st.bmat, B.st.mat] : Math.random() < 0.6 ? [B.st.mat] : [];
+    got.forEach((m) => { addMat(m); B.mats[m] = (B.mats[m] || 0) + 1; });
+    if (got.length) setTimeout(() => fxText(`${got.map((m) => MATS[m].em).join("")} ゲット！`, "card"), 450);
     // ボスを はじめて たおしたときは かならず タマゴ
     const sure = e.boss && !S.cleared[B.st.id];
     const r = rollEgg(B.st.id, e.boss, sure);
@@ -714,11 +773,15 @@ function lose() {
   const st = B.st;
   let hint = "そうびを つよくしてから また ちょうせんしよう！";
   if (st.enemies) {
-    const weak = B.e.weak;
-    if (weak !== "none" && itemById(S.eq.weapon).el !== weak) hint = `${ELEMENTS[weak].icon} の ぶきで こうげきすると 2ばいダメージ！`;
-    else if (pDef() < 10) hint = "ショップで よろいを かうと ダメージが へるよ！";
-    else hint = "ずかんの ★を ふやすと たいりょくが ふえるよ！";
+    const e = B.e, wk = weakOf(e.el), cur = effNow(itemById(S.eq.weapon).el);
+    const ownedW = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id));
+    if (cur < 1) hint = `いまの ぶきは ${e.name}に「${EFFECT_LABEL(cur)}」。「🔄 ぶき」で かえよう！`;
+    else if (wk && !ownedW.some((x) => x.el === wk)) hint = `${e.name}には ${ELEMENTS[wk].icon} の ぶきが 2ばい きくよ。そざいを あつめて つくろう！`;
+    else if (armorFactor(e.el) > 1) hint = `いまの よろいは ${ELEMENTS[e.el].icon} の こうげきに よわいよ。よろいを かえてみよう！`;
+    else if (pDef() < 10) hint = "ショップで よろいを つくると ダメージが へるよ！";
+    else hint = "なかまを そだてたり、ずかんの ★を ふやすと つよくなれるよ！";
   }
+  if (Object.keys(B.mats).length) hint += `<br><small>あつめた そざい ${Object.entries(B.mats).map(([k, v]) => MATS[k].em + "×" + v).join(" ")} は もちかえれたよ</small>`;
   modal(`<div class="mtitle">やられちゃった…</div><div class="hero sm">${charSVG(S.eq, S.color, "sad")}</div>
     <p>もらった コイン 🪙${B.coins} は そのまま！</p><p class="tip">💡 ${hint}</p>
     <div class="row"><button class="big-btn" onclick="closeModal();go('shop')">ショップへ</button><button class="big-btn primary" onclick="closeModal();startBattle(${typeof B.sid === "number" ? B.sid : "'nigate'"})">もういちど</button></div>`);
@@ -732,12 +795,12 @@ function stageClear() {
   if (typeof B.sid === "number") {
     S.cleared[st.id] = true;
     if (first) {
-      const bonus = 100 * st.id;
+      const bonus = 50 * st.id;
       S.coins += bonus; B.coins += bonus;
       const cand = ITEMS.filter((x) => x.type === "hat" && !x.gem && x.price > 0 && !S.owned.includes(x.id) && unlocked(x));
       if (st.final) { S.gems += 5; B.gems += 5; treasure = { icon: "💎", text: "ほうせき ×5" }; }
       else if (cand.length && st.id >= 2) { const it = cand[0]; S.owned.push(it.id); treasure = { icon: "🎩", text: `${it.name} を てにいれた！`, item: it.id }; }
-      else { S.coins += 100; B.coins += 100; treasure = { icon: "🪙", text: "コイン +100" }; }
+      else { S.coins += 50; B.coins += 50; treasure = { icon: "🪙", text: "コイン +50" }; }
     } else { const c = 20 * st.id; S.coins += c; B.coins += c; }
   }
   save();
@@ -755,6 +818,7 @@ function stageClear() {
     <div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>${finalMsg}
     <div class="rewards"><span>🪙 +${B.coins}</span>${B.gems ? `<span>💎 +${B.gems}</span>` : ""}</div>
     ${cards ? `<div class="sub">あたらしい カード・★アップ</div>${cards}` : ""}
+    ${Object.keys(B.mats).length ? `<div class="sub">そざい</div><div class="matgot">${Object.entries(B.mats).map(([k, v]) => `<span>${MATS[k].em}<small>${MATS[k].name}</small>×${v}</span>`).join("")}</div>` : ""}
     ${eggs}${hatch}${shopNew}
     ${box}
     <div class="row"><button class="big-btn" onclick="go('home')">ホームへ</button><button class="big-btn primary" onclick="go('map')">つぎへ ▶</button></div>
@@ -772,9 +836,10 @@ function swapWeapon() {
   if (B.busy) return;
   snd("tap");
   const ws = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id));
-  modal(`<div class="mtitle">ぶきを かえる</div><p class="small">てきの じゃくてん：<b>${ELEMENTS[B.e.weak].icon} ${ELEMENTS[B.e.weak].name}</b></p>
-    <div class="wlist">${ws.map((w) => `<button class="witem ${S.eq.weapon === w.id ? "sel" : ""} ${w.el === B.e.weak ? "good" : ""}" onclick="setWeapon('${w.id}')">
-      <span class="wel">${ELEMENTS[w.el].icon}</span><b>${w.name}</b><small>⚔️${w.atk}</small>${w.el === B.e.weak ? "<i>こうかばつぐん!</i>" : ""}</button>`).join("")}</div>
+  const e = B.e;
+  modal(`<div class="mtitle">ぶきを かえる</div><p class="small">${esc(e.name)}の ぞくせい：<b>${ELEMENTS[e.el].icon} ${ELEMENTS[e.el].name}</b></p>
+    <div class="wlist">${ws.map((w) => { const x = effNow(w.el); return `<button class="witem ${S.eq.weapon === w.id ? "sel" : ""} ${x >= 2 ? "good" : x < 1 ? "bad" : ""}" onclick="setWeapon('${w.id}')">
+      <span class="wel">${ELEMENTS[w.el].icon}</span><b>${w.name}</b><small>⚔️${w.atk}</small><i class="eff">${EFFECT_MARK(x)} ${EFFECT_LABEL(x)}</i></button>`; }).join("")}</div>
     <button class="big-btn" onclick="closeModal()">とじる</button>`);
 }
 function setWeapon(id) {
@@ -882,7 +947,7 @@ function traceJudge() {
     const ev = onCorrect(TR.id);
     if (ev === "new") B.news.push(TR.id);
     if (ev === "up") B.ups.push(TR.id);
-    const bonus = perfect ? 50 : 20;
+    const bonus = perfect ? 25 : 10;
     S.coins += bonus; B.coins += bonus; save();
     snd("special");
     fxText(perfect ? "パーフェクト！" : "トドメ！", "skill");
@@ -921,23 +986,30 @@ function shop(tab) {
       return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>「${stg.name}」を クリアすると ならぶよ</small></div><button class="sbtn" disabled>🔒</button></div>`;
     }
     const own = S.owned.includes(it.id);
-    const can = S.coins >= it.price && S.gems >= (it.gem || 0);
-    const stat = it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}${ELEMENTS[it.el].name}` : it.type === "armor" ? `🛡️${it.def}` : `❤️+${it.hp}`;
+    const matOk = Object.entries(it.mat || {}).every(([k, v]) => (S.mats[k] || 0) >= v);
+    const can = S.coins >= it.price && S.gems >= (it.gem || 0) && matOk;
+    const stat = itemStat(it);
+    const need = it.mat && !own ? `<span class="mneed">${Object.entries(it.mat).map(([k, v]) => `<i class="${(S.mats[k] || 0) >= v ? "" : "lack"}">${MATS[k].em}${S.mats[k] || 0}/${v}</i>`).join("")}</span>` : "";
     const prev = { ...S.eq, [it.type]: it.id };
     return `<div class="sitem ${own ? "own" : ""}">
       <div class="sprev">${charSVG(prev, S.color)}</div>
-      <div class="sname"><b>${it.name}</b><small>${stat}</small></div>
+      <div class="sname"><b>${it.name}</b><small>${stat}</small>${need}</div>
       ${own ? `<button class="sbtn" disabled>もってる</button>` : `<button class="sbtn ${can ? "" : "no"}" onclick="buy('${it.id}')">🪙${it.price}${it.gem ? `<br>💎${it.gem}` : ""}</button>`}
     </div>`;
   }).join("");
+  const mats = Object.keys(MATS).filter((k) => S.mats[k]);
   setScreen(`${topBar("ショップ")}
+    <div class="matbar">${mats.length ? mats.map((k) => `<span>${MATS[k].em}${S.mats[k]}</span>`).join("") : "<small>そざいは てきを たおすと 手に はいるよ</small>"}</div>
     <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === shopTab ? "on" : ""}" onclick="shop('${k}')">${l}</button>`).join("")}</div>
     <div class="slist">${list}</div>`, "bg-shop");
 }
 function buy(id) {
   const it = itemById(id);
+  const lack = Object.entries(it.mat || {}).filter(([k, v]) => (S.mats[k] || 0) < v);
+  if (lack.length) { snd("ng"); toast(`そざいが たりないよ（${lack.map(([k]) => MATS[k].em + MATS[k].name).join("・")}）`); return; }
   if (S.coins < it.price || S.gems < (it.gem || 0)) { snd("ng"); toast(it.gem && S.gems < it.gem ? "💎が たりないよ（ニガテモンスターを たおそう）" : "コインが たりないよ"); return; }
-  S.coins -= it.price; S.gems -= it.gem || 0; S.owned.push(id); S.eq[it.type] = id; save();
+  S.coins -= it.price; S.gems -= it.gem || 0;
+  Object.entries(it.mat || {}).forEach(([k, v]) => { S.mats[k] -= v; }); S.owned.push(id); S.eq[it.type] = id; save();
   snd("coin");
   shop();
   modal(`<div class="mtitle">${it.name} を てにいれた！</div><div class="hero sm">${charSVG(S.eq, S.color, "bounce")}</div>
@@ -949,7 +1021,7 @@ function equip() {
   const sec = (type, label) => {
     const its = ITEMS.filter((x) => x.type === type && S.owned.includes(x.id));
     return `<div class="esec"><div class="sub">${label}</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
-      ${type === "weapon" ? ELEMENTS[it.el].icon + " " : ""}${it.name}<small>${type === "weapon" ? "⚔️" + it.atk : type === "armor" ? "🛡️" + it.def : "❤️+" + it.hp}</small></button>`).join("")}</div></div>`;
+      ${type === "weapon" ? ELEMENTS[it.el].icon + " " : ""}${it.name}<small>${itemStat(it)}</small></button>`).join("")}</div></div>`;
   };
   setScreen(`${topBar("そうび")}
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>

@@ -154,73 +154,141 @@ const ELEMENTS = {
   leaf: { icon: "🌿", name: "くさ", color: "#4cc46a" },
   star: { icon: "✨", name: "ほし", color: "#c77dff" },
 };
+// あいしょう：🔥は🌿に強い → 🌿は⚡に強い → ⚡は💧に強い → 💧は🔥に強い
+const BEATS = { fire: "leaf", leaf: "thunder", thunder: "water", water: "fire" };
+
+// こうげきの属性(att) が 相手の属性(def) に どれだけ効くか
+// imm：相手が「きかない」属性（none なら ぞくせいなしの こうげきが きかない）
+function effect(att, def, imm) {
+  if (imm && att === imm) return 0;
+  if (att === "star") return 1.25;
+  if (att === "none" || def === "none" || !def) return 1;
+  if (BEATS[att] === def) return 2;
+  if (BEATS[def] === att || att === def) return 0.5;
+  return 1;
+}
+const EFFECT_LABEL = (x) => (x === 0 ? "きかない" : x >= 2 ? "こうかばつぐん" : x < 1 ? "いまひとつ" : x > 1 ? "よくきく" : "ふつう");
+const EFFECT_MARK = (x) => (x === 0 ? "✖" : x >= 2 ? "◎" : x < 1 ? "△" : "○");
+
+// --- そざい（てきが おとす。そうびを つくるのに つかう） ---
+const MATS = {
+  kinoko: { name: "もりのキノコ", em: "🍄" },
+  donguri: { name: "ヌシのドングリ", em: "🌰" },
+  kai: { name: "きれいなかいがら", em: "🐚" },
+  shizuku: { name: "うみのしずく", em: "💠" },
+  yogan: { name: "ようがんいし", em: "🪨" },
+  honoo: { name: "ほのおのかけら", em: "🔶" },
+  yuki: { name: "ゆきのけっしょう", em: "❄️" },
+  hyou: { name: "えいきゅうひょう", em: "🧊" },
+  denki: { name: "でんきいし", em: "🔋" },
+  kaku: { name: "かみなりのかく", em: "🌩️" },
+  yami: { name: "やみのかけら", em: "🌑" },
+};
 
 // --- ショップのアイテム ---
 // type: weapon / armor / hat, atk: こうげき, def: ぼうぎょ, hp: たいりょく, el: 属性
-// price: コイン, gem: ほうせき（ニガテモンスターからもらえる）
+// res: この属性の こうげきを 半分にする, weak: この属性の こうげきを 1.5ばい うける
+// price: コイン, mat: ひつような そざい, gem: ほうせき
 // unlock: このステージをクリアするとショップに並ぶ（0 は最初から）
 const ITEMS = [
-  { id: "w_stick", type: "weapon", name: "きのぼう", atk: 4, el: "none", price: 0, unlock: 0 },
-  { id: "w_fire1", type: "weapon", name: "ほのおのつえ", atk: 12, el: "fire", price: 100, unlock: 0 },
-  { id: "w_thunder1", type: "weapon", name: "いなずまハンマー", atk: 12, el: "thunder", price: 150, unlock: 1 },
-  { id: "w_water1", type: "weapon", name: "しずくのけん", atk: 14, el: "water", price: 250, unlock: 2 },
-  { id: "w_fire2", type: "weapon", name: "ドラゴンフレイム", atk: 26, el: "fire", price: 600, unlock: 3 },
-  { id: "w_leaf1", type: "weapon", name: "はっぱブーメラン", atk: 16, el: "leaf", price: 350, unlock: 4 },
-  { id: "w_leaf2", type: "weapon", name: "せいれいのゆみ", atk: 30, el: "leaf", price: 900, unlock: 4 },
-  { id: "w_water2", type: "weapon", name: "オーシャンブレード", atk: 32, el: "water", price: 1100, unlock: 5 },
-  { id: "w_thunder2", type: "weapon", name: "サンダーボルト", atk: 32, el: "thunder", price: 1100, unlock: 5 },
-  { id: "w_star", type: "weapon", name: "スターロッド", atk: 48, el: "star", price: 2500, gem: 8, unlock: 6 },
+  { id: "w_stick", type: "weapon", name: "きのぼう", atk: 3, el: "none", price: 0, unlock: 0 },
+  { id: "w_fire1", type: "weapon", name: "ほのおのつえ", atk: 8, el: "fire", price: 60, mat: { kinoko: 3 }, unlock: 0 },
+  { id: "w_hammer", type: "weapon", name: "いしのハンマー", atk: 10, el: "none", price: 120, mat: { kinoko: 4, donguri: 1 }, unlock: 1 },
+  { id: "w_thunder1", type: "weapon", name: "いなずまハンマー", atk: 12, el: "thunder", price: 150, mat: { kinoko: 2, donguri: 2 }, unlock: 1 },
+  { id: "w_water1", type: "weapon", name: "しずくのけん", atk: 16, el: "water", price: 300, mat: { kai: 4, shizuku: 2 }, unlock: 2 },
+  { id: "w_leaf1", type: "weapon", name: "はっぱブーメラン", atk: 18, el: "leaf", price: 300, mat: { yogan: 4, honoo: 1 }, unlock: 3 },
+  { id: "w_thunder2", type: "weapon", name: "サンダーボルト", atk: 26, el: "thunder", price: 450, mat: { kai: 3, yogan: 3, honoo: 2 }, unlock: 3 },
+  { id: "w_steel", type: "weapon", name: "はがねのつるぎ", atk: 22, el: "none", price: 450, mat: { yuki: 3, yogan: 3 }, unlock: 4 },
+  { id: "w_leaf2", type: "weapon", name: "せいれいのゆみ", atk: 30, el: "leaf", price: 600, mat: { yuki: 4, hyou: 2 }, unlock: 4 },
+  { id: "w_fire2", type: "weapon", name: "ドラゴンフレイム", atk: 30, el: "fire", price: 600, mat: { yogan: 4, yuki: 2, hyou: 1 }, unlock: 4 },
+  { id: "w_water2", type: "weapon", name: "オーシャンブレード", atk: 32, el: "water", price: 900, mat: { denki: 4, kaku: 2 }, unlock: 5 },
+  { id: "w_star", type: "weapon", name: "スターロッド", atk: 46, el: "star", price: 3000, gem: 8, mat: { yami: 4 }, unlock: 6 },
 
   { id: "a_cloth", type: "armor", name: "ぬののふく", def: 0, price: 0, color: "#ffffff", unlock: 0 },
-  { id: "a_leather", type: "armor", name: "かわのよろい", def: 5, price: 80, color: "#c98a4b", unlock: 0 },
-  { id: "a_iron", type: "armor", name: "てつのよろい", def: 12, price: 400, color: "#9fb3c8", unlock: 2 },
-  { id: "a_gold", type: "armor", name: "ゴールドアーマー", def: 20, price: 900, color: "#ffd24a", unlock: 4 },
-  { id: "a_star", type: "armor", name: "ほしぞらのローブ", def: 30, price: 2000, gem: 6, color: "#6a5cff", unlock: 6 },
+  { id: "a_leather", type: "armor", name: "かわのよろい", def: 4, price: 40, mat: { kinoko: 2 }, color: "#c98a4b", unlock: 0 },
+  { id: "a_leaf", type: "armor", name: "はっぱのよろい", def: 6, res: "leaf", weak: "fire", price: 100, mat: { kinoko: 4 }, color: "#6ccf6a", unlock: 1 },
+  { id: "a_iron", type: "armor", name: "てつのよろい", def: 9, price: 250, mat: { kai: 3 }, color: "#9fb3c8", unlock: 2 },
+  { id: "a_fire", type: "armor", name: "ほのおのよろい", def: 10, res: "fire", weak: "water", price: 300, mat: { kai: 3, shizuku: 1 }, color: "#ff8a5c", unlock: 2 },
+  { id: "a_water", type: "armor", name: "みずのよろい", def: 13, res: "water", weak: "thunder", price: 400, mat: { yogan: 4, honoo: 1 }, color: "#5fb4ff", unlock: 3 },
+  { id: "a_thunder", type: "armor", name: "かみなりのよろい", def: 16, res: "thunder", weak: "leaf", price: 500, mat: { yuki: 4, hyou: 1 }, color: "#ffd54a", unlock: 4 },
+  { id: "a_gold", type: "armor", name: "ゴールドアーマー", def: 18, price: 800, mat: { yuki: 3, denki: 3 }, color: "#f5c400", unlock: 5 },
+  { id: "a_star", type: "armor", name: "ほしぞらのローブ", def: 24, res: "all", price: 2500, gem: 6, mat: { yami: 4 }, color: "#6a5cff", unlock: 6 },
 
   { id: "h_none", type: "hat", name: "なし", hp: 0, price: 0, unlock: 0 },
   { id: "h_ribbon", type: "hat", name: "リボン", hp: 10, price: 50, unlock: 0 },
-  { id: "h_cat", type: "hat", name: "ネコみみ", hp: 15, price: 150, unlock: 1 },
-  { id: "h_wizard", type: "hat", name: "まほうのぼうし", hp: 25, price: 400, unlock: 3 },
-  { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 800, gem: 3, unlock: 5 },
-  { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 1500, gem: 6, unlock: 6 },
+  { id: "h_cat", type: "hat", name: "ネコみみ", hp: 15, price: 120, unlock: 1 },
+  { id: "h_wizard", type: "hat", name: "まほうのぼうし", hp: 25, price: 250, unlock: 3 },
+  { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 500, gem: 3, unlock: 5 },
+  { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 1200, gem: 6, unlock: 6 },
 ];
 
 // --- ステージ（ワールド6） ---
 // kanji: 出題する漢字の範囲, fo: 出題する公式の範囲, mix: 公式問題が出る確率
-// enemies: [名前, 体力, こうげき力, じゃくてん, 見た目, 色]
+// mat / bmat: ふつうの敵 / ボスが おとす そざい
+// 敵 n: 名前, hp: 体力, atk: こうげき力, el: 属性（rand なら els から ランダム）, imm: きかない属性
+//    phases: ラスボスの 属性の うつりかわり
 const STAGES = [
   {
-    id: 1, name: "ふわふわの森", bg: ["#c8f7c5", "#7fd88a"], kanji: [0, 12], fo: [2, 4], mix: 0.25,
-    enemies: [["スライモン", 50, 8, "fire", "blob", "#7ad36b"], ["キノコロ", 55, 8, "fire", "mush", "#e86a6a"], ["もりのヌシ", 110, 12, "fire", "blob", "#3fa34d", true]],
+    id: 1, name: "ふわふわの森", bg: ["#c8f7c5", "#7fd88a"], kanji: [0, 12], fo: [2, 4], mix: 0.25, mat: "kinoko", bmat: "donguri",
+    enemies: [
+      { n: "スライモン", hp: 40, atk: 7, el: "leaf", shape: "blob", color: "#7ad36b" },
+      { n: "コロコロイシ", hp: 50, atk: 8, el: "none", shape: "rock", color: "#a1887f" },
+      { n: "キノコロ", hp: 45, atk: 7, el: "leaf", shape: "mush", color: "#e86a6a" },
+      { n: "もりのヌシ", hp: 130, atk: 11, el: "leaf", shape: "blob", color: "#3fa34d", boss: true },
+    ],
   },
   {
-    id: 2, name: "しおかぜビーチ", bg: ["#bfe9ff", "#ffe9a8"], kanji: [10, 22], fo: [0, 3], mix: 0.3,
-    enemies: [["カニッチ", 70, 14, "thunder", "crab", "#ff7f6e"], ["クラゲン", 75, 14, "thunder", "ghost", "#9ad0ff"], ["うみのヌシ", 150, 20, "thunder", "blob", "#2f7fd8", true]],
+    id: 2, name: "しおかぜビーチ", bg: ["#bfe9ff", "#ffe9a8"], kanji: [10, 22], fo: [0, 3], mix: 0.3, mat: "kai", bmat: "shizuku",
+    enemies: [
+      { n: "カニッチ", hp: 90, atk: 14, el: "water", shape: "crab", color: "#ff7f6e" },
+      { n: "ヤシノミン", hp: 85, atk: 13, el: "leaf", shape: "mush", color: "#8bc34a" },
+      { n: "クラゲン", hp: 95, atk: 14, el: "water", shape: "ghost", color: "#9ad0ff" },
+      { n: "うみのヌシ", hp: 260, atk: 19, el: "water", shape: "blob", color: "#2f7fd8", boss: true },
+    ],
   },
   {
-    id: 3, name: "メラメラ火山", bg: ["#ffd0b0", "#ff8a65"], kanji: [20, 32], fo: [6, 9], mix: 0.3,
-    enemies: [["ヒノコン", 120, 22, "water", "ghost", "#ff8c42"], ["マグマル", 130, 22, "water", "blob", "#d84315"], ["かざんのヌシ", 260, 30, "water", "rock", "#8d3a1f", true]],
+    id: 3, name: "メラメラ火山", bg: ["#ffd0b0", "#ff8a65"], kanji: [20, 32], fo: [6, 9], mix: 0.3, mat: "yogan", bmat: "honoo",
+    enemies: [
+      { n: "ヒノコン", hp: 150, atk: 21, el: "fire", shape: "ghost", color: "#ff8c42" },
+      { n: "まぼろしスライム", hp: 150, atk: 21, el: "rand", els: ["fire", "water", "leaf"], shape: "blob", color: "#b388ff" },
+      { n: "マグマル", hp: 165, atk: 22, el: "fire", shape: "blob", color: "#d84315" },
+      { n: "かざんのヌシ", hp: 420, atk: 27, el: "fire", imm: "thunder", shape: "rock", color: "#8d3a1f", boss: true },
+    ],
   },
   {
-    id: 4, name: "カチコチ雪山", bg: ["#eef7ff", "#b8d8f5"], kanji: [30, 42], fo: [8, 12], mix: 0.35,
-    enemies: [["ユキダマン", 190, 30, "fire", "blob", "#e8f4ff"], ["ツララン", 200, 32, "fire", "rock", "#8fd3ff"], ["こおりのヌシ", 380, 40, "fire", "ghost", "#5aa9e6", true]],
+    id: 4, name: "カチコチ雪山", bg: ["#eef7ff", "#b8d8f5"], kanji: [30, 42], fo: [8, 12], mix: 0.35, mat: "yuki", bmat: "hyou",
+    enemies: [
+      { n: "ユキダマン", hp: 220, atk: 28, el: "water", shape: "blob", color: "#e8f4ff" },
+      { n: "ビリユキ", hp: 220, atk: 29, el: "thunder", shape: "ghost", color: "#fff59d" },
+      { n: "ツララン", hp: 235, atk: 29, el: "water", shape: "rock", color: "#8fd3ff" },
+      { n: "こおりのヌシ", hp: 580, atk: 35, el: "water", shape: "ghost", color: "#5aa9e6", boss: true },
+    ],
   },
   {
-    id: 5, name: "ゴロゴロの塔", bg: ["#e6dcff", "#9f8cff"], kanji: [38, 50], fo: [11, 16], mix: 0.4,
-    enemies: [["ビリビリン", 260, 38, "leaf", "ghost", "#ffe066"], ["カミナリボー", 280, 40, "leaf", "rock", "#f2b705"], ["かみなりのヌシ", 520, 50, "leaf", "blob", "#b58900", true]],
+    id: 5, name: "ゴロゴロの塔", bg: ["#e6dcff", "#9f8cff"], kanji: [38, 50], fo: [11, 16], mix: 0.4, mat: "denki", bmat: "kaku",
+    enemies: [
+      { n: "ビリビリン", hp: 300, atk: 36, el: "thunder", shape: "ghost", color: "#ffe066" },
+      { n: "まぼろしスライム", hp: 300, atk: 36, el: "rand", els: ["fire", "water", "thunder", "leaf"], shape: "blob", color: "#b388ff" },
+      { n: "まほうゴーレム", hp: 320, atk: 37, el: "thunder", imm: "none", shape: "rock", color: "#f2b705" },
+      { n: "かみなりのヌシ", hp: 760, atk: 43, el: "thunder", shape: "blob", color: "#b58900", boss: true },
+    ],
   },
   {
-    id: 6, name: "ラスボスの城", bg: ["#3a2a5c", "#1d1433"], kanji: [0, 50], fo: [0, 16], mix: 0.4, final: true,
-    // ラスボスは体力が半分になると弱点がかわる
-    enemies: [["ダーク・ドンドロス", 1100, 55, "water", "boss", "#5b3d8f", true, "thunder"]],
+    id: 6, name: "ラスボスの城", bg: ["#3a2a5c", "#1d1433"], kanji: [0, 50], fo: [0, 16], mix: 0.4, final: true, mat: "yami", bmat: "yami",
+    enemies: [
+      { n: "やみのしもべ", hp: 380, atk: 41, el: "rand", els: ["fire", "water", "thunder", "leaf"], shape: "ghost", color: "#7e57c2" },
+      { n: "やみのしもべ", hp: 380, atk: 41, el: "rand", els: ["fire", "water", "thunder", "leaf"], shape: "rock", color: "#5e35b1" },
+      // ラスボスは 体力が へるたびに 属性が かわる
+      { n: "ダーク・ドンドロス", hp: 1250, atk: 46, el: "water", phases: ["water", "leaf", "fire"], shape: "boss", color: "#5b3d8f", boss: true },
+    ],
   },
 ];
 
 // --- 毎日ミッション ---
 const MISSIONS = [
-  { id: "correct10", text: "問題に10回せいかいする", goal: 10, reward: { coin: 60 } },
+  { id: "correct10", text: "問題に10回せいかいする", goal: 10, reward: { coin: 40 } },
   { id: "nigate1", text: "ニガテモンスターを1体たおす", goal: 1, reward: { gem: 1 } },
-  { id: "starup3", text: "カードの★を3つアップする", goal: 3, reward: { coin: 80 } },
+  { id: "starup3", text: "カードの★を3つアップする", goal: 3, reward: { coin: 50 } },
 ];
 
 // --- なかま（タマゴからうまれる動物・モンスター） ---
@@ -231,7 +299,7 @@ const PETS = [
   { id: "pyomaru", name: "ピヨまる", em: "🐥", el: "none", r: 0, ab: "heal", pow: 15, cd: 3, waza: "ピヨピヨのうた" },
   { id: "nyanta", name: "ニャンタ", em: "🐱", el: "none", r: 0, ab: "attack", pow: 0.8, cd: 3, waza: "ねこパンチ" },
   { id: "wanta", name: "ワンタ", em: "🐶", el: "none", r: 0, ab: "atkup", pow: 0.3, cd: 3, waza: "がんばれワンワン" },
-  { id: "pyonkichi", name: "ピョンキチ", em: "🐰", el: "leaf", r: 0, ab: "coin", pow: 15, cd: 2, waza: "コインさがし" },
+  { id: "pyonkichi", name: "ピョンキチ", em: "🐰", el: "leaf", r: 0, ab: "coin", pow: 6, cd: 2, waza: "コインさがし" },
   { id: "kamessy", name: "カメッシー", em: "🐢", el: "water", r: 0, ab: "shield", pow: 0.5, cd: 4, waza: "こうらガード" },
   { id: "kerosuke", name: "ケロスケ", em: "🐸", el: "water", r: 0, ab: "attack", pow: 0.8, cd: 3, waza: "みずでっぽう" },
   { id: "konta", name: "コンタ", em: "🦊", el: "fire", r: 1, ab: "attack", pow: 1.5, cd: 3, waza: "きつねび" },
@@ -250,7 +318,7 @@ const PETS = [
   { id: "washitaka", name: "ワシタカ", em: "🦅", el: "thunder", r: 1, ab: "attack", pow: 1.8, cd: 3, waza: "いなずまダイブ", fusion: true },
   { id: "goriran", name: "ゴリラン", em: "🦍", el: "none", r: 1, ab: "atkup", pow: 0.6, cd: 3, waza: "ドラミング", fusion: true },
   { id: "tokagen", name: "トカゲン", em: "🦎", el: "leaf", r: 1, ab: "stun", pow: 1, cd: 4, waza: "かくれんぼ", fusion: true },
-  { id: "koaran", name: "コアラン", em: "🐨", el: "leaf", r: 1, ab: "coin", pow: 40, cd: 2, waza: "おたからハンター", fusion: true },
+  { id: "koaran", name: "コアラン", em: "🐨", el: "leaf", r: 1, ab: "coin", pow: 15, cd: 2, waza: "おたからハンター", fusion: true },
   { id: "tiranon", name: "ティラノン", em: "🦖", el: "fire", r: 2, ab: "attack", pow: 3.2, cd: 4, waza: "ダイナソーバイト", fusion: true },
   { id: "ryuou", name: "リュウオウ", em: "🐉", el: "star", r: 3, ab: "attack", pow: 4.5, cd: 4, waza: "てんくうのいかずち", fusion: true },
 ];

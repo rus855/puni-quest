@@ -167,10 +167,10 @@ async function petAct() {
   await wait(350);
   switch (sp.ab) {
     case "attack": {
-      const weak = sp.el === e.weak;
-      const d = Math.max(1, Math.round(pAtk() * pw * (weak ? 2 : 1)));
+      const x = effect(sp.el, e.el, e.imm);
+      const d = x === 0 ? 0 : Math.max(1, Math.round(pAtk() * pw * x));
       e.hp -= d; anim($("enemy"), "hurt"); snd("hit");
-      fxText(`${d}${weak ? "<small>じゃくてん!</small>" : ""}`, weak ? "dmg weak" : "dmg");
+      fxText(`${d}${effFx(x)}`, effCls(x));
       break;
     }
     case "heal": {
