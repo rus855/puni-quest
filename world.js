@@ -36,7 +36,14 @@ const GRADE_MAP = {
   s1: 6, s2: 6, s3: 5, s4: 6, s5: 6, s6: 5, s7: 6, s8: 5, s9: 6, s10: 6, s11: 5, s12: 5, s13: 6, s14: 6, s15: 6, s16: 4, s17: 5,
   h1: 6, h2: 6, h3: 6, h4: 6, h5: 6, p1: 6, p2: 6, p3: 6, g1: 5, g2: 5, g3: 5, g4: 4, g5: 5,
 };
-const applyGrades = () => setGrades(GRADE_MAP);
+// 中学受験用の 章と 問題（保護者の 設定で のぞける）
+const EXAM_CH = new Set(["w1", "w2", "m3", "m7", "m9", "m13", "m14", "m16", "m17"]);
+const EXAM_T = new Set(["浮力", "浮力の計算", "フェーン現象", "加藤高明", "電流計の端子"]);
+function applyGrades() {
+  setGrades(GRADE_MAP);
+  CHAPTERS.forEach((c) => { c.exam = EXAM_CH.has(c.id); });
+  Object.values(BANK).forEach((b) => { if (EXAM_T.has(b.t)) b.exam = true; });
+}
 
 // ---------- 敵のつよさ（ティア 1〜6） ----------
 const TIER = [null,
@@ -62,6 +69,8 @@ const worldChapters = (w) => CHAPTERS.filter((c) => c.w === w);
 //   at ＝ 最後に 変えた 時刻（ほかの 端末で 変えた 設定と くらべる）
 function cfgChapterOn(cfg, ch) {
   if (!cfg) return true;
+  // 中学受験用の 章を のぞく 設定
+  if (cfg.noExam && ch.exam) return false;
   if (cfg.ch && cfg.ch[ch.id] !== undefined) return !!cfg.ch[ch.id];
   return !cfg.g || (ch.g || 1) <= cfg.g;
 }
@@ -74,15 +83,15 @@ function migrateCfg(cfg) {
     if (cfg.kg && c.w === "kanji" && !cfg.kg.includes(c.g)) ch[c.id] = false;
     if (cfg.off && cfg.off[c.id]) ch[c.id] = false;
   });
-  return { g: cfg.g, ch, at: cfg.at || Date.now() };
+  return { g: cfg.g, ch, noExam: cfg.noExam, at: cfg.at || Date.now() };
 }
 // 設定の ようすを みじかい 文に する
 function cfgSummary(cfg) {
   const n = cfg && cfg.ch ? Object.keys(cfg.ch).length : 0;
-  return `${cfg && cfg.g ? `${cfg.g}年生まで` : "すべての 学年"}${n ? `（くわしい設定 ${n}章）` : ""}`;
+  return `${cfg && cfg.g ? `${cfg.g}年生まで` : "すべての 学年"}${cfg && cfg.noExam ? "・中学受験用を のぞく" : ""}${n ? `（くわしい設定 ${n}章）` : ""}`;
 }
 const activeChapters = (w) => worldChapters(w).filter(chapterOn);
-const chapterOf = (id) => CHAPTERS.find((c) => c.id === id);
+const chapterOf = (id) => CHAPTERS.find((c) => c.id === id) || (typeof EXTRA_CH !== "undefined" ? EXTRA_CH.find((c) => c.id === id) : null);
 
 // 章の じゅんばんから ティア と 属性を きめる
 function prepareChapters() {
@@ -104,11 +113,17 @@ function prepareChapters() {
 // ステージ n（1〜4）の 出題範囲：ステージ1は 章の はじめの 1/3、2は 2/3まで、3と ボスは ぜんぶ
 // （新しい 問題は 出やすく、正解した 問題は 出にくいので、前の 問題は ふくしゅうとして ときどき 出る）
 function stageItems(ch, n) {
-  if (n >= 3) return ch.items.slice();
-  const k = Math.ceil(ch.items.length / 3);
-  const part = ch.items.slice(0, n * k);
-  return part.length >= 3 ? part : ch.items.slice();
+  const all = ch.items.filter(itemOn);
+  const items = all.length >= 3 ? all : ch.items.slice();
+  if (n >= 3) return items;
+  const k = Math.ceil(items.length / 3);
+  const part = items.slice(0, n * k);
+  return part.length >= 3 ? part : items.slice();
 }
+// 中学受験用の 問題（章の 中の 一部）… 保護者の 設定で のぞける
+const EXAM_ITEMS = new Set(["m:yokai", "m:kitai", "m:bane", "m:furiko", "m:nenrei", "m:tsurukame", "m:wasa", "m:ryusui"]);
+const isExamItem = (id) => EXAM_ITEMS.has(id) || !!(typeof BANK !== "undefined" && BANK[id] && BANK[id].exam);
+function itemOn(id) { const c = typeof S !== "undefined" && S && S.cfg; return !(c && c.noExam && isExamItem(id)); }
 
 // 中立の属性（つよくも よわくもない）… ボスの「きかない」に つかう
 function neutralOf(el) { return ELS4.find((x) => x !== el && x !== BEATS[el] && BEATS[x] !== el); }
@@ -127,6 +142,7 @@ function makeEnemy(ch, el, boss, n, k) {
 
 // ステージの 敵の ならび
 function stageEnemies(ch, n) {
+  if (ch.maou) return maouEnemies(ch);
   const [a, b] = ch.els;
   let list;
   if (n === 1) list = [[a], [a]];
@@ -296,11 +312,13 @@ const stStars = (key) => (S.stClear || {})[key] || 0;
 // 区切りの 最初の 章と、一度 遊んだ 章は ひらいている。ほかは 1つ前の（出題する）章を クリアすると ひらく
 function chapterOpen(ch) {
   if (window.PQ_DEBUG && window.PQ_OPEN) return true; // デバッグ：ぜんぶ ひらく
+  if (ch.write) return writeOpen(ch);
+  if (ch.maou) return maouOpen(ch.maou);
   const list = activeChapters(ch.w).filter((c) => c.sec === ch.sec), i = list.indexOf(ch);
   if (i <= 0 || stStars(`${ch.id}-1`) > 0) return true;
   return chapterDone(list[i - 1]);
 }
-const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || (window.PQ_DEBUG && window.PQ_OPEN) || stStars(`${ch.id}-${n - 1}`) > 0);
+const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || !!ch.maou || (window.PQ_DEBUG && window.PQ_OPEN) || stStars(`${ch.id}-${n - 1}`) > 0);
 const chapterDone = (ch) => stStars(`${ch.id}-4`) > 0;
 const chapterStars = (ch) => [1, 2, 3, 4].reduce((a, n) => a + stStars(`${ch.id}-${n}`), 0);
 function worldProgress(w) {
@@ -326,6 +344,7 @@ function map() {
       }).join("")}
       <button class="stage nigate ${ng.length ? "" : "locked"}" ${ng.length ? `onclick="startBattle('nigate')"` : ""}>
         <span class="snum">👻</span><span class="sinfo"><b>ニガテモンスター たいじ</b><small>${ng.length ? `${ng.length}体 うろついている！ たおすと 💎` : "まちがえた問題が モンスターになるよ"}</small></span><span class="sstate">${ng.length ? "▶" : ""}</span></button>
+      ${maouButton()}
     </div>`, "bg-map");
   if (!S.tut.map2) {
     S.tut.map2 = 1; save();
@@ -379,7 +398,18 @@ function openWorld(w, sec) {
         <span class="snum">${ch.icon || i + 1}</span>
         <span class="sinfo"><b>${i + 1}. ${ch.name}</b><small>${open ? `てき ${els}${ch.tier >= 2 ? "❓" : ""}　そざい ${MATS[TMAT[ch.tier][0]].em}${MATS[TMAT[ch.tier][1]].em}　⭐${st}/12` : "まえの 章を クリアしよう"}</small></span>
         <span class="sstate">${!open ? "🔒" : done ? "👑" : "▶"}</span></button>`;
-    }).join("") : `<div class="chhead" style="--b1:#fff;--b2:#f3ecff"><div class="bigicon">💤</div><b>いまは おやすみ中</b><small>おうちの人の せっていで、この国の 章は お休みに なっているよ</small></div>`}</div>`, "bg-map");
+    }).join("") + writeButton(curWorld, curSec[curWorld]) : `<div class="chhead" style="--b1:#fff;--b2:#f3ecff"><div class="bigicon">💤</div><b>いまは おやすみ中</b><small>おうちの人の せっていで、この国の 章は お休みに なっているよ</small></div>`}</div>`, "bg-map");
+}
+
+// かきとり道場の ボタン（漢字の国の 学年ごと）
+function writeButton(w, sec) {
+  if (w !== "kanji" || typeof EXTRA_CH === "undefined") return "";
+  const ch = EXTRA_CH.find((c) => c.write && c.sec === sec);
+  if (!ch || !chapterOn(ch)) return "";
+  const open = chapterOpen(ch), st = chapterStars(ch);
+  return `<button class="stage write ${open ? "" : "locked"}" ${open ? `onclick="openChapter('${ch.id}')"` : ""}>
+    <span class="snum">✍️</span><span class="sinfo"><b>かきとり道場</b><small>${open ? `お手本なしで 書く 道場。ごほうび たっぷり！　⭐${st}/12` : "この エリアの 章を 1つ クリアすると ひらく"}</small></span>
+    <span class="sstate">${!open ? "🔒" : chapterDone(ch) ? "👑" : "▶"}</span></button>`;
 }
 
 function openChapter(id) {

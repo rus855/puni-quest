@@ -173,8 +173,15 @@ function cfgCard() {
     <p>いまの 設定：<b>${cfgSummary(cfg)}</b>　出題中 ${on}/${CHAPTERS.length}章</p>
     <p class="pg-note">ざっくり 設定（この 学年までの 章を 出す）</p>
     <div class="pg-gbs">${[1, 2, 3, 4, 5, 6].map((g) => btn(g, `${g}年生まで`)).join("")}${btn(0, "すべて")}</div>
+    <label class="pg-ch pg-exam"><input type="checkbox" ${cfg.noExam ? "checked" : ""} onchange="setNoExam(this.checked)"><span>中学受験用の 問題を 出さない<br><small>特殊算・難読語など【中学受験用】の 章と 問題を のぞきます</small></span></label>
     <button class="big-btn" onclick="openSettings()">くわしい 設定（章ごと）▶</button>
     <p class="pg-note" id="cfgmsg"></p></div>`;
+}
+function setNoExam(on) {
+  const cfg = curCfg(); cfg.noExam = on || undefined;
+  saveCfg(cfg, "cfgmsg");
+  const y = window.scrollY; render(); window.scrollTo(0, y);
+  if ($("cfgmsg")) $("cfgmsg").textContent = "保存中…";
 }
 function setCoarse(g) {
   const cfg = curCfg(); cfg.g = g || undefined;
@@ -200,12 +207,13 @@ function renderSettings(w) {
     <div class="pg-top"><button class="back" onclick="closeSettings()">◀ もどる</button><b>くわしい 設定</b><span>${S ? esc(S.name) : ""}</span></div>
     <div class="pg-tabs pg-wtabs">${tabs}</div>
     <div class="pg-card"><div class="pg-sub">${worldOf(setWorld).icon} ${worldOf(setWorld).name}</div>
-      <p class="pg-note">ざっくり設定（<b>${cfg.g ? `${cfg.g}年生まで` : "すべて"}</b>）を もとに、章ごとに オン／オフ できます。変えた 章には「個別」の しるしが つき、ざっくり設定より 優先されます。</p>
+      <p class="pg-note">ざっくり設定（<b>${cfg.g ? `${cfg.g}年生まで` : "すべて"}</b>）を もとに、章ごとに オン／オフ できます。変えた 章には「個別」の しるしが つき、ざっくり設定より 優先されます。${cfg.noExam ? "<br>「中学受験用の 問題を 出さない」が オンなので、【中学受験用】の 章は 出ません。" : ""}</p>
       ${grades.map((g) => `<div class="pg-grade"><div class="pg-ghead"><b>${g}年</b>
           <span><button onclick="setGradeAll(${g}, true)">ぜんぶ オン</button><button onclick="setGradeAll(${g}, false)">ぜんぶ オフ</button></span></div>
         ${list.filter((c) => c.g === g).map((c) => {
           const ov = cfg.ch && cfg.ch[c.id] !== undefined;
-          return `<label class="pg-ch"><input type="checkbox" ${cfgChapterOn(cfg, c) ? "checked" : ""} onchange="setChapter('${c.id}', this.checked)"><span>${c.icon || ""} ${esc(c.name)}</span>${ov ? '<i class="pg-ov">個別</i>' : ""}</label>`;
+          const lockEx = cfg.noExam && c.exam;
+          return `<label class="pg-ch ${lockEx ? "pg-off" : ""}"><input type="checkbox" ${cfgChapterOn(cfg, c) ? "checked" : ""} ${lockEx ? "disabled" : ""} onchange="setChapter('${c.id}', this.checked)"><span>${c.icon || ""} ${esc(c.name)}${c.exam ? ' <b class="pg-exl">【中学受験用】</b>' : ""}</span>${ov && !lockEx ? '<i class="pg-ov">個別</i>' : ""}</label>`;
         }).join("")}</div>`).join("")}
       <button class="big-btn" onclick="resetWorld()">この国を ざっくり設定に もどす</button>
     </div>

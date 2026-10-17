@@ -650,3 +650,22 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
   .back { padding: 8px 10px; font-size: 14px; }
   .wtabs small { font-size: 9px; }
 }
+
+/* かきとり道場・まおう */
+.stage.write { --b1: #fff6e0; --b2: #ffd59a; border: 3px dashed #e8a33d; }
+.stage.maou { --b1: #4a2f7a; --b2: #1d1433; color: #fff; }
+.stage.maou2 { --b1: #1a0f3d; --b2: #000; color: #fff; box-shadow: 0 0 0 3px #b388ff, 0 6px 0 rgba(0,0,0,.25); }
+.stage.maou small, .stage.maou2 small { color: #e8dcff; }
+.wbox { position: relative; display: flex; justify-content: center; margin: 4px auto; }
+.wbox .tcanvas { touch-action: none; border-radius: 14px; border: 3px solid #f0b8c8; background: #fffdf5; }
+.wans { position: absolute; right: 4px; top: 4px; font-size: 54px; font-weight: bold; color: #e8264a; background: #fff; border: 3px solid #e8264a; border-radius: 12px; line-height: 1.1; padding: 2px 8px; font-family: var(--kfont, inherit); }
+.wrow { gap: 6px; }
+.wrow .big-btn { padding: 10px 4px; font-size: 15px; }
+.explain .wk { display: inline-block; font-size: 40px; font-weight: bold; color: #e8264a; margin-right: 8px; vertical-align: middle; }
+/* なかまの ならびかえ */
+.psort { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 8px; }
+.psort span { font-size: 12px; font-weight: bold; color: #6b5b8a; }
+.psort button { border: 2px solid #e6dcf0; background: #fff; border-radius: 99px; padding: 5px 10px; font-size: 12px; font-weight: bold; }
+.psort button.on { background: var(--pink); border-color: var(--pink-d); color: #fff; }
+
+.codebig { font-size: 24px; font-weight: bold; letter-spacing: .08em; text-align: center; background: #fff7cc; border-radius: 12px; padding: 8px; margin: 6px 0; -webkit-user-select: all; user-select: all; }

@@ -60,7 +60,7 @@
         </div>
         <h3>そのほか</h3>
         <div class="dgrid">
-          <button onclick="closeModal();parentPanel()">保護者メニューへ</button>
+          <button onclick="closeModal();parentPanel()">保護者メニュー（旧）</button>
           <button onclick="closeModal();goTitle()">タイトルへ</button>
           <button onclick="dbg.reset()">デバッグの データを 消す</button>
           <button onclick="closeModal()">とじる</button>
@@ -148,8 +148,17 @@
     if (!q || B.busy) return;
     if (q.kind === "choice") answer(q.ai);
     else if (q.kind === "input") { B.inp = String(q.ans); submitInput(); }
+    else if (q.kind === "write") { glyphStrokes(); writeJudge(); }
     else { q.picked = []; q.items.forEach((_, i) => orderTap(i)); }
   };
+  // 字の 形を 線に して TR.strokes に 入れる
+  function glyphStrokes() {
+    const N = 60, c = document.createElement("canvas"); c.width = c.height = N;
+    const g = c.getContext("2d"); drawGlyph(g, N, TR.k, "#000");
+    const d = g.getImageData(0, 0, N, N).data, strokes = [];
+    for (let y = 0; y < N; y += 2) { let run = null; for (let x = 0; x < N; x++) { const on = d[(y * N + x) * 4 + 3] > 100; if (on && !run) run = [[x / N, y / N]]; if (!on && run) { run.push([(x - 1) / N, y / N]); strokes.push(run); run = null; } } }
+    TR.strokes = strokes;
+  }
   // なぞり書きは 字の 形を なぞったことに する
   window.dbgTrace = function () {
     const N = 60, c = document.createElement("canvas"); c.width = c.height = N;

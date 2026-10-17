@@ -29,7 +29,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 function newSave() {
   return {
     v: 1, name: "", color: BODY_COLORS[0], coins: 50, gems: 0, sound: false, bgm: false, aud: 1, mats: {},
-    owned: ["w_stick", "a_cloth", "h_none"], eq: { weapon: "w_stick", armor: "a_cloth", hat: "h_none" },
+    owned: ["w_stick", "a_cloth", "h_none", "x_none"], eq: { weapon: "w_stick", armor: "a_cloth", hat: "h_none", acc: "x_none" },
     cards: {}, cleared: {}, stClear: {}, tierClear: {}, stats: { tot: 0, cor: 0, days: {} },
     eggs: [], pets: [], partner: 0, petDex: {}, petUid: 0,
     daily: { date: "", prog: {}, claimed: {}, ngGems: 0 }, login: { last: "", streak: 0 }, tut: {},
@@ -90,6 +90,7 @@ function baseStat(it) {
     if (it.res === "all") return `🛡️${it.def} ぜんぶの こうげきに つよい`;
     return `🛡️${it.def}${it.res ? ` ${ELEMENTS[it.res].icon}に つよい` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}に よわい` : ""}`;
   }
+  if (it.type === "acc") return it.sp ? "🎀 アクセサリー" : "🎀 見た目の アクセサリー";
   return `❤️+${it.hp}`;
 }
 function addMat(k, n = 1) { S.mats[k] = (S.mats[k] || 0) + n; S.matSeen = S.matSeen || {}; S.matSeen[k] = 1; }
@@ -129,7 +130,7 @@ function onCorrect(id) {
   else if (c.last !== d && c.s < 5) { c.s++; c.last = d; ev = "up"; }
   if (ev === "new" || ev === "up") addProg("starup3");
   // タマゴもいっしょに育つ
-  if (growEggs((itemById(S.eq.hat).sp || {}).egg || 1) && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
+  if (growEggs(hsp().egg || 1) && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
   return ev;
 }
 function onWrong(id) {
@@ -193,26 +194,29 @@ function shade(hex, p) {
 // ---------- キャラクターの絵（そうびで見た目がかわる） ----------
 let svgN = 0;
 function charSVG(eq, color, cls = "") {
-  const w = itemById(eq.weapon), a = itemById(eq.armor), h = itemById(eq.hat);
+  const w = itemById(eq.weapon), a = itemById(eq.armor), h = itemById(eq.hat), x = itemById(eq.acc || "x_none");
   const dark = shade(color, -0.3), n = ++svgN;
   return `<svg viewBox="-10 -10 230 210" class="chr ${cls}">
     <defs><clipPath id="cb${n}"><circle cx="100" cy="112" r="62"/></clipPath></defs>
+    ${backSVG(x, a)}
     <ellipse cx="100" cy="186" rx="62" ry="8" fill="rgba(0,0,0,.13)"/>
     <ellipse cx="68" cy="172" rx="27" ry="14" fill="${FEET[color] || dark}"/>
     <ellipse cx="132" cy="172" rx="27" ry="14" fill="${FEET[color] || dark}"/>
-    ${["h_none", "h_ribbon", "h_halo", "h_flower", "h_bow", "h_starclip", "h_goggles", "h_glasses", "h_helmet"].includes(h.id) ? `
+    ${["h_none", "h_ribbon", "h_halo", "h_flower", "h_bow", "h_starclip", "h_goggles", "h_glasses", "h_helmet"].includes(h.id) && !(a.full && fullHidesSprout(a)) ? `
     <path d="M100 54 C100 42 101 36 103 30" stroke="#47a84a" stroke-width="4" fill="none" stroke-linecap="round"/>
     <path d="M103 31 C 90 16, 76 22, 79 31 C 89 37, 98 35, 103 31Z" fill="#6ccf6a"/>
     <path d="M103 31 C 116 15, 131 21, 128 30 C 118 36, 108 35, 103 31Z" fill="#8ee08a"/>` : ""}
     <ellipse cx="40" cy="124" rx="16" ry="14" fill="${color}" stroke="${dark}" stroke-width="2"/>
     <circle cx="100" cy="112" r="62" fill="${color}"/>
-    <g clip-path="url(#cb${n})">${armorSVG(a)}</g>
+    <g clip-path="url(#cb${n})">${a.full ? fullSVG(a, color) : armorSVG(a)}</g>
     <circle cx="100" cy="112" r="62" fill="none" stroke="${dark}" stroke-width="2.5"/>
+    ${a.full ? fullOutSVG(a) : ""}
     <ellipse cx="74" cy="78" rx="17" ry="9" fill="rgba(255,255,255,.55)" transform="rotate(-30 74 78)"/>
     <ellipse cx="84" cy="100" rx="7.5" ry="13" fill="#2b2140"/><ellipse cx="116" cy="100" rx="7.5" ry="13" fill="#2b2140"/>
     <ellipse cx="85.5" cy="94" rx="3.2" ry="5" fill="#fff"/><ellipse cx="117.5" cy="94" rx="3.2" ry="5" fill="#fff"/>
     <ellipse cx="66" cy="119" rx="11" ry="6" fill="#ff6f9f" opacity=".5"/><ellipse cx="134" cy="119" rx="11" ry="6" fill="#ff6f9f" opacity=".5"/>
     <path d="M93 121 Q100 131 107 121 Z" fill="#e0526e" stroke="#2b2140" stroke-width="2.5" stroke-linejoin="round"/>
+    ${faceSVG(x)}
     ${hatSVG(h, color, dark)}
     ${weaponSVG(w)}
     <ellipse cx="162" cy="124" rx="16" ry="14" fill="${color}" stroke="${dark}" stroke-width="2"/>
@@ -699,6 +703,7 @@ function startBattle(sid) {
   } else {
     const [chId, n] = sid.split("-");
     const ch = chapterOf(chId);
+    if (ch.maou) ch.items = maouPool();
     st = stageInfo(ch, Number(n));
     enemies = stageEnemies(ch, Number(n));
   }
@@ -723,7 +728,7 @@ function nextEnemy() {
   if (B.over) return;
   const e = B.enemies[B.ei];
   if (B.sid === "nigate") e.hp = Math.round(pAtk() * 1.6);
-  e.max = e.hp; e.phase = 0; e.turn = 3;
+  e.max = e.hp; e.phase = 0; e.turn = e.fast ? 2 : 3;
   B.e = e; B.poison = null;
   if (hsp().hint) B.hint = true;
   renderBattle();
@@ -790,7 +795,7 @@ function nextQ(special = false) {
   }
   B.recent = [id, ...B.recent].slice(0, Math.min(4, Math.max(0, B.pool.length - 2)));
   // 必殺技：公式なら「正しい公式は？」、それ以外は ふつうの問題で 3ばい
-  B.q = makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
+  B.q = B.st.ch && B.st.ch.write && id.startsWith("k:") ? makeWriteQ(id) : makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
   B.q.special = special;
   showQ();
 }
@@ -807,11 +812,15 @@ function showQ() {
     const keys = ["7", "8", "9", "⌫", "4", "5", "6", ".", "1", "2", "3", "0"];
     body = `<div class="inbox"><span id="inv" class="inv"> </span><span class="inu">${q.unit}</span><button class="okbtn" onclick="submitInput()">こたえる</button></div>
       <div class="keypad">${keys.map((k) => `<button class="key ${k === "⌫" ? "del" : ""}" onclick="keyIn('${k}')">${k}</button>`).join("")}</div>`;
+  } else if (q.kind === "write") {
+    body = `<div class="wbox" id="wbox"><canvas id="tc" class="tcanvas"></canvas></div>
+      <div class="row wrow"><button class="big-btn" onclick="traceClear()">けす</button><button class="big-btn" onclick="writeGiveUp()">わからない</button><button class="big-btn primary" onclick="writeJudge()">できた！</button></div>`;
   } else {
     body = `<p class="note">じゅんばんに タップしてね</p><div class="olist">${q.shown.map((i) => `<button class="oitem" id="oi${i}" onclick="orderTap(${i})"><i></i>${q.items[i]}</button>`).join("")}</div>
       <button class="big-btn" onclick="orderReset()">やりなおす</button>`;
   }
   $("qpanel").innerHTML = sp + q.head + body;
+  if (q.kind === "write") showWrite();
   if (PQ_DEBUG && window.PQ_SHOWANS) debugMarkAnswer(q);
   fitBattle();
   if (B.hint && q.kind === "choice") {
@@ -911,8 +920,9 @@ async function judge(ok) {
     const rg = (asp().regen || 0) + (hsp().regen || 0);
     if (rg) B.php = Math.min(pMaxHp(), B.php + Math.max(1, Math.round(pMaxHp() * rg)));
     B.coins += got; S.coins += got;
+    if (q.kind === "write") { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
     petCharge();
-    await attack(q.special ? 3 : 1, q.special ? q.skill || "スーパーアタック" : null);
+    await attack(q.special ? 3 : q.kind === "write" ? 2 : 1, q.special ? q.skill || "スーパーアタック" : null);
   } else {
     snd("ng");
     onWrong(q.id);
@@ -940,13 +950,15 @@ async function afterWrong() {
   if (!$("qpanel").querySelector(".explain")) return;
   $("qpanel").innerHTML = "";
   await enemyAttack();
-  if (B.php > 0) { B.e.turn = 3; updBars(); nextQ(); }
+  if (B.php > 0) { B.e.turn = B.e.fast ? 2 : 3; updBars(); nextQ(); }
 }
 
 // そうびの とくしゅ能力
-const wsp = () => itemById(S.eq.weapon).sp || {};
+// アクセサリーの のうりょくは、ぶき（かいしん）と ぼうし（コイン・そざい など）に たす
+const accSp = () => (itemById(S.eq.acc || "x_none") || {}).sp || {};
+const wsp = () => mergeSp(itemById(S.eq.weapon).sp, accSp(), ["crit"]);
 const asp = () => itemById(S.eq.armor).sp || {};
-const hsp = () => itemById(S.eq.hat).sp || {};
+const hsp = () => mergeSp(itemById(S.eq.hat).sp, accSp(), ["coin", "mat", "egg", "regen", "hint", "petfast"]);
 
 // てきに ダメージを あたえる（武器の とくしゅ能力も ここで）
 function hitEnemy(d, label, cls) {
@@ -1007,13 +1019,13 @@ async function attack(mult, skillName) {
   if (e.hp > 0) await petAct();
   if (e.hp <= 0) {
     // 漢字の章の ボスは なぞり書きで トドメ
-    if (e.boss && B.sid !== "nigate" && B.pool.some((x) => x.startsWith("k:"))) { e.hp = 0; updBars(); startTrace(); return; }
+    if (e.boss && B.sid !== "nigate" && !B.st.ch.write && !B.st.ch.maou && B.pool.some((x) => x.startsWith("k:"))) { e.hp = 0; updBars(); startTrace(); return; }
     return enemyDown();
   }
   if (e.turn <= 0) {
     await enemyAttack();
     if (B.php <= 0) return;
-    e.turn = 3; updBars();
+    e.turn = e.fast ? 2 : 3; updBars();
   }
   nextQ();
 }
@@ -1079,11 +1091,20 @@ async function enemyDown() {
     const bonus = hsp().mat || 0;
     const got = e.boss ? [B.st.bmat, B.st.mat] : Math.random() < 0.5 + bonus ? [B.st.mat] : [];
     const wm = WORLD_MAT[B.st.ch.w];
-    if (e.boss || Math.random() < 0.25 + bonus) got.push(wm);
+    if (wm && (e.boss || Math.random() < 0.25 + bonus)) got.push(wm);
+    // むずかしい 章ほど レアな そざいが 出る
+    const t = B.st.tier, wr = WORLD_RARE[B.st.ch.w];
+    if (wr) {
+      if (Math.random() < (e.boss ? (t >= 2 ? 0.15 + 0.1 * t : 0) : t >= 3 ? 0.04 * t - 0.08 : 0) + bonus / 2) got.push(wr[0]);
+      if (Math.random() < (e.boss ? (t >= 4 ? 0.08 * (t - 3) : 0) : t >= 5 ? 0.03 : 0)) got.push(wr[1]);
+    }
+    // ぞくせいの たま
+    if (ELEM_MAT[e.el] && (e.boss || Math.random() < 0.2 + bonus / 2)) got.push(ELEM_MAT[e.el]);
+    if (B.st.ch.maou) { got.length = 0; got.push(pick(["hidama", "mizutama", "raitama", "midotama"])); if (e.boss) got.push(pick(Object.values(WORLD_RARE).map((x) => x[1]))); }
     got.forEach((m) => { addMat(m); B.mats[m] = (B.mats[m] || 0) + 1; });
     if (got.length) setTimeout(() => fxText(`${got.map((m) => MATS[m].em).join("")} ゲット！`, "card"), 450);
     // タマゴ：3章ごとの ボスを はじめて たおすと かならず。ほかは ときどき
-    const sure = e.boss && !stStars(B.sid) && B.st.ch.idx % 3 === 2;
+    const sure = e.boss && !stStars(B.sid) && (B.st.ch.idx % 3 === 2 || !!B.st.ch.maou);
     const r = rollEgg(B.st.tier, e.boss, sure);
     if (r !== null) dropEgg(r);
   }
@@ -1149,9 +1170,10 @@ function stageClear() {
     } else { const c = 5 * st.tier; S.coins += c; B.coins += c; }
     // ⭐3つを はじめて とったら ごほうび
     if (stars === 3 && prev < 3) { const g = 10 * st.tier; S.coins += g; B.coins += g; }
-    if (st.n === 4 && first) {
+    if (st.ch.write || st.ch.maou) treasure = extraRewards(st, first, stars, prev);
+    if (st.n === 4 && first && !st.ch.maou && !treasure) {
       // 章クリア：この強さの そうびが ショップに ならぶ
-      if (!S.tierClear[st.tier]) { S.tierClear[st.tier] = true; newItems = ITEMS.filter((x) => x.unlock === st.tier && x.price > 0); }
+      if (!S.tierClear[st.tier]) { S.tierClear[st.tier] = true; newItems = ITEMS.filter((x) => x.unlock === st.tier && x.price > 0 && !x.drop); }
       const cand = ITEMS.filter((x) => x.type === "hat" && !x.gem && x.price > 0 && !S.owned.includes(x.id) && unlocked(x));
       if (st.final) { S.gems += 3; B.gems += 3; treasure = { icon: "💎", text: "ほうせき ×3" }; }
       else if (cand.length && Math.random() < 0.3) { const it = cand[0]; S.owned.push(it.id); treasure = { icon: "🎩", text: `${it.name} を てにいれた！`, item: it.id }; }
@@ -1162,13 +1184,14 @@ function stageClear() {
   const tiles = (ids, tag) => ids.map((id) => `<div class="mini-card ${id.startsWith("k:") ? "" : "long"}"><b>${id.startsWith("k:") ? id.slice(2) : esc(cardLabel(id))}</b><i>${tag}</i></div>`).join("");
   const cards = B.news.length || B.ups.length ? `<div class="gotcards">${tiles(B.news, "NEW")}${tiles(B.ups, "★UP")}</div>` : "";
   const box = treasure ? `<div class="tbox" id="tbox" onclick="openBox()"><div class="chest">🎁</div><small>タップして あけよう！</small></div>
-    <div class="treasure hidden" id="treasure"><div class="bigicon">${treasure.icon}</div><b>${treasure.text}</b>${treasure.item ? `<div class="hero xs">${charSVG({ ...S.eq, hat: treasure.item }, S.color)}</div>` : ""}</div>` : "";
+    <div class="treasure hidden" id="treasure"><div class="bigicon">${treasure.icon}</div><b>${treasure.text}</b>${treasure.item ? `<div class="hero xs">${charSVG({ ...S.eq, [itemById(treasure.item).type]: treasure.item }, S.color)}</div>` : ""}</div>` : "";
   const eggs = B.eggs.length ? `<div class="sub">タマゴを てにいれた！</div><div class="gotcards">${B.eggs.map((r) => `<div class="mini-egg">${eggSVG({ r })}<small>${RARITY[r].name}</small></div>`).join("")}</div>` : "";
   const hatch = readyEggs().length ? `<p class="tip">🐣 タマゴが かえりそう！ ホームに もどってみよう</p>` : "";
   const shopNew = newItems.length ? `<p class="tip">🛒 ショップに あたらしい そうびが ならんだ！<br><small>${newItems.map((x) => x.name).join("・")}</small></p>` : "";
-  const chMsg = isStage && st.n === 4 && first ? `<p class="final">${st.final ? `🎉 ${WORLDS.find((w) => w.id === st.ch.w).name}を ぜんぶ クリア！ すごい！` : `👑 「${st.ch.name}」の 章を クリア！`}</p>` : "";
+  const chMsg = isStage && st.ch.maou && first ? `<p class="final">${st.ch.maou === 2 ? "🌈 しんの まおうを たおした！<br>ぷにまるは でんせつの ゆうしゃに なった！" : "🌑 まおうを たおした！<br>でも、しんの まおうが どこかに いるらしい…"}</p>`
+    : isStage && st.n === 4 && first ? `<p class="final">${st.final ? `🎉 ${WORLDS.find((w) => w.id === st.ch.w).name}を ぜんぶ クリア！ すごい！` : `👑 「${st.ch.name}」の 章を クリア！`}</p>` : "";
   // つぎへ：ステージ1〜3 → つぎの ステージ、ボス → 国の 章えらび（つぎの 章へ）
-  const next = isStage ? (st.n < 4 ? `startBattle('${st.ch.id}-${st.n + 1}')` : `openWorld('${st.ch.w}')`) : "map()";
+  const next = !isStage || st.ch.maou ? "map()" : st.n < 4 ? `startBattle('${st.ch.id}-${st.n + 1}')` : `openWorld('${st.ch.w}')`;
   setScreen(`<div class="clear">
     <div class="ctitle">${isStage ? (st.n === 4 ? "ボス たおした！" : "ステージ クリア！") : "ニガテ たいじ せいこう！"}</div>
     ${isStage ? `<div class="bigstars">${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}</div><small>${stars === 3 ? "ノーミス！ かんぺき！" : `ミス ${B.miss}回`}</small>` : ""}
@@ -1241,7 +1264,7 @@ function drawGlyph(ctx, n, k, style) {
 
 function setupCanvas() {
   const cv = $("tc"), dpr = window.devicePixelRatio || 1;
-  const size = Math.min(280, window.innerWidth - 80);
+  const size = Math.min(TR.max || 280, window.innerWidth - 80);
   cv.style.width = cv.style.height = size + "px";
   cv.width = cv.height = Math.round(size * dpr);
   TR.size = size; TR.cv = cv; TR.dpr = dpr;
@@ -1272,7 +1295,7 @@ function redrawTrace() {
   ctx.strokeStyle = "#f0b8c8"; ctx.lineWidth = 2 * TR.dpr; ctx.setLineDash([8 * TR.dpr, 8 * TR.dpr]);
   ctx.beginPath(); ctx.moveTo(n / 2, 0); ctx.lineTo(n / 2, n); ctx.moveTo(0, n / 2); ctx.lineTo(n, n / 2); ctx.stroke();
   ctx.setLineDash([]);
-  drawGlyph(ctx, n, TR.k, "rgba(90,70,140,.18)");
+  if (!TR.free) drawGlyph(ctx, n, TR.k, "rgba(90,70,140,.18)");
   drawStrokes(ctx, n, TR.strokes, "#3b2a6b", n * 0.075);
 }
 
@@ -1332,21 +1355,23 @@ const funTag = (it) => (it.fun ? `<i class="fun ${FUN_CLS[it.fun] || ""}">${it.f
 let shopTab = "weapon";
 // ステージクリアでショップに並ぶ
 const unlocked = (it) => (PQ_DEBUG && window.PQ_OPEN) || !it.unlock || !!(S.tierClear || {})[it.unlock] || !!S.cleared[it.unlock];
+// まだ ならんでいない しなものの ヒント
+const lockHint = (it) => (it.unlock === "maou" ? "🌑 まおうを たおすと ならぶよ" : `${MATS[TMAT[it.unlock][0]].em} の 章を クリアすると ならぶよ`);
 // まだ見ていない新商品があるか
-function newShop() { return ITEMS.some((x) => x.price > 0 && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]); }
+function newShop() { return ITEMS.some((x) => x.price > 0 && !x.drop && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]); }
 
 function shop(tab) {
   if (tab) shopTab = tab;
-  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"]];
+  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"], ["acc", "アクセ"]];
   S.seen = S.seen || {};
   ITEMS.forEach((x) => { if (unlocked(x)) S.seen[x.id] = 1; });
   save();
   let lockShown = 0;
-  const lockAll = ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !unlocked(x)).length;
-  const list = ITEMS.filter((x) => x.type === shopTab && x.price > 0).map((it) => {
+  const lockAll = ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !x.drop && !unlocked(x)).length;
+  const list = ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !x.drop).map((it) => {
     if (!unlocked(it)) {
       if (++lockShown > 3) return "";
-      return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${MATS[TMAT[it.unlock][0]].em} の 章を クリアすると ならぶよ</small></div><button class="sbtn" disabled>🔒</button></div>`;
+      return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${lockHint(it)}</small></div><button class="sbtn" disabled>🔒</button></div>`;
     }
     const own = S.owned.includes(it.id);
     const matOk = Object.entries(it.mat || {}).every(([k, v]) => (S.mats[k] || 0) >= v);
@@ -1364,7 +1389,8 @@ function shop(tab) {
   setScreen(`${topBar("ショップ")}
     <div class="matbar">${mats.length ? mats.map((k) => `<span>${MATS[k].em}${S.mats[k]}</span>`).join("") : "<small>そざいは てきを たおすと 手に はいるよ</small>"}</div>
     <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === shopTab ? "on" : ""}" onclick="shop('${k}')">${l}</button>`).join("")}</div>
-    <div class="slist">${list}${lockAll > 3 ? `<p class="note">ほかにも ？？？ が ${lockAll - 3}こ あるよ</p>` : ""}</div>`, "bg-shop");
+    <div class="slist">${list}${lockAll > 3 ? `<p class="note">ほかにも ？？？ が ${lockAll - 3}こ あるよ</p>` : ""}
+    ${shopTab === "acc" ? `<p class="note">✨ ショップに ない めずらしい アクセサリーも あるよ。<br>かきとり道場や まおうの しろで 手に 入るかも…？</p>` : ""}</div>`, "bg-shop");
 }
 function buy(id) {
   const it = itemById(id);
@@ -1384,7 +1410,7 @@ function equip() {
   const sec = (type, label) => {
     const its = ITEMS.filter((x) => x.type === type && S.owned.includes(x.id));
     // みじかい せつめい（数字と 属性だけ）＋ とくしゅ能力
-    const short = (it) => (it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}` : it.type === "armor" ? `🛡️${it.def}${it.res === "all" ? " ✨" : it.res ? ` ${ELEMENTS[it.res].icon}◎` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}✕` : ""}` : `❤️+${it.hp}`);
+    const short = (it) => (it.type === "acc" ? (it.id === "x_none" ? "つけない" : "🎀") : it.type === "weapon" ? `⚔️${it.atk} ${ELEMENTS[it.el].icon}` : it.type === "armor" ? `🛡️${it.def}${it.res === "all" ? " ✨" : it.res ? ` ${ELEMENTS[it.res].icon}◎` : ""}${it.weak ? ` ${ELEMENTS[it.weak].icon}✕` : ""}` : `❤️+${it.hp}`);
     return `<div class="esec"><div class="sub">${label}（${its.length}）</div><div class="elist">${its.map((it) => `<button class="eitem ${S.eq[type] === it.id ? "sel" : ""}" onclick="doEquip('${type}','${it.id}')">
       <b>${it.series ? WORLDS.find((w) => w.id === it.series).icon : ""}${it.name}${funTag(it)}</b><small>${short(it)}</small>${it.sp ? `<span class="spt">${spText(it.sp)}</span>` : ""}</button>`).join("")}</div></div>`;
   };
@@ -1392,7 +1418,7 @@ function equip() {
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>
     <small class="note">❤️ は ずかんの ★10こで +1 ふえるよ（いま +${starHp()}）</small></div>
-    ${sec("weapon", "ぶき")}${sec("armor", "よろい")}${sec("hat", "ぼうし")}
+    ${sec("weapon", "ぶき")}${sec("armor", "よろい")}${sec("hat", "ぼうし")}${sec("acc", "アクセサリー")}
     <div class="esec"><div class="sub">からだの いろ</div><div class="colors">${BODY_COLORS.map((c) => `<button class="cdot ${S.color === c ? "sel" : ""}" style="background:${c}" onclick="setColor('${c}')"></button>`).join("")}</div></div>`, "bg-shop");
 }
 function doEquip(type, id) { S.eq[type] = id; save(); snd("ok"); equip(); }
@@ -1420,6 +1446,14 @@ function matPlaces(k) {
     const boss = TMAT[t][1] === k && TMAT[t][0] !== k;
     return `${boss ? "ボスを たおすと 手に はいる。" : "てきを たおすと ときどき 手に はいる。"}<br>${by.map((x) => `${x.w.icon}「${esc(x.l[0].name)}」${x.l.length > 1 ? ` など ${x.l.length}章` : ""}`).join("<br>")}`;
   }
+  const wr = Object.keys(WORLD_RARE).find((x) => WORLD_RARE[x].includes(k));
+  if (wr) {
+    const W = WORLDS.find((x) => x.id === wr), sup = WORLD_RARE[wr][1] === k;
+    return sup ? `${W.icon}${W.name}の とても むずかしい 章の ボスが まれに おとす${wr === "kanji" ? "。かきとり道場の ボスでも 手に はいる" : ""}` : `${W.icon}${W.name}の むずかしい 章（後半）の つよい てきや ボスが ときどき おとす${wr === "kanji" ? "。かきとり道場では よく 手に はいる" : ""}`;
+  }
+  const el = Object.keys(ELEM_MAT).find((x) => ELEM_MAT[x] === k);
+  if (el) return `${ELEMENTS[el].icon}${ELEMENTS[el].name}の てきを たおすと ときどき 手に はいる（ボスは かならず）`;
+  if (k === "niji") return "🌑 まおうの しろで 手に はいる";
   const w = Object.keys(WORLD_MAT).find((x) => WORLD_MAT[x] === k);
   if (w) { const W = WORLDS.find((x) => x.id === w); return `${W.icon}${W.name}の 章で 手に はいる（ボスは かならず）`; }
   return "";
@@ -1506,8 +1540,8 @@ function parent() {
       <div class="sndrow"><span>🎵 BGM</span><button class="big-btn ${S.bgm ? "primary" : ""}" onclick="S.bgm=!S.bgm;save();BGM.refresh();parent()">${S.bgm ? "🔊 オン" : "🔇 オフ"}</button></div>
       <div class="sndrow"><span>🔔 効果音</span><button class="big-btn ${S.sound ? "primary" : ""}" onclick="S.sound=!S.sound;save();parent()">${S.sound ? "🔊 オン" : "🔇 オフ"}</button></div>
       <p class="small">マナーモードの ときは、イヤホンを つけていなければ 鳴らないように しています。<br>もし マナーモードで 音が 出てしまったら、ここで オフに してね。</p></div>
-    <div class="panel"><div class="sub">保護者の方へ</div><p class="small">学習の記録・バックアップは、次の計算の答えを入力すると開きます。</p>
-    <div class="gate"><span>${a} × ${b} ＝</span><input id="gate" inputmode="numeric" autocomplete="off"><button class="sbtn" onclick="checkGate()">ひらく</button></div></div>`, "bg-shop");
+    ${Cloud.enabled() ? `<div class="panel"><div class="sub">🔑 ふっかつコード</div><p class="codebig">${Cloud.code()}</p>
+      <p class="small">データが きえて しまった ときに つかう コードだよ。<br>おうちの人にも おしえてあげてね（おうちの人の スマホから 学習の ようすが 見られるよ）。</p></div>` : ""}`, "bg-shop");
 }
 function checkGate() {
   if (Number($("gate").value) === gateAns) parentPanel();
@@ -1654,6 +1688,9 @@ function slotTap(i, mode) {
       S.cfg = migrateCfg(S.cfg);
       // 音は さいしょ オフ（マナーモードで 鳴らないように。前の 版の データも 一度 オフに する）
       if (S.aud !== 1) { S.sound = false; S.bgm = false; S.aud = 1; }
+      // アクセサリー枠（前の 版の データには ない）
+      if (!S.eq.acc) S.eq.acc = "x_none";
+      if (!S.owned.includes("x_none")) S.owned.push("x_none");
       setTimeout(syncCfg, 500);
       Object.keys(S.cleared || {}).forEach((k) => { S.tierClear[k] = true; });
       SL.slots[i] = S;
@@ -1747,6 +1784,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 // ---------- 起動 ----------
 prepareChapters();
+prepareExtra();
 loadSlots();
 title();
 if ("serviceWorker" in navigator && location.protocol !== "file:" && !PQ_DEBUG) {

@@ -134,8 +134,30 @@ const MATS = {
   suuji: { name: "すうじのクリスタル", em: "🔷" },
   kagaku: { name: "ふしぎなすいしょう", em: "🔮" },
   rekishi: { name: "れきしのつぼ", em: "🏺" },
+  // 国ごとの レアな そざい（むずかしい 章の つよい てき・ボスほど 出やすい）
+  kinsumi: { name: "きんの すみ", em: "🖋️", rare: 1 },
+  ryuhitsu: { name: "りゅうの ふで毛", em: "🐉", rare: 2 },
+  kotohana: { name: "ことのはの 花", em: "💮", rare: 1 },
+  tsunobue: { name: "こだまの つの笛", em: "📯", rare: 2 },
+  haguruma: { name: "むげんの 歯車", em: "⚙️", rare: 1 },
+  compass: { name: "おうごんの コンパス", em: "🧭", rare: 2 },
+  flask: { name: "いなびかりの フラスコ", em: "⚗️", rare: 1 },
+  hoshikake: { name: "ながれぼしの かけら", em: "🌠", rare: 2 },
+  magatama: { name: "まがたま", em: "📿", rare: 1 },
+  kinin: { name: "きんいん", em: "🏵️", rare: 2 },
+  // ぞくせいの たま（その ぞくせいの てきが おとす）
+  hidama: { name: "ひの たま", em: "🔴" },
+  mizutama: { name: "みずの たま", em: "🔵" },
+  raitama: { name: "いかずちの たま", em: "🟡" },
+  midotama: { name: "みどりの たま", em: "🟢" },
+  // まおうを たおすと 手に はいる
+  niji: { name: "にじの ほうぎょく", em: "🌈", rare: 3 },
 };
 const WORLD_MAT = { kanji: "moji", kotoba: "koto", math: "suuji", sci: "kagaku", soc: "rekishi" };
+// 国ごとの レア そざい［レア, スーパーレア］
+const WORLD_RARE = { kanji: ["kinsumi", "ryuhitsu"], kotoba: ["kotohana", "tsunobue"], math: ["haguruma", "compass"], sci: ["flask", "hoshikake"], soc: ["magatama", "kinin"] };
+// ぞくせいの たま
+const ELEM_MAT = { fire: "hidama", water: "mizutama", thunder: "raitama", leaf: "midotama" };
 
 // --- そうびの とくしゅ能力（sp） ---
 // 武器 crit:かいしん率 hit:あたる確率 extra:ついげき率 multi:2回目の強さ stun:しびれ率 drain:きゅうしゅう率
@@ -245,6 +267,44 @@ const ITEMS = [
   { id: "h_kabuto", type: "hat", name: "しょうぐんの かぶと", hp: 35, price: 1200, mat: { rekishi: 6 }, unlock: 4, series: "soc" },
   { id: "h_crown", type: "hat", name: "おうかん", hp: 40, price: 1000, gem: 3, unlock: 5 },
   { id: "h_halo", type: "hat", name: "てんしのわっか", hp: 60, price: 2400, gem: 6, unlock: 6, sp: { regen: 0.02 } },
+
+  // ---- 国の レア そざいを あつめて つくる 強力そうび ----
+  { id: "w_ryu", type: "weapon", name: "りゅうおうの ふで", atk: 48, el: "fire", price: 3000, gem: 5, mat: { ryuhitsu: 2, kinsumi: 4, hidama: 6 }, unlock: 5, look: "brush", series: "kanji", sp: { crit: 0.35, first: 2 } },
+  { id: "w_kotodama", type: "weapon", name: "ことだまの たて琴", atk: 46, el: "water", price: 3000, gem: 5, mat: { tsunobue: 2, kotohana: 4, mizutama: 6 }, unlock: 5, look: "harp", series: "kotoba", sp: { gauge: 1, stun: 0.25 } },
+  { id: "w_mugen", type: "weapon", name: "むげん ギア ソード", atk: 50, el: "thunder", price: 3000, gem: 5, mat: { compass: 2, haguruma: 4, raitama: 6 }, unlock: 5, look: "shine", series: "math", sp: { combo: true, multi: 0.4 } },
+  { id: "w_ryusei", type: "weapon", name: "りゅうせいの つえ", atk: 50, el: "star", price: 3000, gem: 5, mat: { hoshikake: 2, flask: 4, raitama: 3, mizutama: 3 }, unlock: 5, look: "starwand", series: "sci", sp: { extra: 0.35 } },
+  { id: "w_tenka", type: "weapon", name: "てんかの 金印けん", atk: 50, el: "leaf", price: 3000, gem: 5, mat: { kinin: 2, magatama: 4, midotama: 6 }, unlock: 5, look: "katana", series: "soc", sp: { boss: 1.6, crit: 0.15 } },
+  { id: "w_niji", type: "weapon", name: "にじの せいけん", atk: 64, el: "star", price: 5000, gem: 10, mat: { niji: 1, ryuhitsu: 1, tsunobue: 1, compass: 1, hoshikake: 1, kinin: 1 }, unlock: "maou", look: "shine", sp: { crit: 0.3, pierce: true } },
+  { id: "a_kenja", type: "armor", name: "けんじゃの ローブ", def: 24, price: 2600, gem: 3, mat: { kotohana: 3, flask: 3, haguruma: 3 }, unlock: 5, color: "#5c6bc0", pattern: "sparkle", sp: { regen: 0.05 } },
+  { id: "h_kenja", type: "hat", name: "けんじゃの かんむり", hp: 60, price: 2600, gem: 3, mat: { kinsumi: 3, magatama: 3, kotohana: 3 }, unlock: 5, sp: { hint: true, mat: 0.2 } },
+  // ---- からだ ぜんぶが かわる いしょう（full） ----
+  { id: "a_bear", type: "armor", name: "くまの きぐるみ", def: 10, price: 700, mat: { kinoko: 6, donguri: 3 }, unlock: 2, full: "bear", color: "#a1714f", fun: "かわいい", sp: { regen: 0.04 } },
+  { id: "a_swim", type: "armor", name: "なつの みずぎ", def: 6, price: 600, mat: { kai: 6, mizutama: 3 }, unlock: 2, full: "swim", color: "#ff6f91", fun: "おもしろ", sp: { dodge: 0.15 } },
+  { id: "a_ninja2", type: "armor", name: "にんじゃ しょうぞく", def: 16, price: 1500, mat: { yogan: 5, midotama: 4 }, unlock: 3, full: "ninja", color: "#283593", fun: "かっこいい", sp: { dodge: 0.2 } },
+  { id: "a_knight", type: "armor", name: "ナイトの フルアーマー", def: 24, price: 2400, mat: { yuki: 6, hyou: 2, raitama: 3 }, unlock: 4, full: "knight", color: "#b0bec5", fun: "かっこいい", sp: { guard1: true, reflect: 0.1 } },
+  { id: "a_robot", type: "armor", name: "ロボット スーツ", def: 26, price: 3000, gem: 2, mat: { haguruma: 3, denki: 4, raitama: 4 }, unlock: 5, full: "robot", color: "#90a4ae", fun: "かっこいい", series: "math", sp: { guard1: true, endure: true } },
+  { id: "a_bolt", type: "armor", name: "いなずまの よろい", def: 22, price: 2800, gem: 2, mat: { kaku: 2, raitama: 6, flask: 2 }, unlock: 5, full: "bolt", bg: "bolt", color: "#ffca28", fun: "キラキラ", sp: { reflect: 0.25 } },
+  { id: "a_starry", type: "armor", name: "ほしぞらの ドレス", def: 22, price: 2800, gem: 2, mat: { yami: 2, hoshikake: 1, mizutama: 4 }, unlock: 5, full: "starry", bg: "stars", color: "#3949ab", fun: "キラキラ", sp: { regen: 0.04, dodge: 0.08 } },
+  // ---- アクセサリー（ほとんどは 見た目だけの コレクション） ----
+  { id: "x_none", type: "acc", name: "なし", price: 0, unlock: 0 },
+  { id: "x_tear", type: "acc", name: "なみだ目", price: 150, unlock: 0, acc: "tear", fun: "おもしろ" },
+  { id: "x_heart", type: "acc", name: "ハートの 目", price: 250, unlock: 0, acc: "heart", fun: "かわいい" },
+  { id: "x_guru", type: "acc", name: "ぐるぐる目", price: 200, unlock: 1, acc: "guru", fun: "おもしろ" },
+  { id: "x_mayu", type: "acc", name: "やる気の まゆげ", price: 250, unlock: 1, acc: "mayu", fun: "かっこいい" },
+  { id: "x_band", type: "acc", name: "ばんそうこう", price: 150, unlock: 1, acc: "band", fun: "おもしろ" },
+  { id: "x_kirame", type: "acc", name: "キラキラの 目", price: 0, drop: "write", acc: "kirame", fun: "キラキラ", sp: { coin: 0.1 } },
+  { id: "x_skate", type: "acc", name: "スケートボード", price: 600, unlock: 2, acc: "skate", fun: "かっこいい" },
+  { id: "x_broom", type: "acc", name: "まほうの ほうき", price: 1200, mat: { midotama: 3 }, unlock: 3, acc: "broom", fun: "キラキラ" },
+  { id: "x_rocket", type: "acc", name: "ロケット", price: 2000, mat: { hidama: 4, haguruma: 1 }, unlock: 4, acc: "rocket", fun: "かっこいい" },
+  { id: "x_cloud", type: "acc", name: "ふわふわ ぐも", price: 0, drop: "write", acc: "cloud", fun: "かわいい", sp: { petfast: true } },
+  { id: "x_whale", type: "acc", name: "くじら", price: 0, drop: "write", acc: "whale", fun: "かわいい", sp: { regen: 0.02 } },
+  { id: "x_horse", type: "acc", name: "おうまさん", price: 0, drop: "write", acc: "horse", fun: "おもしろ", sp: { egg: 1.5 } },
+  { id: "x_dragon", type: "acc", name: "ドラゴン", price: 0, drop: "write", acc: "dragon", fun: "かっこいい", sp: { crit: 0.1 } },
+  { id: "x_hearts", type: "acc", name: "ハートの オーラ", price: 800, unlock: 2, acc: "hearts", fun: "かわいい" },
+  { id: "x_fire", type: "acc", name: "ほのおの オーラ", price: 1500, mat: { hidama: 5 }, unlock: 3, acc: "fireaura", fun: "かっこいい" },
+  { id: "x_gold", type: "acc", name: "きんの オーラ", price: 0, drop: "write", acc: "gold", fun: "キラキラ", sp: { coin: 0.2 } },
+  { id: "x_cape", type: "acc", name: "えいゆうの マント", price: 0, drop: "maou", acc: "cape", fun: "かっこいい", sp: { crit: 0.1, mat: 0.1 } },
+  { id: "x_rainbow", type: "acc", name: "にじの オーラ", price: 0, drop: "maou", acc: "rainbow", fun: "キラキラ", sp: { coin: 0.3, regen: 0.03 } },
   // ---- 見た目 重視の そうび（fun：おもしろ／かわいい／キラキラ／かっこいい） ----
   { id: "w_ladle", type: "weapon", name: "おたま", atk: 7, el: "fire", price: 150, unlock: 0, look: "ladle", fun: "おもしろ", sp: { first: 2.5 } },
   { id: "w_harisen", type: "weapon", name: "ハリセン", atk: 9, el: "none", price: 300, mat: { kinoko: 4 }, unlock: 1, look: "harisen", fun: "おもしろ", sp: { stun: 0.25 } },

@@ -64,3 +64,8 @@
 .pg-ch input { width: 22px; height: 22px; flex: none; }
 .pg-ch span { flex: 1; }
 .pg-ov { font-style: normal; font-size: 10px; background: #fff3b0; border-radius: 99px; padding: 1px 7px; }
+
+.pg-exam { background: #fff7e6; border-radius: 12px; padding: 10px; margin: 6px 0 10px; }
+.pg-exam small { font-size: 11px; color: #8a6d3b; }
+.pg-exl { color: #c2410c; font-size: 11px; white-space: nowrap; }
+.pg-off { opacity: .45; }

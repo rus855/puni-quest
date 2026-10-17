@@ -248,8 +248,14 @@ function petCard(pet, onclick, extra = "") {
 
 function petsTab() {
   if (!S.pets.length) return `<div class="empty-note"><div class="bigicon">🥚</div><p>まだ なかまが いないよ。<br>問題に 正解して タマゴを かえそう！</p></div>`;
-  return `<p class="note">タップすると くわしく 見られるよ。あいぼうは バトルで いっしょに たたかうよ。</p>
-    <div class="plist">${S.pets.map((p) => petCard(p, `petDetail(${p.u})`)).join("")}</div>`;
+  // ならびかえ
+  const mode = S.petSort || "new", kind = (p) => PETS.findIndex((x) => x.id === p.sp);
+  const sorts = { new: (a, b) => b.u - a.u, old: (a, b) => a.u - b.u, lv: (a, b) => b.lv - a.lv || kind(a) - kind(b), kind: (a, b) => kind(a) - kind(b) || b.lv - a.lv, rare: (a, b) => petSp(b.sp).r - petSp(a.sp).r || b.lv - a.lv };
+  const list = S.pets.slice().sort(sorts[mode] || sorts.new);
+  const btns = [["new", "あたらしい"], ["old", "ふるい"], ["lv", "レベル"], ["kind", "しゅるい"], ["rare", "レア"]];
+  return `<div class="psort"><span>ならびかえ</span>${btns.map(([k, l]) => `<button class="${mode === k ? "on" : ""}" onclick="S.petSort='${k}';save();nakama('pets')">${l}</button>`).join("")}</div>
+    <p class="note">タップすると くわしく 見られるよ。あいぼうは バトルで いっしょに たたかうよ。</p>
+    <div class="plist">${list.map((p) => petCard(p, `petDetail(${p.u})`)).join("")}</div>`;
 }
 
 function petDetail(u) {
