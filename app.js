@@ -1812,16 +1812,20 @@ async function manualSave(i) {
 
 function restoreMenu(pre) {
   snd("tap");
-  modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">⚙️せってい画面に のっていた 12文字の コードを 入れて、もどす ばしょを えらんでね。</p>
+  // もどせるのは あいている ぼうけんのしょ だけ（ほかの データを まちがえて けさないように）
+  const free = [0, 1, 2].filter((i) => !SL.slots[i]);
+  modal(`<div class="mtitle">🔑 ふっかつコード</div><p class="small">⚙️せってい画面や「🗂 けした データの ふっかつコード」に のっている 12文字の コードを 入れて、もどす ばしょを えらんでね。</p>
     <input id="rcode" class="rinput" maxlength="16" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" value="${pre || ""}">
-    <div class="rslots">${[0, 1, 2].map((i) => `<button class="big-btn" onclick="doCloudRestore(${i})">ぼうけんのしょ${i + 1} に もどす<small>${SL.slots[i] && SL.slots[i].name ? `いまの「${esc(SL.slots[i].name)}」は きえます` : "からっぽ"}</small></button>`).join("")}</div>
+    <div class="rslots">${[0, 1, 2].map((i) => (SL.slots[i]
+      ? `<button class="big-btn" disabled>ぼうけんのしょ${i + 1}<small>「${esc(SL.slots[i].name || "")}」が つかっているので もどせないよ</small></button>`
+      : `<button class="big-btn primary" onclick="doCloudRestore(${i})">ぼうけんのしょ${i + 1} に もどす<small>あいているよ</small></button>`)).join("")}</div>
+    ${free.length ? "" : `<p class="small warnnote">⚠️ あいている ぼうけんのしょが ないよ。もどす ときは、先に「🗑 データを けす」で ばしょを あけてね。</p>`}
     <button class="big-btn" onclick="closeModal()">やめる</button>`);
 }
 async function doCloudRestore(i) {
-  const d = SL.slots[i];
-  if (d && d.name && !confirm(`ぼうけんのしょ${i + 1} の「${d.name}」は きえて しまうよ。ほんとうに もどす？`)) return;
+  if (SL.slots[i]) { snd("ng"); toast("その ぼうけんのしょは つかっているよ"); return; }
   const r = await Cloud.restore($("rcode").value, i);
-  const msg = { bad: "コードは 12文字だよ", off: "クラウドセーブが 使えません", notfound: "その コードの データが みつからないよ", net: "ネットに つながっているか たしかめてね" }[r];
+  const msg = { bad: "コードは 12文字だよ", off: "クラウドセーブが 使えません", notfound: "その コードの データが みつからないよ", net: "ネットに つながっているか たしかめてね", used: "その ぼうけんのしょは つかっているよ", inuse: "その コードの データは もう ほかの ぼうけんのしょに あるよ" }[r];
   if (msg) { snd("ng"); toast(msg); return; }
   snd("win"); closeModal(); toast("データを もどしたよ！"); title();
 }

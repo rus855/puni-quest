@@ -24,7 +24,7 @@ S.eggs=[{r:0,p:12,n:20,sp:"",f:false},{r:1,p:18,n:35,sp:"",f:false}];
 CHAPTERS.filter(c=>["k1a","k1b","m1","m4","h1","s1","w1"].includes(c.id)).forEach(c=>c.items.forEach((id,j)=>{ if(j%3===2) return; const cc=card(id); cc.s=1+(j%4); cc.tot=4; cc.cor=3; cc.last=yesterday(); }));
 ["k1a-1","k1a-2","k1a-3","k1a-4","k1b-1","k1b-2","m1-1","m1-2"].forEach((k,i)=>S.stClear[k]=[3,3,2,3,2,3,3,1][i]); S.tierClear[1]=true;
 S.stats.tot=420; S.stats.cor=356; S.login={last:today(), streak:4};
-ensureDaily(); S.daily.prog = { q10: 10, starup3: 2 };
+ensureDaily(); S.daily.prog = { correct10: 10, starup3: 2 };
 checkTreasures(); S.treasureSeen={}; Object.keys(S.treasures).forEach(k=>S.treasureSeen[k]=1);
 save(); window.SAVED=JSON.stringify(S);
 window.RESTORE=()=>{ S=JSON.parse(window.SAVED); SL.slots[0]=S; };

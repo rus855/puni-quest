@@ -145,8 +145,10 @@ const Cloud = (() => {
       if (newerCfg(d, hit.cfg)) d.cfg = hit.cfg;
       const wasDeleted = !!d.deletedAt;
       delete d.deletedAt;
-      // ほかの ばしょで 同じ コードを つかっていたら はずす（同じ データが 2つに ならないように）
-      st.codes.forEach((x, j) => { if (x === c && j !== i) { st.codes[j] = ""; SL.slots[j] = null; } });
+      // もどす ばしょが あいていない・同じ コードを ほかの ぼうけんのしょで つかっている ときは もどさない
+      if (SL.slots[i]) return "used";
+      if (st.codes.some((x, j) => x === c && j !== i && SL.slots[j])) return "inuse";
+      st.codes.forEach((x, j) => { if (x === c && j !== i) st.codes[j] = ""; });
       st.codes[i] = c; st.dirty[i] = false; st.clean[i] = docs.filter((x) => x.d).length > 1;
       persist();
       SL.slots[i] = d; SL.cur = i; writeSlots();

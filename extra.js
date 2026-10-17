@@ -227,7 +227,8 @@ function writeJudge() {
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 function writeSelf(ok) {
-  if (!B || !B.q || B.q.kind !== "write" || !$("qpanel").querySelector(".wself")) return;
+  // 2回 おしても 1回だけ（B.q.self が ついたら もう えらんだ）
+  if (!B || B.over || !B.q || B.q.kind !== "write" || B.q.self || !$("qpanel").querySelector(".wself")) return;
   $("qpanel").querySelectorAll(".wrow button").forEach((b) => { b.disabled = true; });
   B.q.self = true; B.busy = false;
   if (ok) showMaru($("wbox"));

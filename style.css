@@ -713,3 +713,6 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 .delrow small { font-size: 12px; color: #6b5b8a; }
 .delrow .big-btn { margin: 4px 0 0; font-size: 14px; padding: 8px; }
 .codebig.sm { font-size: 18px; margin: 2px 0; }
+
+.warnnote { background: #fff1e6; color: #8a3b00; border-radius: 10px; padding: 8px; font-weight: bold; }
+.rslots .big-btn:disabled { opacity: .55; }
