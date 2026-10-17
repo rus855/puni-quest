@@ -109,6 +109,11 @@ function recordStat(ok) {
 function onCorrect(id) {
   const c = card(id), d = today();
   c.cor++; c.tot++; recordStat(true); addProg("correct10");
+  // れんぞく正解の数・今日 正解した数（出題の 頻度に 使う）
+  c.cs = (c.cs || 0) + 1;
+  if (c.td !== d) { c.td = d; c.tc = 0; }
+  c.tc++;
+  if (typeof B !== "undefined" && B && B.done) B.done[id] = (B.done[id] || 0) + 1;
   let ev = null;
   if (c.ng) {
     c.st++;
@@ -123,7 +128,8 @@ function onCorrect(id) {
 }
 function onWrong(id) {
   const c = card(id);
-  c.tot++; c.ng = true; c.st = 0; recordStat(false);
+  c.tot++; c.ng = true; c.st = 0; c.cs = 0; recordStat(false);
+  if (typeof B !== "undefined" && B && B.done) B.done[id] = 0;
 }
 const nigateIds = () => Object.keys(S.cards).filter((id) => S.cards[id].ng);
 
@@ -439,23 +445,35 @@ function showChart() {
 }
 
 // ---------- 問題づくり ----------
-// 出題する項目を、ニガテ・★を上げられるもの・新しいものを多めにえらぶ
+// 出題する項目を えらぶ
+// ・まちがえた問題（ニガテ）と 新しい問題は 多め、★を上げられる問題も 多め
+// ・何度も つづけて 正解している問題、今日 何回も 正解した問題、このバトルで 正解した問題は 少なめ
 function pickId(pool, recent) {
   const d = today();
   const ws = pool.map((id) => {
     const c = S.cards[id];
-    let x = 1;
-    if (!c || c.s === 0) x = 1.5;
-    else if (c.ng) x = 3;
-    else if (c.last !== d && c.s < 5) x = 2;
-    else if (c.s >= 5) x = 0.4;
-    else x = 0.6;
+    if (!c || c.tot === 0) return recent.includes(id) ? 0.05 : 1.6;
+    if (c.ng) return recent.includes(id) ? 0.08 : 3;
+    let x = c.last !== d && c.s < 5 ? 1.5 : 1;
+    if (c.s >= 5) x *= 0.5;
+    const cs = c.cs || 0;
+    x *= cs >= 6 ? 0.12 : cs >= 4 ? 0.25 : cs >= 2 ? 0.55 : 1;
+    const tc = c.td === d ? c.tc || 0 : 0;
+    x *= tc >= 3 ? 0.12 : tc === 2 ? 0.3 : tc === 1 ? 0.6 : 1;
+    const bd = (B && B.done && B.done[id]) || 0;
+    x *= bd >= 2 ? 0.05 : bd === 1 ? 0.15 : 1;
     if (recent.includes(id)) x *= 0.03;
     return x;
   });
   let r = Math.random() * ws.reduce((a, b) => a + b, 0);
   for (let i = 0; i < pool.length; i++) { r -= ws[i]; if (r <= 0) return pool[i]; }
   return pool[pool.length - 1];
+}
+
+// ふくしゅう：同じ国の、前に 正解した カードの 中から（★を 上げられる ものを 優先）
+function reviewPool(ch) {
+  const d = today();
+  return worldCards(ch.w).filter((id) => { const c = S.cards[id]; return c && c.s > 0 && !c.ng && c.s < 5 && c.last !== d && !ch.items.includes(id); });
 }
 
 function mkOpts(q, ans, ds) {
@@ -487,7 +505,22 @@ function makeQ(id, kind) {
   if (id.startsWith("k:")) {
     const K = kanjiOf(id);
     const [word, reading] = pick(K.w);
-    kind = kind || (Math.random() < 0.5 ? "kread" : "kwrite");
+    // 聞き方を かえる：読み／□に入る漢字／ひらがなを漢字に／2つの□に共通の漢字
+    if (!kind) { const r = Math.random(); kind = r < 0.3 ? "kread" : r < 0.6 ? "kwrite" : r < 0.8 ? "kword" : "kcommon"; }
+    const multi = K.w.filter(([w]) => w.length >= 2);
+    if (kind === "kword" && multi.length) {
+      const [w, rd] = pick(multi);
+      const ds = shuffle(K.sim.filter((x) => x !== K.k)).map((x) => w.replace(K.k, x));
+      const q = { id, kind: "choice", explain: `${w}（${rd}）`, head: `<div class="qlabel">漢字で 書くと？</div><div class="qword fsm">${rd}</div>` };
+      return mkOpts(q, w, ds);
+    }
+    if (kind === "kcommon" && K.w.length >= 2 && K.w[0][0] !== K.w[1][0]) {
+      const [[w1, r1], [w2, r2]] = K.w;
+      const q = { id, kind: "choice", cls: "kch", explain: `${w1}（${r1}）・${w2}（${r2}）`,
+        head: `<div class="qlabel">2つの □に 共通して 入る 漢字は？</div><div class="qruby">${r1}・${r2}</div><div class="qword fsm">${esc(w1).replace(K.k, '<span class="blank">□</span>')}　${esc(w2).replace(K.k, '<span class="blank">□</span>')}</div>` };
+      return mkOpts(q, K.k, shuffle(K.sim.filter((x) => x !== K.k)));
+    }
+    if (kind === "kword" || kind === "kcommon") kind = Math.random() < 0.5 ? "kread" : "kwrite";
     const q = { id, kind: "choice", explain: `${word}（${reading}）` };
     if (kind === "kread") {
       q.head = `<div class="qlabel">よみかたは？</div><div class="qword">${esc(word).replace(K.k, `<span class="hl">${K.k}</span>`)}</div>`;
@@ -550,6 +583,23 @@ function fromBank(id, Q) {
       explain: `正しい じゅんばん：<br>${Q.order.map((x, i) => `${i + 1}. ${x}`).join("<br>")}${exs}` };
   }
   if (Q.type === "input") return { id, kind: "input", head, ans: Number(Q.input), unit: Q.unit || "", explain: `こたえ：${fmtNum(Q.input, Q.unit)}${exs}` };
+  // 逆向きの 聞き方（例：意味 → ことわざ）
+  if (Q.rq && Math.random() < 0.35) {
+    const ra = Q.ra || Q.t;
+    const sib = [...new Set(Object.keys(BANK).filter((k) => BANK[k].ch === Q.ch && BANK[k].rq && k !== id).map((k) => BANK[k].ra || BANK[k].t))].filter((x) => x !== ra);
+    if (sib.length >= 3) {
+      const q = { id, kind: "choice", head: `<div class="qlabel">ぎゃくに きくよ</div><div class="qtext">${Q.rq}</div>`, explain: `こたえ：${ra}<br><small>${Q.q.replace(/<[^>]+>/g, "")} → ${Q.a}</small>` };
+      mkOpts(q, ra, shuffle(sib));
+      q.cls = optCls(q.opts);
+      return q;
+    }
+  }
+  // ⭕❌ で 答える
+  if (Q.ox !== false && Math.random() < 0.15) {
+    const right = Math.random() < 0.5, shown = right ? Q.a : pick(Q.ng);
+    return { id, kind: "choice", cls: "oxch", opts: ["⭕ 正しい", "❌ まちがい"], ai: right ? 0 : 1, explain: `こたえ：${Q.a}${exs}`,
+      head: `${head}<div class="oxans">こたえ「<b>${shown}</b>」</div><div class="qlabel">この こたえは 正しい？</div>` };
+  }
   const q = { id, kind: "choice", head, explain: `こたえ：${Q.a}${exs}` };
   mkOpts(q, Q.a, shuffle(Q.ng));
   q.cls = optCls(q.opts);
@@ -579,7 +629,7 @@ function startBattle(sid) {
   B = {
     st, sid, enemies, ei: 0, php: pMaxHp(), combo: 0, gauge: 0, coins: 0, gems: 0, miss: 0,
     news: [], ups: [], recent: [], busy: false, pool: st.ch ? stageItems(st.ch, st.n) : [], traceFails: 0,
-    petC: 0, buff: 0, buffPow: 0, shield: 0, hint: false, eggs: [], mats: {},
+    petC: 0, buff: 0, buffPow: 0, shield: 0, hint: false, eggs: [], mats: {}, done: {},
   };
   nextEnemy();
   if (!S.tut.battle) {
@@ -656,7 +706,12 @@ function updBars() {
 function nextQ(special = false) {
   if (B.over) return;
   B.busy = false;
-  const id = B.sid === "nigate" ? B.e.item : pickId(B.pool, B.recent);
+  let id;
+  if (B.sid === "nigate") id = B.e.item;
+  else {
+    const rv = B.st.ch ? reviewPool(B.st.ch) : [];
+    id = rv.length && Math.random() < 0.25 ? pickId(rv, B.recent) : pickId(B.pool, B.recent);
+  }
   B.recent = [id, ...B.recent].slice(0, Math.min(4, Math.max(0, B.pool.length - 2)));
   // 必殺技：公式なら「正しい公式は？」、それ以外は ふつうの問題で 3ばい
   B.q = makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
@@ -1254,7 +1309,7 @@ let zTab = "kanji";
 // その国の カード（章の出題項目 ＋ 公式）
 function worldCards(w) {
   const set = [];
-  worldChapters(w).forEach((ch) => ch.items.forEach((id) => { if (!set.includes(id)) set.push(id); }));
+  activeChapters(w).forEach((ch) => ch.items.forEach((id) => { if (!set.includes(id)) set.push(id); }));
   return set;
 }
 function zukan(tab) {

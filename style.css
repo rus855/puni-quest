@@ -583,3 +583,5 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
   background: rgba(255, 247, 251, .9); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
 .purl { display: block; margin-top: 4px; font-size: 12px; word-break: break-all; color: #4a6cf7; -webkit-user-select: text; user-select: text; }
+.oxans { text-align: center; font-size: 18px; margin: 6px 0; background: #fff7cc; border-radius: 12px; padding: 6px 10px; }
+.choices.oxch .ch { font-size: 20px; }

@@ -1,6 +1,6 @@
 // オフラインでも遊べるように、アプリのファイルを保存しておく
 // ※アプリを更新したら VERSION の数字を上げる
-const VERSION = "puni-v10";
+const VERSION = "puni-v11";
 const FILES = ["./", "index.html", "style.css", "data.js", "world.js", "c_kanji.js", "c_kotoba.js", "c_math.js", "c_sci.js", "c_soc.js", "cloud.js", "pets.js", "app.js", "manifest.webmanifest", "icons/icon-192.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

@@ -16,7 +16,7 @@ const BANK = {};
 function bank(w, chId, list) {
   return list.map((it, i) => {
     const id = `q:${chId}-${i + 1}`;
-    BANK[id] = Object.assign({ w, type: it.order ? "order" : it.input !== undefined ? "input" : "choice" }, it);
+    BANK[id] = Object.assign({ w, ch: chId, type: it.order ? "order" : it.input !== undefined ? "input" : "choice" }, it);
     return id;
   });
 }
@@ -25,8 +25,10 @@ function bank(w, chId, list) {
 // MATH[id] = { name: カードの名前, gen() → { q, a, unit, ng(4択のとき), input(数字入力のとき), svg, ex } }
 const MATH = {};
 
-// 章：{ id, w: 国, name, icon, items: 出題する項目の id }
+// 章：{ id, w: 国, g: 学年, sec: 区切り（漢字の 学年など）, name, icon, items: 出題する項目の id }
 const CHAPTERS = [];
+// 章の 学年を まとめて つける（保護者の 出題設定で つかう）
+function setGrades(map) { CHAPTERS.forEach((c) => { if (map[c.id]) c.g = map[c.id]; }); }
 
 // ---------- 敵のつよさ（ティア 1〜6） ----------
 const TIER = [null,
@@ -46,6 +48,14 @@ const SHAPE_NAME = { blob: "ぷるる", ghost: "ふわりん", rock: "ゴロン"
 const SHAPES = ["blob", "ghost", "rock", "mush", "crab"];
 
 const worldChapters = (w) => CHAPTERS.filter((c) => c.w === w);
+// 保護者の 出題設定（S.cfg）：g ＝ この学年までの 章を 出す、ch ＝ 章ごとの ON/OFF（g より 優先）
+function chapterOn(ch) {
+  const c = typeof S !== "undefined" && S && S.cfg;
+  if (!c) return true;
+  if (c.ch && c.ch[ch.id] !== undefined) return !!c.ch[ch.id];
+  return !c.g || (ch.g || 6) <= c.g;
+}
+const activeChapters = (w) => worldChapters(w).filter(chapterOn);
 const chapterOf = (id) => CHAPTERS.find((c) => c.id === id);
 
 // 章の じゅんばんから ティア と 属性を きめる
@@ -53,8 +63,10 @@ function prepareChapters() {
   WORLDS.forEach((w) => {
     const list = worldChapters(w.id);
     list.forEach((ch, i) => {
-      ch.idx = i;
-      ch.tier = Math.min(6, 1 + Math.floor((i * 6) / list.length));
+      // 区切り（sec）が あるときは、区切りの 中で ティアを きめる
+      const grp = list.filter((c) => c.sec === ch.sec), j = grp.indexOf(ch);
+      ch.idx = i; ch.no = j + 1;
+      ch.tier = Math.min(6, 1 + Math.floor((j * 6) / grp.length));
       const seed = i + w.id.length * 3;
       ch.els = [ELS4[seed % 4], ELS4[(seed + 1 + (i % 2)) % 4]];
       ch.last = i === list.length - 1;
@@ -62,11 +74,12 @@ function prepareChapters() {
   });
 }
 
-// ステージ n（1〜4）の 出題範囲：1〜3は 章の 1/3ずつ、4（ボス）は ぜんぶ
+// ステージ n（1〜4）の 出題範囲：ステージ1は 章の はじめの 1/3、2は 2/3まで、3と ボスは ぜんぶ
+// （新しい 問題は 出やすく、正解した 問題は 出にくいので、前の 問題は ふくしゅうとして ときどき 出る）
 function stageItems(ch, n) {
-  if (n === 4) return ch.items.slice();
+  if (n >= 3) return ch.items.slice();
   const k = Math.ceil(ch.items.length / 3);
-  const part = ch.items.slice((n - 1) * k, n * k);
+  const part = ch.items.slice(0, n * k);
   return part.length >= 3 ? part : ch.items.slice();
 }
 
@@ -115,16 +128,17 @@ function stageInfo(ch, n) {
 
 // ---------- クリア状況 ----------
 const stStars = (key) => (S.stClear || {})[key] || 0;
+// 区切りの 最初の 章と、一度 遊んだ 章は ひらいている。ほかは 1つ前の（出題する）章を クリアすると ひらく
 function chapterOpen(ch) {
-  if (ch.idx === 0) return true;
-  const prev = worldChapters(ch.w)[ch.idx - 1];
-  return stStars(`${prev.id}-4`) > 0;
+  const list = activeChapters(ch.w).filter((c) => c.sec === ch.sec), i = list.indexOf(ch);
+  if (i <= 0 || stStars(`${ch.id}-1`) > 0) return true;
+  return chapterDone(list[i - 1]);
 }
 const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || stStars(`${ch.id}-${n - 1}`) > 0);
 const chapterDone = (ch) => stStars(`${ch.id}-4`) > 0;
 const chapterStars = (ch) => [1, 2, 3, 4].reduce((a, n) => a + stStars(`${ch.id}-${n}`), 0);
 function worldProgress(w) {
-  const list = worldChapters(w);
+  const list = activeChapters(w);
   return { done: list.filter(chapterDone).length, all: list.length };
 }
 
@@ -140,7 +154,7 @@ function map() {
       ${WORLDS.map((w) => {
         const p = worldProgress(w.id);
         return `<button class="stage world" onclick="openWorld('${w.id}')" style="--b1:${w.bg[0]};--b2:${w.bg[1]}">
-          <span class="snum">${w.icon}</span><span class="sinfo"><b>${w.name}</b><small>${p.done} / ${p.all} しょう クリア</small>
+          <span class="snum">${w.icon}</span><span class="sinfo"><b>${w.name}</b><small>${p.all ? `${p.done} / ${p.all} しょう クリア` : "💤 おやすみ中"}</small>
           <span class="bar wb"><i style="width:${p.all ? (p.done / p.all) * 100 : 0}%"></i></span></span><span class="sstate">▶</span></button>`;
       }).join("")}
       <button class="stage nigate ${ng.length ? "" : "locked"}" ${ng.length ? `onclick="startBattle('nigate')"` : ""}>
@@ -156,29 +170,47 @@ function map() {
   }
 }
 
-// きょうの おすすめ：まだ クリアしていない章のうち、各国の いちばん手前（日替わり）
+// その国で つぎに 遊ぶ章：区切りごとの いちばん手前の 未クリアの章のうち、進めている 区切りを 優先
+function nextChapter(w) {
+  const list = activeChapters(w);
+  const fr = [...new Set(list.map((c) => c.sec))].map((s) => list.filter((c) => c.sec === s))
+    .map((g) => ({ g, c: g.find((c) => !chapterDone(c)) })).filter((x) => x.c);
+  const go = fr.find((x) => x.g.some(chapterDone)) || fr[0];
+  return go && go.c;
+}
+// きょうの おすすめ：各国の つぎの 章から（日替わり）
 function recommend() {
-  const cands = WORLDS.map((w) => worldChapters(w.id).find((c) => !chapterDone(c))).filter(Boolean);
+  const cands = WORLDS.map((w) => nextChapter(w.id)).filter(Boolean);
   if (!cands.length) return null;
   const d = new Date();
   return cands[(d.getDate() + d.getMonth()) % cands.length];
 }
 
 let curWorld = "kanji";
-function openWorld(w) {
+const curSec = {}; // 国ごとに えらんでいる 区切り（漢字の 学年）
+function openWorld(w, sec) {
   if (w) curWorld = w;
   snd("tap");
   const W = WORLDS.find((x) => x.id === curWorld);
-  const list = worldChapters(curWorld);
-  setScreen(`${topBar(W.name, "map")}
-    <div class="maplist">${list.map((ch) => {
+  const all = activeChapters(curWorld);
+  // 区切りが ある国は、タブで 1つの 区切りだけ 見せる
+  const secs = [...new Set(all.map((c) => c.sec))].filter(Boolean);
+  if (sec) curSec[curWorld] = sec;
+  if (secs.length && !secs.includes(curSec[curWorld])) { const nx = nextChapter(curWorld); curSec[curWorld] = nx ? nx.sec : secs[0]; }
+  const list = secs.length ? all.filter((c) => c.sec === curSec[curWorld]) : all;
+  const tabs = secs.length > 1 ? `<div class="tabs wtabs">${secs.map((s) => {
+    const g = all.filter((c) => c.sec === s);
+    return `<button class="${curSec[curWorld] === s ? "on" : ""}" onclick="openWorld('', '${s}')">${s.replace(/生の.*$/, "")}<small>${g.filter(chapterDone).length}/${g.length}</small></button>`;
+  }).join("")}</div>` : "";
+  setScreen(`${topBar(W.name, "map")}${tabs}
+    <div class="maplist">${list.length ? list.map((ch, i) => {
       const open = chapterOpen(ch), done = chapterDone(ch), st = chapterStars(ch);
       const els = ch.els.map((e) => ELEMENTS[e].icon).join("");
       return `<button class="stage ${open ? "" : "locked"} ${ch.tier === 6 ? "final" : ""}" ${open ? `onclick="openChapter('${ch.id}')"` : ""} style="--b1:${TBG[ch.tier][0]};--b2:${TBG[ch.tier][1]}">
-        <span class="snum">${ch.icon || ch.idx + 1}</span>
-        <span class="sinfo"><b>${ch.idx + 1}. ${ch.name}</b><small>${open ? `てき ${els}${ch.tier >= 2 ? "❓" : ""}　そざい ${MATS[TMAT[ch.tier][0]].em}${MATS[TMAT[ch.tier][1]].em}　⭐${st}/12` : "まえの 章を クリアしよう"}</small></span>
+        <span class="snum">${ch.icon || i + 1}</span>
+        <span class="sinfo"><b>${i + 1}. ${ch.name}</b><small>${open ? `てき ${els}${ch.tier >= 2 ? "❓" : ""}　そざい ${MATS[TMAT[ch.tier][0]].em}${MATS[TMAT[ch.tier][1]].em}　⭐${st}/12` : "まえの 章を クリアしよう"}</small></span>
         <span class="sstate">${!open ? "🔒" : done ? "👑" : "▶"}</span></button>`;
-    }).join("")}</div>`, "bg-map");
+    }).join("") : `<div class="chhead" style="--b1:#fff;--b2:#f3ecff"><div class="bigicon">💤</div><b>いまは おやすみ中</b><small>おうちの人の せっていで、この国の 章は お休みに なっているよ</small></div>`}</div>`, "bg-map");
 }
 
 function openChapter(id) {
