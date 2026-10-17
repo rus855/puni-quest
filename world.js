@@ -48,12 +48,13 @@ const SHAPE_NAME = { blob: "ぷるる", ghost: "ふわりん", rock: "ゴロン"
 const SHAPES = ["blob", "ghost", "rock", "mush", "crab"];
 
 const worldChapters = (w) => CHAPTERS.filter((c) => c.w === w);
-// 保護者の 出題設定（S.cfg）：g ＝ この学年までの 章を 出す、ch ＝ 章ごとの ON/OFF（g より 優先）
+// 保護者の 出題設定（S.cfg）：kg ＝ 出す 漢字の 学年、off ＝ お休みに する 章
 function chapterOn(ch) {
   const c = typeof S !== "undefined" && S && S.cfg;
   if (!c) return true;
-  if (c.ch && c.ch[ch.id] !== undefined) return !!c.ch[ch.id];
-  return !c.g || (ch.g || 6) <= c.g;
+  if (c.off && c.off[ch.id]) return false;
+  if (ch.w === "kanji" && c.kg && !c.kg.includes(ch.g)) return false;
+  return true;
 }
 const activeChapters = (w) => worldChapters(w).filter(chapterOn);
 const chapterOf = (id) => CHAPTERS.find((c) => c.id === id);
@@ -200,7 +201,8 @@ function openWorld(w, sec) {
   const list = secs.length ? all.filter((c) => c.sec === curSec[curWorld]) : all;
   const tabs = secs.length > 1 ? `<div class="tabs wtabs">${secs.map((s) => {
     const g = all.filter((c) => c.sec === s);
-    return `<button class="${curSec[curWorld] === s ? "on" : ""}" onclick="openWorld('', '${s}')">${s.replace(/生の.*$/, "")}<small>${g.filter(chapterDone).length}/${g.length}</small></button>`;
+    const lb = (typeof SEC_LABEL !== "undefined" && SEC_LABEL[s]) || { icon: "", name: s };
+    return `<button class="${curSec[curWorld] === s ? "on" : ""}" onclick="openWorld('', '${s}')"><span class="ti">${lb.icon}</span><small>${lb.name}</small><small>${g.filter(chapterDone).length}/${g.length}</small></button>`;
   }).join("")}</div>` : "";
   setScreen(`${topBar(W.name, "map")}${tabs}
     <div class="maplist">${list.length ? list.map((ch, i) => {

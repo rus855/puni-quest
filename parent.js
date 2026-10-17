@@ -132,6 +132,10 @@ function render() {
       <div><small>なかま</small><b>🐾 ${(S.pets || []).length}</b><small>ずかん ${Object.keys(S.petDex || {}).length}/${PETS.length}</small></div>
       <div><small>連続ログイン</small><b>🔥 ${(S.login || {}).streak || 0}日</b></div>
     </div>
+    <div class="pg-card"><div class="pg-sub">⚙️ 出題の 設定</div>
+      <p>漢字：${((S.cfg || {}).kg || [1, 2, 3, 4, 5, 6]).map((g) => g + "年").join("・")}</p>
+      ${Object.keys((S.cfg || {}).off || {}).length ? `<p>お休み中の 章：${Object.keys(S.cfg.off).map((id) => { const c = CHAPTERS.find((x) => x.id === id); return c ? esc(c.name) : id; }).join("、")}</p>` : "<p>ほかの 国：すべての 章を 出題中</p>"}
+      <p class="pg-note">設定の 変更は、お子さんの ゲームの ⚙️ →「保護者の方へ」→「出題の設定」で できます。</p></div>
     <p class="pg-note center">読みこみ：${fmtTime(P.loadedAt)}（ゲームで 遊ぶと 数秒〜数分で 反映されます）</p>
     <button class="big-btn" onclick="load()">🔄 最新に する</button>
     <button class="big-btn" onclick="logout()">コードを 入れなおす</button>

@@ -585,3 +585,14 @@ input, textarea { font-family: inherit; -webkit-user-select: text; user-select: 
 .purl { display: block; margin-top: 4px; font-size: 12px; word-break: break-all; color: #4a6cf7; -webkit-user-select: text; user-select: text; }
 .oxans { text-align: center; font-size: 18px; margin: 6px 0; background: #fff7cc; border-radius: 12px; padding: 6px 10px; }
 .choices.oxch .ch { font-size: 20px; }
+
+/* 出題の設定 */
+.cfggrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0 10px; }
+.cfgg { display: flex; align-items: center; gap: 4px; background: #f7f1ff; border-radius: 10px; padding: 8px 6px; font-weight: bold; font-size: 14px; }
+.cfgg small { font-weight: normal; font-size: 10px; }
+.cfgw { background: #f9f6fc; border-radius: 12px; padding: 8px 10px; margin: 6px 0; }
+.cfgw summary { font-weight: bold; font-size: 14px; cursor: pointer; }
+.cfgc { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 5px 2px; border-bottom: 1px dashed #eee; }
+.cfgg input, .cfgc input { width: 20px; height: 20px; }
+.wtabs .ti { font-size: 18px; line-height: 1.1; }
+.cfgg { white-space: nowrap; font-size: 13px; }

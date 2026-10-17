@@ -1078,6 +1078,11 @@ const KANJI_LOW = [
 ];
 
 // テーマ別の章（ここに入らなかった字は「いろいろな 漢字」の章へ）
+// 漢字の国の エリア（学年ごとの 区切りを 子ども向けの 名前で 表示する）
+const SEC_LABEL = {
+  a1: { icon: "🌱", name: "わかばの森" }, a2: { icon: "🌷", name: "はなの丘" }, a3: { icon: "🌊", name: "なみの海辺" },
+  a4: { icon: "⛰️", name: "こだまの山" }, a5: { icon: "🏯", name: "むかしの町" }, a6: { icon: "🌌", name: "ほしの塔" },
+};
 const KANJI_THEMES = [
   { id: "k6a", name: "からだと けんこう", icon: "💪", ks: "胃胸脳腸肺背腹骨筋舌臓乳痛傷視吸呼姿針" },
   { id: "k6b", name: "しぜんと うちゅう", icon: "🌏", ks: "宇宙砂泉潮灰磁穴樹蒸暖卵蚕降層源熟紅干" },
@@ -1106,5 +1111,6 @@ const KANJI_THEMES = [
   });
   KANJI_THEMES.unshift(...low);
   // sec：学年ごとの 区切り（区切りの 最初の 章は はじめから 遊べる）
-  KANJI_THEMES.forEach((t) => CHAPTERS.push({ id: t.id, w: "kanji", g: t.g, sec: `${t.g}年生の 漢字`, name: t.name, icon: t.icon, items: [...t.ks].map((k) => "k:" + k), boss: t.name.split(" ")[0] }));
+  // sec：学年ごとの 区切り。子どもの 画面では 学年ではなく エリアの 名前で 見せる
+  KANJI_THEMES.forEach((t) => CHAPTERS.push({ id: t.id, w: "kanji", g: t.g, sec: "a" + t.g, name: t.name, icon: t.icon, items: [...t.ks].map((k) => "k:" + k), boss: t.name.split(" ")[0] }));
 })();

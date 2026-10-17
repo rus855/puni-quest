@@ -1403,6 +1403,7 @@ function parentPanel() {
       <p>総解答 <b>${S.stats.tot}</b>問 ／ 正答率 <b>${rate(S.stats.cor, S.stats.tot)}</b></p>
       ${per.map((x) => `<p>${x.w.icon}${x.w.name}：章 ${x.ch.done}/${x.ch.all}、出会った ${x.got}/${x.all}、★5（定着） ${x.master}</p>`).join("")}
       <p>苦手（ニガテ）：${ng.length ? ng.map(esc).join("、") : "なし"}</p></div>
+    ${cfgPanel()}
     <div class="panel"><div class="sub">クラウドセーブ</div>${Cloud.enabled() ? `
       <p class="small">データは自動でクラウドにも保存されています。アプリやデータが消えても、タイトル画面の「ふっかつコードで もどす」に下のコードを入れると、3つのぼうけんのしょが すべて元に戻ります。<b>スクリーンショットやメモで控えておいてください。</b></p>
       <div class="rcode">${Cloud.code()}</div>
@@ -1415,6 +1416,41 @@ function parentPanel() {
       <div class="row"><button class="big-btn" onclick="copyBk()">コピー</button><button class="big-btn" onclick="restoreBk()">復元する</button></div></div>
     <div class="panel"><div class="sub">データの削除</div><button class="big-btn danger" onclick="resetAll()">ぼうけんのしょ${SL.cur + 1} を けす</button></div>`, "bg-shop");
 }
+// ---------- 出題の設定（保護者） ----------
+// S.cfg.kg：出す 漢字の 学年、S.cfg.off：お休みに する 章。子どもの 画面には 学年は 出さない
+function cfgPanel() {
+  const cfg = S.cfg || {}, kg = cfg.kg || [1, 2, 3, 4, 5, 6], off = cfg.off || {};
+  const grades = [1, 2, 3, 4, 5, 6].map((g) => {
+    const n = CHAPTERS.filter((c) => c.w === "kanji" && c.g === g).length;
+    return `<label class="cfgg"><input type="checkbox" ${kg.includes(g) ? "checked" : ""} onchange="cfgGrade(${g}, this.checked)"> ${g}年<small>（${n}章）</small></label>`;
+  }).join("");
+  const worlds = WORLDS.filter((w) => w.id !== "kanji").map((w) => {
+    const list = worldChapters(w.id);
+    const on = list.filter((c) => !off[c.id]).length;
+    return `<details class="cfgw"><summary>${w.icon} ${w.name}（${on}/${list.length}章を 出題中）</summary>
+      ${list.map((c) => `<label class="cfgc"><input type="checkbox" ${off[c.id] ? "" : "checked"} onchange="cfgChapter('${c.id}', this.checked)"> ${esc(c.name)}</label>`).join("")}</details>`;
+  }).join("");
+  return `<div class="panel"><div class="sub">⚙️ 出題の設定</div>
+    <p class="small">ゲームの 画面には 学年は 表示されません。ここで 選んだ 範囲だけが 出題されます（記録は 消えません）。</p>
+    <p class="small"><b>漢字の国：出す 学年</b></p><div class="cfggrid">${grades}</div>
+    <p class="small"><b>ほかの 国：章ごとに オン／オフ</b>（タップで 開く）</p>${worlds}
+    <p class="small" id="cfgmsg"></p></div>`;
+}
+function cfgGrade(g, on) {
+  S.cfg = S.cfg || {};
+  const kg = new Set(S.cfg.kg || [1, 2, 3, 4, 5, 6]);
+  if (on) kg.add(g); else kg.delete(g);
+  if (!kg.size) { toast("どれか 1つは 選んでください"); parentPanel(); return; }
+  S.cfg.kg = [...kg].sort();
+  save(); cfgSaved();
+}
+function cfgChapter(id, on) {
+  S.cfg = S.cfg || {}; S.cfg.off = S.cfg.off || {};
+  if (on) delete S.cfg.off[id]; else S.cfg.off[id] = true;
+  save(); cfgSaved();
+}
+function cfgSaved() { const m = $("cfgmsg"); if (m) { m.textContent = "✅ 保存しました"; setTimeout(() => { if ($("cfgmsg")) $("cfgmsg").textContent = ""; }, 1500); } }
+
 function copyBk() {
   const t = $("bk"); t.select();
   try { navigator.clipboard.writeText(t.value).then(() => toast("コピーしました")); } catch (e) { document.execCommand("copy"); toast("コピーしました"); }
