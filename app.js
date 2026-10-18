@@ -811,7 +811,7 @@ function nextQ(special = false) {
     const rv = B.st.ch ? reviewPool(B.st.ch) : [];
     id = rv.length && Math.random() < 0.25 ? pickId(rv, B.recent) : pickId(B.pool, B.recent);
   }
-  B.recent = [id, ...B.recent].slice(0, Math.min(4, Math.max(0, B.pool.length - 2)));
+  B.recent = [id, ...B.recent].slice(0, Math.min(8, Math.max(0, Math.floor(B.pool.length * 0.6)))); // 最近 出た 問題は しばらく 出にくく
   // 必殺技：公式なら「正しい公式は？」、それ以外は ふつうの問題で 3ばい
   B.q = B.st.ch && B.st.ch.write && id.startsWith("k:") ? makeWriteQ(id) : makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
   B.q.special = special;

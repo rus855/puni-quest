@@ -13,12 +13,23 @@ const WORLDS = [
 // ---------- 問題バンク（ことば・理科・社会・算数の知識問題） ----------
 // BANK[id] = { w: 国, q: 問題, a: 正解, ng: まちがい, ex: 解説, t: カードの名前, type: choice/order/input, svg: 図 }
 const BANK = {};
-function bank(w, chId, list) {
+function bank(w, chId, list, offset = 0) {
   return list.map((it, i) => {
-    const id = `q:${chId}-${i + 1}`;
+    const id = `q:${chId}-${offset + i + 1}`;
     BANK[id] = Object.assign({ w, ch: chId, type: it.order ? "order" : it.input !== undefined ? "input" : "choice" }, it);
     return id;
   });
+}
+
+// 章に 問題を 追加する（前の 問題の 番号は かえない。あたらしい 問題は 章の 中に まんべんなく まぜる）
+function addQs(w, chId, list) {
+  const ch = CHAPTERS.find((c) => c.id === chId);
+  const offset = Object.keys(BANK).filter((k) => k.startsWith(`q:${chId}-`)).length;
+  const nw = bank(w, chId, list, offset), old = ch.items, merged = [];
+  let j = 0;
+  old.forEach((o, i) => { merged.push(o); const to = Math.round(((i + 1) * nw.length) / old.length); while (j < to) merged.push(nw[j++]); });
+  while (j < nw.length) merged.push(nw[j++]);
+  ch.items = merged;
 }
 
 // ---------- 算数の計算問題（その場で数字をつくる） ----------
