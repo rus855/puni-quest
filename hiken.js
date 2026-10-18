@@ -3,7 +3,7 @@
 // ・区切りの ボス（漢字の国：エリアの 最初の 章、ほかの 国：3章ごと）を はじめて たおすと ひほうが 1こ。
 //   ほかの ボスは まれに（10%・15回 出なければ 次は かならず）
 // ・ひけん ＋ ひほう 1こ → しんか1、＋3こ → しんか2、＋5こ → しんか3
-// ・5つの 国の しんか3が そろうと さいごの けん「ほしくだき」が うまれる
+// ・5つの 国の しんか3 と にじの せいけんが そろうと さいごの けん「ほしくだき」が うまれる（にじの せいけんは なくなる）
 // ・5年生・6年生の ボス（国の 後ろの ほうの 章）は ひけんで ないと バリアで ダメージが 半分
 "use strict";
 
@@ -109,7 +109,9 @@ function hikenCanEvolve(w) {
   if (lv === undefined || lv >= 3) return false;
   return (S.mats[hikenOf(w).hk] || 0) >= HIKEN_NEED[lv + 1];
 }
-const finalReady = () => HIKEN.every((h) => S.owned.includes(hikenId(h.w, 3))) && !S.owned.includes(HIKEN_FINAL);
+const allLv3 = () => HIKEN.every((h) => S.owned.includes(hikenId(h.w, 3)));
+// さいごの けん：5つの 国の しんか3 ＋ にじの せいけん（にじの せいけんは ざいりょうとして つかう）
+const finalReady = () => allLv3() && S.owned.includes("w_niji") && !S.owned.includes(HIKEN_FINAL);
 function hikenEvolve(w) {
   if (!hikenCanEvolve(w)) return;
   const h = hikenOf(w), lv = hikenLv(w), from = hikenId(w, lv), to = hikenId(w, lv + 1);
@@ -122,6 +124,7 @@ function hikenEvolve(w) {
 }
 function hikenFinal() {
   if (!finalReady()) return;
+  S.owned = S.owned.filter((x) => x !== "w_niji");
   S.owned.push(HIKEN_FINAL); S.eq.weapon = HIKEN_FINAL; save();
   hikenShow(null, HIKEN_FINAL);
 }
@@ -130,7 +133,7 @@ function hikenShow(from, to) {
   snd("special");
   equip();
   modal(`<div class="mtitle">✨ しんか！ ✨</div>
-    ${a ? `<p class="small">${a.name}<br>⬇</p>` : `<p class="small">5つの 国の でんせつの けんが ひとつに なった！</p>`}
+    ${a ? `<p class="small">${a.name}<br>⬇</p>` : `<p class="small">5つの 国の でんせつの けんと にじの せいけんが ひとつに なった！</p>`}
     <div class="hero sm">${charSVG({ ...S.eq, weapon: to }, S.color, "bounce")}</div>
     <p><b style="font-size:1.25em">${b.name}</b><br>⚔️${b.atk}　<small class="spt">${spText(b.sp)}</small></p>
     <button class="big-btn primary" onclick="closeModal()">やったー！</button>`);
@@ -151,7 +154,8 @@ function hikenPanel() {
       <span class="hkm ${ok ? "" : "lack"}">${M.em}${have}/${need}</span><button class="sbtn ${ok ? "" : "no"}" ${ok ? `onclick="hikenEvolve('${h.w}')"` : "disabled"}>✨しんか</button></div>`;
   }).join("");
   const fin = S.owned.includes(HIKEN_FINAL) ? "" : finalReady()
-    ? `<div class="hk final"><b>🌈 5つの でんせつの けんが そろった！</b><button class="sbtn" onclick="hikenFinal()">✨しんか</button></div>`
+    ? `<div class="hk final"><b>🌈 5つの でんせつの けんと にじの せいけんが そろった！</b><small>にじの せいけんを つかって しんかするよ</small><button class="sbtn" onclick="hikenFinal()">✨しんか</button></div>`
+    : allLv3() ? `<div class="hk lock"><b>🌈 ？？？</b><small>5つの でんせつの けんが そろった！ あとは「にじの せいけん」が あれば…？</small></div>`
     : HIKEN.some((h) => S.owned.includes(hikenId(h.w, 3))) ? `<div class="hk lock"><b>🌈 ？？？</b><small>5つの 国の でんせつの けんを そろえると…？</small></div>` : "";
   return rows || fin ? `<div class="hkpanel"><div class="hkttl">🗡️ ひけん</div>${rows}${fin}</div>` : "";
 }

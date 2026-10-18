@@ -1014,7 +1014,7 @@ async function attack(mult, skillName) {
     if (sp.world && ch && !ch.maou && (sp.world === "all" || sp.world === ch.w)) d *= 1.5;
     if (sp.tok && e.el === sp.tok) d *= 1.5;
     if (sp.maou && ch && ch.maou) d *= sp.maou;
-    if (e.barrier && !(sp.world && (sp.world === "all" || sp.world === e.barrier))) { d *= 0.5; if (!crit) { tag = "<small>バリア…</small>"; cls = "dmg resist"; } }
+    if (e.barrier && !(sp.world && (sp.world === "all" || sp.world === e.barrier))) { d *= sp.bar || 0.5; if (!crit) { tag = "<small>バリア…</small>"; cls = "dmg resist"; } }
     if (sp.exec && e.hp < e.max * 0.25) { d *= 2; tag = "<small>とどめ！</small>"; }
     if (sp.first && !e.hitOnce) { d *= sp.first; tag = "<small>せんせい！</small>"; }
     e.hitOnce = true;

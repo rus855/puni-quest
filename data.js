@@ -177,6 +177,7 @@ function spText(sp) {
   if (sp.world) t.push(sp.world === "all" ? "どの 国の てきにも 1.5ばい・バリアを やぶる・ボスには あいしょうが わるくても きく" : `${(WORLDS.find((w) => w.id === sp.world) || {}).name}の てきに 1.5ばい・バリアを やぶる・この国の ボスには あいしょうが わるくても きく`);
   if (sp.tok) t.push(`${ELEMENTS[sp.tok].icon}${ELEMENTS[sp.tok].name}の てきに 1.5ばい`);
   if (sp.maou) t.push(`まおうに ${sp.maou}ばい`);
+  if (sp.bar) t.push("バリアを すこし やぶる");
   if (sp.pierce) t.push("いまひとつ・きかないを むし");
   if (sp.exec) t.push("のこり少ない てきに 2ばい");
   if (sp.first) t.push("さいしょの 一撃 2ばい");
@@ -277,7 +278,7 @@ const ITEMS = [
   { id: "w_mugen", type: "weapon", name: "むげん ギア ソード", atk: 50, el: "thunder", price: 3000, gem: 5, mat: { compass: 2, haguruma: 4, raitama: 6 }, unlock: 5, look: "gearsword", series: "math", sp: { combo: true, multi: 0.4 } },
   { id: "w_ryusei", type: "weapon", name: "りゅうせいの つえ", atk: 50, el: "star", price: 3000, gem: 5, mat: { hoshikake: 2, flask: 4, raitama: 3, mizutama: 3 }, unlock: 5, look: "comet", series: "sci", sp: { extra: 0.35 } },
   { id: "w_tenka", type: "weapon", name: "てんかの 金印けん", atk: 50, el: "leaf", price: 3000, gem: 5, mat: { kinin: 2, magatama: 4, midotama: 6 }, unlock: 5, look: "katana", series: "soc", sp: { boss: 1.6, crit: 0.15 } },
-  { id: "w_niji", type: "weapon", name: "にじの せいけん", atk: 64, el: "star", price: 5000, gem: 10, mat: { niji: 1, ryuhitsu: 1, tsunobue: 1, compass: 1, hoshikake: 1, kinin: 1 }, unlock: "maou", look: "rainbowsword", sp: { crit: 0.3, pierce: true } },
+  { id: "w_niji", type: "weapon", name: "にじの せいけん", atk: 70, el: "star", price: 5000, gem: 10, mat: { niji: 1, ryuhitsu: 1, tsunobue: 1, compass: 1, hoshikake: 1, kinin: 1 }, unlock: "maou", look: "rainbowsword", sp: { crit: 0.3, pierce: true, bar: 0.75, maou: 1.5 } },
   { id: "a_kenja", type: "armor", name: "けんじゃの ローブ", def: 24, price: 2600, gem: 3, mat: { kotohana: 3, flask: 3, haguruma: 3 }, unlock: 5, color: "#3949ab", pattern: "robe", sp: { regen: 0.05 } },
   { id: "h_kenja", type: "hat", name: "けんじゃの かんむり", hp: 60, price: 2600, gem: 3, mat: { kinsumi: 3, magatama: 3, kotohana: 3 }, unlock: 5, sp: { hint: true, mat: 0.2 } },
   // ---- からだ ぜんぶが かわる いしょう（full） ----

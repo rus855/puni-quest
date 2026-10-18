@@ -62,8 +62,8 @@ function maouEnemies(ch) {
     mk({ name: "まおう ドンヨリ", hp: 2600, atk: 52, el: "fire", shape: "boss", color: "#5e35b1", boss: true, fast: true, phases: ["fire", "water", "thunder"] }),
   ];
   return [
-    mk({ name: "まおう ドンヨリ（ふっかつ）", hp: 2000, atk: 54, el: "water", shape: "boss", color: "#4527a0", boss: false, fast: true, phases: ["water", "leaf", "fire"] }),
-    mk({ name: "しんの まおう カオスドン", hp: 4200, atk: 60, el: "thunder", shape: "boss", color: "#1a0f3d", boss: true, fast: true, phases: ["thunder", "fire", "leaf"] }),
+    mk({ name: "まおう ドンヨリ（ふっかつ）", hp: 1800, atk: 58, el: "water", shape: "boss", color: "#4527a0", boss: false, fast: true, phases: ["water", "leaf", "fire"] }),
+    mk({ name: "しんの まおう カオスドン", hp: 4000, atk: 64, el: "thunder", shape: "boss", color: "#1a0f3d", boss: true, fast: true, phases: ["thunder", "fire", "leaf"] }),
   ];
 }
 // 地図に 出す まおうの ボタン
