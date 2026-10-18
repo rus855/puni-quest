@@ -127,7 +127,7 @@ function stageItems(ch, n) {
   const all = ch.items.filter(itemOn);
   const items = all.length >= 3 ? all : ch.items.slice();
   if (n >= 3) return items;
-  const k = Math.ceil(items.length / 3);
+  const k = Math.max(Math.ceil(items.length / 3), Math.min(10, items.length)); // ステージ1でも 10種類 以上
   const part = items.slice(0, n * k);
   return part.length >= 3 ? part : items.slice();
 }

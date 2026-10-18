@@ -14,7 +14,7 @@ const COLLECT = `(() => {
   S = newSave();
   const strip = (h) => String(h == null ? "" : h).replace(/<br\\s*\\/?>/g, " ").replace(/<[^>]+>/g, "").replace(/\\s+/g, " ").trim();
   const rows = [];
-  const stageOf = (ch, id) => { const k = Math.ceil(ch.items.length / 3), i = ch.items.indexOf(id); return i < k ? "1〜" : i < 2 * k ? "2〜" : "3〜"; };
+  const stageOf = (ch, id) => { const k = Math.max(Math.ceil(ch.items.length / 3), Math.min(10, ch.items.length)), i = ch.items.indexOf(id); return i < k ? "1〜" : i < 2 * k ? "2〜" : "3〜"; };
   const base = (ch, id) => ({ world: ch.w, ch: ch.id, chName: ch.name, g: ch.g || "", exam: ch.exam || (typeof isExamItem === "function" && isExamItem(id)) ? "中学受験用" : "", stage: stageOf(ch, id), id });
   const fromQ = (q) => {
     if (q.kind === "choice") { const ok = strip(q.opts[q.ai]); return { q: strip(q.head), ans: ok, ng: q.opts.filter((_, i) => i !== q.ai).map(strip), ex: strip(q.explain) }; }
