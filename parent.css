@@ -92,3 +92,7 @@
 .pg-delcard { background: #fff1e6; border: 2px solid #ffc9a3; color: #8a3b00; font-size: 14px; }
 .pg-delcard small { display: block; margin-top: 4px; color: #6b4a2a; font-size: 12px; }
 .pg-delcode { margin-top: 6px; font-size: 20px; font-weight: bold; letter-spacing: .06em; text-align: center; background: #fff; border-radius: 10px; padding: 6px; user-select: all; }
+
+/* 英語版（ぷにまるクエスト ENGLISH）の コード */
+.pg-kind { font-style: normal; font-size: 11px; background: #6a5cff; color: #fff; border-radius: 99px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+.pg-eigo { display: block; width: 100%; min-height: 480px; border: 0; margin: 0 0 12px; background: transparent; }

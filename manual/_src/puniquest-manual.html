@@ -229,7 +229,7 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
           <li><span class="n y">9</span><span><b>ずかん</b>：あつめた カード・そざい。</span></li>
           <li><span class="n y">10</span><span><b>ミッション</b>：まいにちの おだい。</span></li>
           <li><span class="n y">11</span><span><b>セーブ</b>：きろくを のこす（ふだんは じどうで セーブされるよ）。</span></li>
-          <li><span class="n y">12</span><span><b>🏆 たからもの</b>（いちばん下の 金色の ボタン）：あつめた トロフィーや メダルを 見る。</span></li>
+          <li><span class="n y">12</span><span><b>🏆 たからもの</b>（いちばん下の 金色の ボタン）：あつめた たからものを 見る。</span></li>
         </ol>
         <div class="tip">どの 画面でも、左上の <span class="tap">◀ もどる</span> で 1つ まえに もどれるよ。画面を 下に スクロールしても、もどるボタンは ずっと 上に あるよ。</div>
       </div>
@@ -576,35 +576,23 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
 
   <!-- ===== 12 たからもの ===== -->
   <section class="chapter" id="takara">
-    <div class="chead"><span class="no">12</span><div><h2>たからもの</h2><p>がんばった きねんの トロフィー・メダル・表彰状</p></div></div>
-    <div class="gallery">
-      <div class="g">
-        <div class="phone"><img src="img/36_treasures.jpg" alt="たからものの 一覧。まだの ものは 灰色の かげに なっている" width="750" height="1440" loading="lazy"></div>
-        <h4>たからものの へや</h4>
-        <p>ホームの <span class="tap">🏆 たからもの</span> で 見られるよ。まだ もらっていない ものは <b>灰色の かげ</b>。タップすると ヒントが 出るよ。</p>
+    <div class="chead"><span class="no">12</span><div><h2>たからもの</h2><p>がんばった きねんの たからものが あるよ</p></div></div>
+    <div class="row">
+      <div class="shot">
+        <div class="phone"><img src="img/36_treasures.jpg" alt="たからものの へや。まだ もらっていない ものは 灰色の かげ" width="750" height="1440" loading="lazy"></div>
+        <p class="cap">たからものの へや</p>
       </div>
-      <div class="g">
-        <div class="phone"><img src="img/37_trophy.jpg" alt="もらった トロフィーを 大きく 見た ところ" width="750" height="1440" loading="lazy"></div>
-        <h4>大きく 見る</h4>
-        <p>もらった たからものを タップすると、大きな 絵と <b>もらった日</b> が 見られるよ。<span class="tap">◀ たからものに もどる</span> で もとの 画面へ。</p>
-      </div>
-      <div class="g">
-        <div class="phone"><img src="img/38_cert.jpg" alt="全世界の 英雄 表彰状" width="750" height="1440" loading="lazy"></div>
-        <h4>さいごの たからもの</h4>
-        <p>5つの 国を ぜんぶ すくって、しんの まおうを たおすと、<b>全世界の 英雄トロフィー</b>と <b>表彰状</b> が もらえるよ！</p>
+      <div class="txt">
+        <p>ホームの いちばん下の <span class="tap">🏆 たからもの</span> で 見られるよ。</p>
+        <p>ぼうけんで がんばると、ときどき たからものが もらえるよ。<b>なにを したら もらえるかは ひみつ！</b></p>
+        <ol class="legend">
+          <li><span class="n">1</span><span>まだ もらっていない ものは <b>灰色の かげ</b>。タップすると ちょっとだけ ヒントが 見られるよ。</span></li>
+          <li><span class="n">2</span><span>もらった たからものは 色が ついて かがやくよ。タップすると 大きく 見られて、<b>もらった日</b> も わかるよ。</span></li>
+          <li><span class="n">3</span><span><span class="tap">◀ たからものに もどる</span> で もとの 画面に もどれるよ。</span></li>
+        </ol>
+        <div class="tip star">ぜんぶ あつめられるかな？</div>
       </div>
     </div>
-    <div class="tbl" style="margin-top:22px"><table>
-      <tr><th>たからもの</th><th>もらえる とき</th></tr>
-      <tr><td>🏆 ○○の国の 英雄トロフィー（5こ）</td><td>その 国の 章を ぜんぶ クリア</td></tr>
-      <tr><td>🏆 まおう たいじ トロフィー</td><td>まおうを たおす</td></tr>
-      <tr><td>🏆 全世界の 英雄トロフィー・📜 表彰状</td><td>5つの 国を ぜんぶ クリアして、しんの まおうを たおす</td></tr>
-      <tr><td>🏅 正解 メダル（100・500・1000・3000問）</td><td>問題に ぜんぶで その数 正解</td></tr>
-      <tr><td>🏅 かきとり名人 メダル</td><td>かきとり道場を ぜんぶ クリア</td></tr>
-      <tr><td>🏅 キラカード 100まい メダル</td><td>★5の カードを 100まい</td></tr>
-      <tr><td>🏅 なかま 20しゅるい メダル／🏆 コンプリート トロフィー</td><td>なかまずかんを 20しゅるい／ぜんぶ</td></tr>
-      <tr><td>🏅 7日・30日 れんぞく メダル</td><td>まいにち つづけて あそぶ</td></tr>
-    </table></div>
   </section>
 
   <!-- ===== 13 せってい ===== -->
@@ -669,6 +657,7 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
         <p>学習のようすの確認と出題の設定は、ゲームとは別の<b>保護者ページ</b>で行います（ゲームの中からは開けません）。</p>
         <p><span class="url">https://rus855.github.io/puni-quest/parent.html</span></p>
         <p>お子さんのゲームの ⚙️せってい画面に出ている12文字の「ふっかつコード」を入力して開きます。コードは<b>ぼうけんのしょ（セーブデータ）ごとに別</b>です。1台のスマホをきょうだいで使う場合なども、ページ下の「➕ コードを 追加・変更する」から<b>最大3つ</b>登録し、上部のボタンで切り替えて、それぞれに出題の設定ができます。このURLはお子さんには伝えないでください。</p>
+        <p><b>英語版「ぷにまるクエスト ENGLISH」</b>のふっかつコードも、同じ画面で登録できます（自動で見分けます。コードのボタンに 🔤 が付きます）。英語版のコードを選ぶと、学習記録と出題の設定が英語版のもの（中1〜高3・英語の章）に切り替わります。</p>
       </div>
       <div class="pc">
         <h3>⚙️ 出題範囲の設定</h3>
@@ -706,7 +695,7 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
       </div>
       <div class="pc">
         <h3>🏆 たからもの（記念）</h3>
-        <p>国ごとの全クリア（英雄トロフィー）、まおう討伐、全世界の英雄トロフィーと表彰状、正解数（100・500・1000・3000問）、かきとり道場全クリア、キラカード100枚、なかま収集、連続ログイン（7日・30日）で記念品がもらえます。ホームの「🏆 たからもの」で、もらった日と一緒に見られます。</p>
+        <p>がんばりに応じて、記念のたからものがもらえます。ホームの「🏆 たからもの」で、もらった日と一緒に見られます。何をするともらえるかは、お子さんの楽しみのため説明書では伏せています。</p>
       </div>
       <div class="pc">
         <h3>⏱️ 遊び方の目安</h3>
@@ -722,5 +711,5 @@ footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size
     </div>
   </section>
 
-  <footer>ぷにまるクエスト ぼうけんガイド　・　画面は ver.27 の ものです</footer>
+  <footer>ぷにまるクエスト ぼうけんガイド　・　画面は ver.29 の ものです</footer>
 </div>

@@ -20,8 +20,9 @@ const YOMI = (() => {
     return [...out];
   }
   // 1つの 漢字の 読みを あつめる（漢字1字の ことば → 2字の 熟語を くりかえし 分ける）
+  let STEM = null, OKU = null; // STEM[k]：送りがなの つく 読み、OKU[送りがな]：[漢字, 読みの頭] の 一覧
   function build() {
-    KR = {};
+    KR = {}; STEM = {}; OKU = {};
     const add = (k, p) => { if (!p) return false; KR[k] = KR[k] || new Set(); if (KR[k].has(p)) return false; KR[k].add(p); return true; };
     const all = [];
     KANJI.forEach((K) => K.w.forEach(([w, r]) => all.push([w, r])));
@@ -29,7 +30,12 @@ const YOMI = (() => {
       const ks = [...w].filter(isK);
       if (ks.length !== 1) return;
       const i = w.indexOf(ks[0]), pre = w.slice(0, i), post = w.slice(i + 1);
-      if (r.startsWith(pre) && r.endsWith(post) && r.length > pre.length + post.length) add(ks[0], r.slice(pre.length, r.length - post.length));
+      if (r.startsWith(pre) && r.endsWith(post) && r.length > pre.length + post.length) {
+        const stem = r.slice(pre.length, r.length - post.length);
+        add(ks[0], stem);
+        // 送りがなの つく ことば（白い・学ぶ など）
+        if (post && !pre) { (STEM[ks[0]] = STEM[ks[0]] || new Set()).add(stem); (OKU[post] = OKU[post] || []).push([ks[0], stem]); }
+      }
     });
     for (let it = 0; it < 4; it++) all.forEach(([w, r]) => {
       if (w.length !== 2 || !isK(w[0]) || !isK(w[1])) return;
@@ -71,40 +77,71 @@ const YOMI = (() => {
     return { pre: reading.slice(0, best.s), p: reading.slice(best.s, best.e), suf: reading.slice(best.e) };
   }
 
-  // 1文字 ちがいの にた 読み（母音を かえる）
-  const ROWS = ["あいうえお", "かきくけこ", "がぎぐげご", "さしすせそ", "ざじずぜぞ", "たちつてと", "だでど", "なにぬねの", "はひふへほ", "ばびぶべぼ", "ぱぴぷぺぽ", "まみむめも", "やゆよ", "らりるれろ", "わを"];
-  function mutate(p) {
-    const out = [];
-    [...p].forEach((c, i) => {
-      const row = ROWS.find((r) => r.includes(c));
-      if (!row) return;
-      [...row].forEach((x) => { if (x !== c) out.push(p.slice(0, i) + x + p.slice(i + 1)); });
-    });
-    return out;
+  // ほんとうに ある ことばの 読み（漢字の ことば・ことばの国の ことば・よく つかう ことば）
+  let LEX = null;
+  const COMMON = ("こねこ こじか こうま こうし こぶた こがも こぐま こざる こいぬ こども ことり こえだ こぶね こゆび こづつみ こもり こいし こがね こなゆき " +
+    "とんぼ さくらんぼ たんぽぽ たんす たんい たいこ たまご たけのこ たぬき たから たんじょうび " +
+    "かいしゃ かいだん かいごう かいすい かいてん かいもの かいがら かいし かいじょう かいわ かいぎ かいけつ かいせい かいが かいとう かいふく " +
+    "がくせい がっこう がっき がくしゅう がくひ がくねん がくもん せんせい せんしゅ せんろ せんたく せんす " +
+    "にっき にっし にっこう にちじ にちよう まいにち まいあさ まいばん まいとし まいしゅう " +
+    "はなび はなみ はなし はなぢ はなや はなたば はなばたけ ひばな ひなた ひかり ひこうき ひるま ひるね " +
+    "すいでん すいぞう すいえい すいどう すいへい すいとう すいか すいせい すいよう でんしゃ でんわ でんき でんち " +
+    "やまみち やまびこ やまおく やまのぼり かわら かわぎし かわぐち おがわ おおかわ みずうみ うみべ はまべ " +
+    "いぬごや ねこぜ うまごや とりごや さかなや やおや ほんや くすりや はなや にくや " +
+    "あおい あかい しろい くろい きいろい ちいさい おおきい ながい みじかい たかい ひくい ふかい あさい ふとい ほそい あつい さむい あたたかい つめたい " +
+    "あたらしい ふるい つよい よわい はやい おそい おもい かるい ひろい せまい あかるい くらい うれしい かなしい たのしい やさしい むずかしい " +
+    "うみ やま かわ そら くも あめ ゆき かぜ ほし つき はな くさ き いし すな みず ひ た はたけ もり はやし いけ ぬま しま おか たに " +
+    "いぬ ねこ うし うま とり さかな むし くま しか さる ぶた かめ へび かえる うさぎ ねずみ きつね たぬき " +
+    "め みみ はな くち て あし あたま かお くび むね せなか はら ゆび こころ " +
+    "ほん かみ ふで えんぴつ つくえ いす まど と いえ へや にわ もん みち はし えき みせ まち むら " +
+    "ちち はは あに あね おとうと いもうと そふ そぼ おや こ まご " +
+    "いちねん にねん さんねん きょねん ことし らいねん がんねん しょうねん せいねん ちゅうねん " +
+    "こうえん こうじょう こうばん こうてい こうか こうしゃ こうさく こうつう こうぎょう こうちょう こうせい " +
+    "しんぶん しんごう しんせつ しんぱい しんか しんかい しんりん しんじつ " +
+    "じしん じしゃく じかん じこ じしょ じてん じどう じぶん じゆう じょうず " +
+    "がいこく がいしゅつ がいらい こくご こくばん こくみん こくりつ こっか こっき " +
+    "せかい せかいじゅう せいかつ せいかく せいき せいじ せいと せいふ せいめい せいり ").split(/\s+/).filter(Boolean);
+  function lex() {
+    if (LEX) return LEX;
+    LEX = new Set(COMMON);
+    KANJI.forEach((K) => K.w.forEach(([, r]) => LEX.add(r)));
+    if (typeof BANK !== "undefined") Object.values(BANK).forEach((b) => { if (b.label === "読みかたは？" && /^[ぁ-ん]+$/.test(b.a)) LEX.add(b.a); });
+    return LEX;
   }
 
-  // まちがいの 選択肢を 3つ つくる（作れなければ null）
+  // まちがいの 選択肢を 3つ つくる（自然な ことばが 3つ そろわなければ null）
+  // ① ほんとうに ある ことば（前と 後ろの 読みは 同じで、まん中だけ ちがう）
+  // ② 同じ 送りがなの ことば（白い → くろい・あかい、学ぶ → あそぶ・えらぶ）
+  // ③ その 漢字の べつの 読み（子犬 → こけん、番犬 → ばんいぬ：知らないと まよう）
   function distractors(K, word, reading) {
     const sp = split(word, reading, K.k);
     if (!sp) return null;
     const { pre, p, suf } = sp;
-    const mk = (q) => pre + q + suf;
-    // 日本語として ありえない ならび（「んん」や 小さい つで おわる など）は つかわない
-    const odd = (x) => /んん|^ん|^っ|っ$|っん|んっ|っっ|^ー/.test(x) || /(^|[^きしちにひみりぎじぢびぴ])[ゃゅょ]/.test(x) || (/[ぢづ]/.test(x) && !/[ぢづ]/.test(reading));
-    const near = (q) => Math.abs(q.length - p.length) <= 1;
-    const pickFrom = (list) => shuffle(list.filter((q) => q && q !== p && near(q) && mk(q) !== reading));
-    // ① その 漢字の べつの 読み（知らないと まよう）
-    const own = pickFrom(readings(K.k).filter((q) => !variants(p).includes(q)));
-    // ② 形の にた 漢字の 読み
-    const sim = pickFrom((K.sim || []).flatMap(readings));
-    // ③ 同じ 学年の ほかの 漢字の 読み
-    const grade = pickFrom(shuffle(KANJI.filter((x) => x.g === K.g && x.k !== K.k)).slice(0, 40).flatMap((x) => readings(x.k)));
-    // ④ 1文字 ちがい
-    const mut = pickFrom(mutate(p));
-    const out = [];
-    const take = (list, n) => { for (const q of list) { if (out.length >= 3 || n <= 0) break; const s = mk(q); if (!out.includes(s) && s !== reading && !odd(s)) { out.push(s); n--; } } };
-    take(own, 1); take(sim, 1); take(mut, 1); take(grade, 3); take(own, 3); take(sim, 3); take(mut, 3);
-    return out.length >= 3 ? out : null;
+    const L = lex(), cand = [];
+    const push = (x, sc) => { if (x && x !== reading && !cand.some((c) => c.x === x)) cand.push({ x, sc: sc + Math.random() }); };
+    const okLen = (m) => m.length >= 1 && Math.abs(m.length - p.length) <= (p.length >= 3 ? 2 : 1);
+    // 送りがなの ことば（白い・歩く・六つ）は、同じ 送りがなの ことばを 先に つかう
+    const kanaTail = word.slice(word.indexOf(K.k) + 1);
+    const okuri = !pre && kanaTail && suf === kanaTail && !/[一-鿿]/.test(kanaTail);
+    // ①
+    if (!okuri) L.forEach((x) => {
+      if (x.length <= pre.length + suf.length || !x.startsWith(pre) || !x.endsWith(suf)) return;
+      const m = x.slice(pre.length, x.length - suf.length);
+      if (okLen(m)) push(x, 10 + (m.length === p.length ? 0.8 : 0));
+    });
+    // ②（送りがなの つく ことば）
+    if (okuri) (OKU[kanaTail] || []).forEach(([k2, st]) => { if (k2 !== K.k && okLen(st)) push(st + suf, 9); });
+    // ③（送りがなの 読みの 頭は のぞく）
+    const stems = STEM[K.k] || new Set();
+    // （送りがなの ことばでは、音読みに 送りがなを つけた 形「ぱいる」などは 不自然なので つかわない）
+    if (!okuri) readings(K.k).filter((q) => !variants(p).includes(q) && !stems.has(q) && okLen(q) && !/^[ぱぴぷぺぽ]/.test(q)).forEach((q) => push(pre + q + suf, 6));
+    const good = cand.filter((c) => !/んん|^ん|^っ|っ$|っん|んっ|っっ/.test(c.x)).sort((a, b) => b.sc - a.sc);
+    if (good.length < 3) return null;
+    // 種類が かたよらないように：③を 1つ まぜる
+    const out = [], own = good.filter((c) => c.sc < 7);
+    if (own.length) out.push(own[0].x);
+    good.forEach((c) => { if (out.length < 3 && !out.includes(c.x)) out.push(c.x); });
+    return out.slice(0, 3);
   }
   return { distractors, split, readings };
 })();

@@ -60,6 +60,12 @@
           <button onclick="dbg.heal()">体力 ぜんかいふく</button>
           <button onclick="dbg.auto()">自動プレイ（全問正解）</button>
         </div>
+        <h3>音（いまの ぼうけんのしょの せってい）</h3>
+        <div class="dgrid">
+          <button class="${S && S.sound ? "on" : ""}" onclick="dbg.snd()">🔔 効果音：${S && S.sound ? "オン" : "オフ"}</button>
+          <button class="${S && S.bgm ? "on" : ""}" onclick="dbg.bgmOn()">🎵 BGM：${S && S.bgm ? "オン" : "オフ"}</button>
+        </div>
+        <p class="small">※ 音は さいしょ オフです。iPhoneの マナーモード中は（イヤホンが なければ）鳴りません。</p>
         <h3>BGM を きく（せっていが オフでも 鳴るよ）</h3>
         <div class="dgrid">
           ${BGM.songs().map((x) => `<button class="${BGM.previewing() === x.id ? "on" : ""}" onclick="dbg.bgm('${x.id}')">🎵 ${x.name}</button>`).join("")}
@@ -121,6 +127,8 @@
       if (!S.eq.acc) S.eq.acc = "x_none";
       done(`アクセサリーを ${acc.length}こ ぜんぶ そろえたよ`);
     },
+    snd() { if (!needS()) return; S.sound = !S.sound; save(); closeModal(); openDebug(); snd("ok"); },
+    bgmOn() { if (!needS()) return; S.bgm = !S.bgm; save(); BGM.refresh(); closeModal(); openDebug(); },
     bgm(id) { BGM.preview(id); closeModal(); openDebug(); toast(id ? "🎵 さいせい中（まわりの 音に 注意）" : "BGMを ふつうに もどしたよ"); },
     toggleOpen() { window.PQ_OPEN = !window.PQ_OPEN; closeModal(); openDebug(); },
     toggleZukan() { window.PQ_ZUKANALL = !window.PQ_ZUKANALL; ss("pq_debug_zukan", window.PQ_ZUKANALL ? "1" : "0"); closeModal(); openDebug(); },
