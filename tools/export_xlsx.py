@@ -1,5 +1,5 @@
 # 問題の 一覧（tools/questions.json）から Excel を つくる
-# つかいかた：python tools/export_xlsx.py [出力ファイル名]
+# つかいかた：python tools/export_xlsx.py [出力ファイル名] [国のID（sci など。つけると その国だけ）]
 import json, os, sys, datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -11,6 +11,13 @@ out_dir = os.path.join(os.path.dirname(os.path.dirname(here)), "ぷにまる問�
 os.makedirs(out_dir, exist_ok=True)
 name = sys.argv[1] if len(sys.argv) > 1 else f"ぷにまるクエスト_問題一覧_v{data['v']}_{datetime.date.today():%Y%m%d}.xlsx"
 path = os.path.join(out_dir, name)
+only = sys.argv[2] if len(sys.argv) > 2 else None
+if only:
+    data["worlds"] = [w for w in data["worlds"] if w["id"] == only]
+    data["chapters"] = [c for c in data["chapters"] if c["w"] == only]
+    data["rows"] = [r for r in data["rows"] if r["world"] == only]
+    if only != "kanji":
+        data["extra"] = []
 
 wb = Workbook()
 head_font = Font(bold=True, color="FFFFFF")
