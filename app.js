@@ -146,7 +146,7 @@ function snd(type) {
   if (S && !S.sound) return;
   try {
     if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") AC.resume();
+    if (AC.state !== "running") AC.resume().catch(() => {}); // ロックの あとの「interrupted」も もどす
     // 正解の「ピンポン！」（チャイムのような 2つの 音）
     if (type === "pinpon") {
       const t0 = AC.currentTime;

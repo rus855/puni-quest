@@ -206,7 +206,7 @@ const BGM = (() => {
     if ((cur === name && src) || want === name) return;
     try {
       ctxReady();
-      if (AC.state === "suspended") AC.resume();
+      if (AC.state !== "running") AC.resume().catch(() => {});
       want = name;
       render(name).then((buf) => {
         if (want !== name || !enabled()) return;
@@ -240,13 +240,44 @@ const BGM = (() => {
     preview(name) { if (!name) { forced = false; stopNow(); auto(lastCls); return; } forced = true; stopNow(); play(name); },
     previewing: () => (forced ? cur || want : ""),
     bufferOf: (name) => { ctxReady(); return render(name); }, // 確認用
-    // 画面に もどったときに 再開
-    resume() { if (!enabled()) return; if (AC && AC.state === "suspended") AC.resume(); if (!cur && !want) auto(lastCls); },
-    pause() { if (AC && AC.state === "running") AC.suspend().catch(() => {}); },
+    // 画面に もどったときに 再開（gesture：タッチした とき）
+    resume(gesture) {
+      if (!AC) { if (enabled()) auto(lastCls); return; }
+      // iPhoneは ロックや 電話の あと、音の しくみが「とまった まま」に なることが ある。
+      // しばらく かくれていた あとの さいしょの タッチでは、音の しくみを 作りなおして 曲を かけなおす
+      if (gesture && needReset) { needReset = false; renew(); return; }
+      if (AC.state !== "running") {
+        AC.resume().then(() => { if (enabled() && !cur && !want) auto(lastCls); }).catch(() => { needReset = true; });
+        if (!gesture) return;
+      }
+      if (enabled() && !cur && !want) auto(lastCls);
+    },
+    pause() { hiddenAt = Date.now(); if (AC && AC.state === "running") AC.suspend().catch(() => {}); },
+    markReset() { needReset = true; },
   };
+  // 音の しくみ（AudioContext）を 作りなおす。作った 曲の 音は そのまま つかえる
+  function renew() {
+    const was = forced ? cur || want : "";
+    stopNow();
+    try { if (AC) AC.close().catch(() => {}); } catch (e) { /* 無視 */ }
+    AC = null; ctxReady();
+    if (AC.state !== "running") AC.resume().catch(() => {});
+    if (was) play(was); else if (enabled()) auto(lastCls);
+  }
 })();
 
 // ほかの アプリに うつったら 止める／もどったら 再開
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") BGM.pause(); else BGM.resume(); });
-// さいしょの タッチで 音を 出せる じょうたいに する（iPhoneは タッチの あとしか 鳴らせない）
-document.addEventListener("pointerdown", () => { if (S && S.bgm) BGM.resume(); }, { passive: true });
+let hiddenAt = 0, needReset = false;
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") BGM.pause();
+  else {
+    // 10秒より 長く かくれていたら（ロックなど）、つぎの タッチで 音の しくみを 作りなおす
+    if (hiddenAt && Date.now() - hiddenAt > 10000) BGM.markReset();
+    BGM.resume(false);
+  }
+});
+window.addEventListener("pageshow", () => BGM.resume(false));
+// タッチで 音を 出せる じょうたいに する（iPhoneは タッチの あとしか 鳴らせない）
+const bgmTouch = () => { if (S && (S.bgm || S.sound)) BGM.resume(true); };
+document.addEventListener("pointerdown", bgmTouch, { passive: true });
+document.addEventListener("touchend", bgmTouch, { passive: true });
