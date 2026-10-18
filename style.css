@@ -730,3 +730,17 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 .hk.lock { opacity: .75; }
 .hk.max b { color: #c77d00; }
 .hk.final { background: linear-gradient(90deg, #ffebee, #fff8e1, #e8f5e9, #e3f2fd, #f3e5f5); }
+
+/* ぶきを かえる：とくしゅ能力は 下の 段に 横いっぱい */
+.witem { flex-wrap: wrap; }
+.witem small.spt { flex-basis: 100%; order: 9; padding-left: 30px; font-size: 12px; }
+.witem b { min-width: 0; }
+.witem .effs { display: flex; flex-wrap: wrap; gap: 4px; flex-basis: 100%; order: 8; padding-left: 30px; }
+.imm { white-space: nowrap; }
+.witem i.eff.bar { background: #546e7a; color: #fff; }
+.witem i.eff.hk { background: #7e57c2; color: #fff; }
+/* せまい 画面（320px）でも そうびの タブが 1行に おさまるように */
+@media (max-width: 345px) { .eqtabs button { font-size: 11.5px; letter-spacing: -.02em; white-space: nowrap; } }
+/* 敵の じょうたい（じゃくてん・きかない・バリア）が ふえても「あと3」は 1行で */
+#eturn { white-space: nowrap; flex: none; }
+.witem .effs i { display: inline-block; height: auto; line-height: 1.5; padding: 2px 8px; }

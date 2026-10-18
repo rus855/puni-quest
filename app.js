@@ -69,6 +69,15 @@ const pAtk = () => 5 + itemById(S.eq.weapon).atk;
 // てきの じゃくてん（その属性に 強い属性）
 const weakOf = (el) => Object.keys(BEATS).find((k) => BEATS[k] === el) || null;
 const effNow = (wEl) => effect(wEl, B.e.el, B.e.imm);
+// その ぶきの ほんとうの 効きかた（つらぬき・ひけんの とくべつな 力を ふくむ）と、バリアで へる 割合
+function wEff(w) {
+  const sp = w.sp || {}, ch = B.st && B.st.ch;
+  let x = effNow(w.el);
+  if (sp.pierce && x < 1) x = 1;
+  if (sp.world && B.e.boss && ch && !ch.maou && (sp.world === "all" || sp.world === ch.w) && x < 1) x = 1;
+  return x;
+}
+const wBar = (w) => { const sp = w.sp || {}, e = B.e; return e.barrier && !(sp.world && (sp.world === "all" || sp.world === e.barrier)) ? sp.bar || 0.5 : 1; };
 // よろいの 属性で うけるダメージが かわる
 function armorFactor(el) {
   const a = itemById(S.eq.armor);
@@ -798,7 +807,7 @@ function updBars() {
   $("special").classList.toggle("ready", B.gauge >= 5);
   $("special").disabled = B.gauge < 5;
   const w = itemById(S.eq.weapon);
-  const x = effNow(w.el);
+  const x = wEff(w) * wBar(w);
   $("wel").textContent = `${ELEMENTS[w.el].icon}${EFFECT_MARK(x)}`;
   $("wel").parentElement.classList.toggle("good", x >= 2);
   $("wel").parentElement.classList.toggle("bad", x < 1);
@@ -1173,9 +1182,10 @@ function lose() {
   const st = B.st;
   let hint = "そうびを つよくしてから また ちょうせんしよう！";
   if (st.ch) {
-    const e = B.e, wk = weakOf(e.el), cur = effNow(itemById(S.eq.weapon).el);
+    const e = B.e, wk = weakOf(e.el), cw = itemById(S.eq.weapon), cur = wEff(cw);
     const ownedW = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id));
-    if (cur < 1) hint = `いまの ぶきは ${e.name}に「${EFFECT_LABEL(cur)}」。「🔄 ぶき」で かえよう！`;
+    if (e.barrier && wBar(cw) < 1) hint = `🛡️ ${e.name}の バリアで ダメージが へっていたよ。この国の ひけんを しんかさせて いどもう！`;
+    else if (cur < 1) hint = `いまの ぶきは ${e.name}に「${EFFECT_LABEL(cur)}」。「🔄 ぶき」で かえよう！`;
     else if (wk && !ownedW.some((x) => x.el === wk)) hint = `${e.name}には ${ELEMENTS[wk].icon} の ぶきが 2ばい きくよ。そざいを あつめて つくろう！`;
     else if (armorFactor(e.el) > 1) hint = `いまの よろいは ${ELEMENTS[e.el].icon} の こうげきに よわいよ。よろいを かえてみよう！`;
     else if (pDef() < 10) hint = "ショップで よろいを つくると ダメージが へるよ！";
@@ -1252,11 +1262,12 @@ function openBox() {
 function swapWeapon() {
   if (B.busy) return;
   snd("tap");
-  const ws = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id));
-  const e = B.e;
+  const e = B.e, ch = B.st && B.st.ch, here = (w) => w.sp && w.sp.world && ch && !ch.maou && (w.sp.world === "all" || w.sp.world === ch.w);
+  // この国の ひけんを いちばん上に
+  const ws = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id)).sort((a, b) => (here(b) ? 1 : 0) - (here(a) ? 1 : 0));
   modal(`<div class="mtitle">ぶきを かえる</div><p class="small">${esc(e.name)}の ぞくせい：<b>${ELEMENTS[e.el].icon} ${ELEMENTS[e.el].name}</b></p>
-    <div class="wlist">${ws.map((w) => { const x = effNow(w.el); return `<button class="witem ${S.eq.weapon === w.id ? "sel" : ""} ${x >= 2 ? "good" : x < 1 ? "bad" : ""}" onclick="setWeapon('${w.id}')">
-      <span class="wel">${ELEMENTS[w.el].icon}</span><b>${w.name}${w.sp ? `<small class="spt">${spText(w.sp)}</small>` : ""}</b><small>⚔️${w.atk}</small><i class="eff">${EFFECT_MARK(x)} ${EFFECT_LABEL(x)}</i></button>`; }).join("")}</div>
+    <div class="wlist">${ws.map((w) => { const x = wEff(w), bf = wBar(w), m = x * bf; return `<button class="witem ${S.eq.weapon === w.id ? "sel" : ""} ${m >= 2 ? "good" : m < 1 ? "bad" : ""}" onclick="setWeapon('${w.id}')">
+      <span class="wel">${ELEMENTS[w.el].icon}</span><b>${w.name}</b><small>⚔️${w.atk}</small><span class="effs"><i class="eff">${EFFECT_MARK(x)} ${EFFECT_LABEL(x)}</i>${bf < 1 ? `<i class="eff bar">🛡️ ${bf === 0.5 ? "はんぶん" : "3/4"}</i>` : ""}${here(w) ? `<i class="eff hk">🗡️ この国で つよい</i>` : ""}</span>${w.sp ? `<small class="spt">${spText(w.sp)}</small>` : ""}</button>`; }).join("")}</div>
     <button class="big-btn" onclick="closeModal()">とじる</button>`);
 }
 function setWeapon(id) {
