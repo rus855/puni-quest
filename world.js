@@ -378,7 +378,7 @@ function map() {
       <p>てきには <b>ぞくせい</b> があって、あいしょうの いい ぶきなら <b>2ばい</b>！<br>てきを たおすと <b>そざい</b> が 手に はいって、ショップで そうびが つくれるよ。</p>
       <p>⭐は ステージの できばえ（ノーミスで ⭐3つ）。</p>
       <button class="big-btn primary" onclick="closeModal()">わかった！</button>`);
-  }
+  } else if (typeof maou2Reveal === "function") maou2Reveal();
 }
 
 // その国で つぎに 遊ぶ章：区切りごとの いちばん手前の 未クリアの章のうち、進めている 区切りを 優先

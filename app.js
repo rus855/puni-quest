@@ -1225,7 +1225,7 @@ function stageClear() {
   const hatch = readyEggs().length ? `<p class="tip">🐣 タマゴが かえりそう！ ホームに もどってみよう</p>` : "";
   const hkMsg = B.hk ? `${B.hk.sword ? `<p class="final">🗡️ ひみつの けん「${itemById(B.hk.sword).name}」を 手に いれた！<br><small>そうびの ぶきで しんかできるか 見てみよう</small></p>` : ""}${B.hk.hihou ? `<p class="final">${MATS[B.hk.hihou].em} ひほう「${MATS[B.hk.hihou].name}」を 手に いれた！<br><small>ずかんの「そざい」で くわしく 見られるよ</small></p>` : ""}` : "";
   const shopNew = newItems.length ? `<p class="tip">🛒 ショップに あたらしい そうびが ならんだ！<br><small>${newItems.map((x) => x.name).join("・")}</small></p>` : "";
-  const chMsg = isStage && st.ch.maou && first ? `<p class="final">${st.ch.maou === 2 ? "🌈 しんの まおうを たおした！<br>ぷにまるは でんせつの ゆうしゃに なった！" : "🌑 まおうを たおした！<br>でも、しんの まおうが どこかに いるらしい…"}</p>`
+  const chMsg = isStage && st.ch.maou && first ? `<p class="final">${st.ch.maou === 2 ? "🌈 しんの まおうを たおした！<br>ぷにまるは でんせつの ゆうしゃに なった！" : "🌑 まおうを たおした！<br>ぷにまるは 5つの 国の えいゆうだ！"}</p>`
     : isStage && st.n === 4 && first ? `<p class="final">${st.final ? `🎉 ${WORLDS.find((w) => w.id === st.ch.w).name}を ぜんぶ クリア！ すごい！` : `👑 「${st.ch.name}」の 章を クリア！`}</p>` : "";
   // つぎへ：ステージ1〜3 → つぎの ステージ、ボス → 国の 章えらび（つぎの 章へ）
   const next = !isStage || st.ch.maou ? "map()" : st.n < 4 ? `startBattle('${st.ch.id}-${st.n + 1}')` : `openWorld('${st.ch.w}')`;

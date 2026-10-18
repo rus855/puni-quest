@@ -67,13 +67,24 @@ function maouEnemies(ch) {
   ];
 }
 // 地図に 出す まおうの ボタン
+// しんの まおうの しろが あらわれた ことを 1回だけ しらせる
+function maou2Reveal() {
+  if (S.maou2Seen || !maouOpen(2)) return;
+  S.maou2Seen = 1; save();
+  snd("special");
+  modal(`<div class="mtitle">🌌 なにかが あらわれた…！</div><div class="bigicon">🌌</div>
+    <p>やみの おくに <b>「しんの まおうの しろ」</b>が すがたを あらわした！</p>
+    <p class="small">ぼうけんの 画面の いちばん下を 見てみよう</p>
+    <button class="big-btn primary" onclick="closeModal()">いどむ じゅんびを する！</button>`);
+}
 function maouButton() {
   const o1 = maouOpen(1), o2 = maouOpen(2), c1 = stStars("z1-4") > 0;
   let h = `<button class="stage maou ${o1 ? "" : "locked"}" ${o1 ? `onclick="startBattle('z1-4')"` : ""}>
     <span class="snum">🌑</span><span class="sinfo"><b>まおうの しろ</b><small>${o1 ? (c1 ? `⭐${stStars("z1-4")}　もういちど いどめるよ` : "5つの 国の ちからを ためされる…") : "いろいろな 国で ボスを たおしていくと…？"}</small></span><span class="sstate">${o1 ? "▶" : "🔒"}</span></button>`;
-  if (c1) {
-    h += `<button class="stage maou2 ${o2 ? "" : "locked"}" ${o2 ? `onclick="startBattle('z2-4')"` : ""}>
-      <span class="snum">🌌</span><span class="sinfo"><b>しんの まおうの しろ</b><small>${o2 ? "さいごの たたかい…！" : "すべての 国の 章を クリアすると…？"}</small></span><span class="sstate">${o2 ? "▶" : "🔒"}</span></button>`;
+  // しんの まおうの しろは、ひらくまで ひみつ（あらわれたら 地図で おしらせ）
+  if (o2) {
+    h += `<button class="stage maou2" onclick="startBattle('z2-4')">
+      <span class="snum">🌌</span><span class="sinfo"><b>しんの まおうの しろ</b><small>さいごの たたかい…！</small></span><span class="sstate">▶</span></button>`;
   }
   return h;
 }
