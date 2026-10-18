@@ -40,8 +40,11 @@ const YOMI = (() => {
     for (let it = 0; it < 4; it++) all.forEach(([w, r]) => {
       if (w.length !== 2 || !isK(w[0]) || !isK(w[1])) return;
       const [a, b] = w;
-      [...(KR[a] || [])].forEach((p) => variants(p).forEach((v) => { if (r.startsWith(v) && r.length > v.length) add(b, r.slice(v.length)); }));
-      [...(KR[b] || [])].forEach((p) => variants(p).forEach((v) => { if (r.endsWith(v) && r.length > v.length) add(a, r.slice(0, r.length - v.length)); }));
+      // いちばん 長く 合う 読みだけを 使う（皇族：「こう」が わかっていれば「こ＋うぞく」とは 分けない）
+      const va = [...(KR[a] || [])].flatMap(variants).filter((v) => r.startsWith(v) && r.length > v.length).sort((x, y) => y.length - x.length)[0];
+      if (va) add(b, r.slice(va.length));
+      const vb = [...(KR[b] || [])].flatMap(variants).filter((v) => r.endsWith(v) && r.length > v.length).sort((x, y) => y.length - x.length)[0];
+      if (vb) add(a, r.slice(0, r.length - vb.length));
     });
   }
   const readings = (k) => { if (!KR) build(); return [...(KR[k] || [])]; };
@@ -67,6 +70,7 @@ const YOMI = (() => {
         const part = reading.slice(ri, ri + L), ok = known.has(part);
         // 漢字の 読みは「ん・っ・ゃ」などから はじまらない
         if (/^[んっゃゅょぁぃぅぇぉー]/.test(part)) continue;
+        if (/[ゃゅょ]$/.test(part)) continue; // 「ちゅ」「しょ」で おわる 読みは ない
         const sc = score + (ok ? 3 : likely(part));
         if (c === k && !tgt) go(ci + 1, ri + L, { s: ri, e: ri + L }, sc);
         else if (c !== k || tgt) { if (ok || !known.size || relaxed) go(ci + 1, ri + L, tgt, sc); }
@@ -109,37 +113,64 @@ const YOMI = (() => {
     return LEX;
   }
 
-  // まちがいの 選択肢を 3つ つくる（自然な ことばが 3つ そろわなければ null）
-  // ① ほんとうに ある ことば（前と 後ろの 読みは 同じで、まん中だけ ちがう）
-  // ② 同じ 送りがなの ことば（白い → くろい・あかい、学ぶ → あそぶ・えらぶ）
-  // ③ その 漢字の べつの 読み（子犬 → こけん、番犬 → ばんいぬ：知らないと まよう）
+  // その 漢字の ことばから わかる 読み（ほかの 字の ことばから おしはかった 読みは まぜない）
+  let OWN = null;
+  function own(K) {
+    if (!OWN) OWN = {};
+    if (OWN[K.k]) return OWN[K.k];
+    const set = new Set();
+    K.w.forEach(([w, r]) => { const sp = w === K.k ? { p: r } : split(w, r, K.k); if (sp && sp.p) set.add(sp.p); });
+    return (OWN[K.k] = set);
+  }
+  // 同じ 形の ことば（目当ての 字だけが ちがう 本物の 熟語）：周囲 → 範囲・包囲、子犬 → 子馬・子牛
+  let FRAME = null;
+  function frames() {
+    if (FRAME) return FRAME;
+    FRAME = {};
+    KANJI.forEach((K) => K.w.forEach(([w, r]) => {
+      const ch = [...w];
+      ch.forEach((c, i) => { if (!isK(c)) return; const key = ch.map((x, j) => (j === i ? "＊" : x)).join(""); (FRAME[key] = FRAME[key] || new Map()).set(c, r); });
+    }));
+    return FRAME;
+  }
+
+  // まちがいの 選択肢を 3つ つくる（自然な ことばが 3つ そろわなければ null → 書きの 問題に する）
+  // Ａ 目当ての 字だけ ちがう 本物の 熟語の 読み（周囲 → はんい・ほうい）
+  // Ｂ 同じ 送りがなの ことば（白い → くろい・あかい、学ぶ → あそぶ・えらぶ）
+  // Ｃ その 漢字の べつの 読み（子犬 → こけん、腹筋 → はらきん：知らないと まよう）
+  // Ｄ 前後の 読みが 3文字以上 同じ 本物の ことば
   function distractors(K, word, reading) {
+    if (word === K.k) return null; // 1字だけの ことばは ほかの 読みも 正しく なるので 読みの 問題に しない（書きで 出す）
     const sp = split(word, reading, K.k);
     if (!sp) return null;
     const { pre, p, suf } = sp;
     const L = lex(), cand = [];
     const push = (x, sc) => { if (x && x !== reading && !cand.some((c) => c.x === x)) cand.push({ x, sc: sc + Math.random() }); };
     const okLen = (m) => m.length >= 1 && Math.abs(m.length - p.length) <= (p.length >= 3 ? 2 : 1);
-    // 送りがなの ことば（白い・歩く・六つ）は、同じ 送りがなの ことばを 先に つかう
     const kanaTail = word.slice(word.indexOf(K.k) + 1);
     const okuri = !pre && kanaTail && suf === kanaTail && !/[一-鿿]/.test(kanaTail);
-    // ①
-    if (!okuri) L.forEach((x) => {
+    // Ａ
+    const ch = [...word], i = ch.indexOf(K.k), key = ch.map((x, j) => (j === i ? "＊" : x)).join("");
+    (frames()[key] || new Map()).forEach((r2, c2) => { if (c2 !== K.k && r2.startsWith(pre) && r2.endsWith(suf) && r2.length > pre.length + suf.length) push(r2, 11); });
+    // Ｂ（送りがなの つく ことば）
+    if (okuri) (OKU[kanaTail] || []).forEach(([k2, st]) => { if (k2 !== K.k && okLen(st)) push(st + suf, 9); });
+    // Ｃ（送りがなの 読みの 頭や、音読みに 送りがなを つけた 不自然な 形は のぞく）
+    const stems = STEM[K.k] || new Set();
+    const mine = own(K), kr = new Set(readings(K.k));
+    // 「うふく」「うし」のように、前の 字の「う・い」が まざった 読みは のぞく
+    const fake = (q) => /^[うい]/.test(q) && (mine.has(q.slice(1)) || kr.has(q.slice(1)));
+    if (!okuri) [...mine].filter((q) => !variants(p).includes(q) && !stems.has(q) && okLen(q) && !fake(q) && !/^[ぱぴぷぺぽんっゃゅょ]/.test(q)).forEach((q) => push(pre + q + suf, 6));
+    // Ｄ
+    if (!okuri && pre.length + suf.length >= 3) L.forEach((x) => {
       if (x.length <= pre.length + suf.length || !x.startsWith(pre) || !x.endsWith(suf)) return;
       const m = x.slice(pre.length, x.length - suf.length);
-      if (okLen(m)) push(x, 10 + (m.length === p.length ? 0.8 : 0));
+      if (Math.abs(m.length - p.length) <= 1 && Math.abs(x.length - reading.length) <= 1) push(x, 5);
     });
-    // ②（送りがなの つく ことば）
-    if (okuri) (OKU[kanaTail] || []).forEach(([k2, st]) => { if (k2 !== K.k && okLen(st)) push(st + suf, 9); });
-    // ③（送りがなの 読みの 頭は のぞく）
-    const stems = STEM[K.k] || new Set();
-    // （送りがなの ことばでは、音読みに 送りがなを つけた 形「ぱいる」などは 不自然なので つかわない）
-    if (!okuri) readings(K.k).filter((q) => !variants(p).includes(q) && !stems.has(q) && okLen(q) && !/^[ぱぴぷぺぽ]/.test(q)).forEach((q) => push(pre + q + suf, 6));
     const good = cand.filter((c) => !/んん|^ん|^っ|っ$|っん|んっ|っっ/.test(c.x)).sort((a, b) => b.sc - a.sc);
     if (good.length < 3) return null;
-    // 種類が かたよらないように：③を 1つ まぜる
-    const out = [], own = good.filter((c) => c.sc < 7);
-    if (own.length) out.push(own[0].x);
+    // 種類が かたよらないように：Ｃを 1つ まぜる
+    const out = [], ownC = good.filter((c) => c.sc >= 6 && c.sc < 7);
+    if (ownC.length) out.push(ownC[0].x);
     good.forEach((c) => { if (out.length < 3 && !out.includes(c.x)) out.push(c.x); });
     return out.slice(0, 3);
   }

@@ -206,7 +206,7 @@ function makeWriteQ(id) {
   const [word, reading] = pick(K.w.filter(([w]) => w.includes(K.k)));
   return { id, kind: "write", k: K.k, word, reading,
     explain: `<span class="wk">${K.k}</span>${esc(word)}（${reading}）`,
-    head: `<div class="qlabel">✍️ □の 漢字を 書こう</div><div class="qruby">${reading}</div><div class="qword fsm">${esc(word).replace(K.k, '<span class="blank">□</span>')}</div>` };
+    head: `<div class="qlabel">✍️ □の 漢字を 書こう</div><div class="qruby">${reading}</div><div class="qword fsm">${esc(word).split(K.k).join('<span class="blank">□</span>')}</div>` };
 }
 function showWrite() {
   const q = B.q;

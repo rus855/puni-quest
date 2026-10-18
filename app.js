@@ -603,7 +603,7 @@ function makeQ(id, kind) {
     const multi = K.w.filter(([w]) => w.length >= 2);
     if (kind === "kword" && multi.length) {
       const [w, rd] = pick(multi);
-      const ds = shuffle(K.sim.filter((x) => x !== K.k)).map((x) => w.replace(K.k, x));
+      const ds = shuffle(K.sim.filter((x) => x !== K.k)).map((x) => w.split(K.k).join(x)); // 同じ 字が 2つ ある ことばは 両方 かえる
       const q = { id, kind: "choice", explain: `${w}（${rd}）`, head: `<div class="qlabel">漢字で 書くと？</div><div class="qword fsm">${rd}</div>` };
       return mkOpts(q, w, ds);
     }
@@ -630,7 +630,7 @@ function makeQ(id, kind) {
       for (const r of near.concat(shuffle(pool))) { if (ds.length >= 3) break; if (!ds.includes(r)) ds.push(r); }
       return mkOpts(q, reading, ds);
     }
-    q.head = `<div class="qlabel">□に 入る 漢字は？</div><div class="qruby">${reading}</div><div class="qword">${esc(word).replace(K.k, `<span class="blank">□</span>`)}</div>`;
+    q.head = `<div class="qlabel">□に 入る 漢字は？</div><div class="qruby">${reading}</div><div class="qword">${esc(word).split(K.k).join(`<span class="blank">□</span>`)}</div>`;
     q.cls = "kch";
     return mkOpts(q, K.k, shuffle(K.sim.filter((s) => s !== K.k)));
   }
