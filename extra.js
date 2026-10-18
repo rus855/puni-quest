@@ -69,13 +69,11 @@ function maouEnemies(ch) {
 // 地図に 出す まおうの ボタン
 function maouButton() {
   const o1 = maouOpen(1), o2 = maouOpen(2), c1 = stStars("z1-4") > 0;
-  const prog = WORLDS.filter((w) => activeChapters(w.id).length).map((w) => `${w.icon}${Math.min(bossCount(w.id), maouNeed(w.id))}/${maouNeed(w.id)}`).join(" ");
   let h = `<button class="stage maou ${o1 ? "" : "locked"}" ${o1 ? `onclick="startBattle('z1-4')"` : ""}>
-    <span class="snum">🌑</span><span class="sinfo"><b>まおうの しろ</b><small>${o1 ? (c1 ? `⭐${stStars("z1-4")}　もういちど いどめるよ` : "5つの 国の ちからを ためされる…") : `どの 国でも ボスを 5体 たおすと ひらく<br>${prog}`}</small></span><span class="sstate">${o1 ? "▶" : "🔒"}</span></button>`;
+    <span class="snum">🌑</span><span class="sinfo"><b>まおうの しろ</b><small>${o1 ? (c1 ? `⭐${stStars("z1-4")}　もういちど いどめるよ` : "5つの 国の ちからを ためされる…") : "いろいろな 国で ボスを たおしていくと…？"}</small></span><span class="sstate">${o1 ? "▶" : "🔒"}</span></button>`;
   if (c1) {
-    const left = WORLDS.filter((w) => activeChapters(w.id).length).map((w) => `${w.icon}${bossCount(w.id)}/${activeChapters(w.id).length}`).join(" ");
     h += `<button class="stage maou2 ${o2 ? "" : "locked"}" ${o2 ? `onclick="startBattle('z2-4')"` : ""}>
-      <span class="snum">🌌</span><span class="sinfo"><b>しんの まおうの しろ</b><small>${o2 ? "さいごの たたかい…！" : `すべての 国の 章を クリアすると ひらく<br>${left}`}</small></span><span class="sstate">${o2 ? "▶" : "🔒"}</span></button>`;
+      <span class="snum">🌌</span><span class="sinfo"><b>しんの まおうの しろ</b><small>${o2 ? "さいごの たたかい…！" : "すべての 国の 章を クリアすると…？"}</small></span><span class="sstate">${o2 ? "▶" : "🔒"}</span></button>`;
   }
   return h;
 }
