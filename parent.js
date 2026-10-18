@@ -306,8 +306,13 @@ function renderEigo() {
 
 function head() {
   const n = P.codes.filter(Boolean).length;
+  // 説明書は いま 見ている ゲームの ものだけ 出す（英語版の ときは 英語版の 説明書。もどると この ページに もどる）
+  const back = `back=${encodeURIComponent(location.pathname)}`;
+  const manuals = P.code && isEigo(P.ci)
+    ? `<div class="pg-manuals eigo"><a href="${EIGO_BASE}manual/kids.html?from=parent&${back}">📘 こども用 せつめいしょ<small>ENGLISH</small></a><a href="${EIGO_BASE}manual/parents.html?${back}">📗 保護者用 せつめいしょ<small>ENGLISH</small></a></div>`
+    : `<div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>`;
   return `<h1 class="pg-title sm">🐣 ぷにまるクエスト <small>保護者ページ</small></h1>
-    <div class="pg-manuals"><a href="manual/kids.html?from=parent">📘 こども用 せつめいしょ</a><a href="manual/parents.html">📗 保護者用 せつめいしょ</a></div>
+    ${manuals}
     ${n > 1 ? `<div class="pg-kids"><small>コード</small>${P.codes.map((c, i) => (c ? `<button class="${i === P.ci ? "on" : ""}" onclick="openCode(${i})">${i + 1}. ${isEigo(i) ? "🔤 " : ""}${esc(P.labels[i] || fmtCode(c))}${P.dels[i] ? " 🗑" : ""}</button>` : "")).join("")}</div>` : ""}`;
 }
 
