@@ -1,5 +1,5 @@
 // ===== ひけん（国ごとの ひみつの けん）と ひほう =====
-// ・その国の てきを たおすと まれに（3%）ひけんが 手に はいる
+// ・その国の てきを たおすと まれに（3%）ひけんが 手に はいる（60体 たおしても 出なければ 次は かならず）
 // ・区切りの ボス（漢字の国：エリアの 最初の 章、ほかの 国：3章ごと）を はじめて たおすと ひほうが 1こ。
 //   ほかの ボスは まれに（10%・15回 出なければ 次は かならず）
 // ・ひけん ＋ ひほう 1こ → しんか1、＋3こ → しんか2、＋5こ → しんか3
@@ -21,6 +21,7 @@ const HIKEN = [
     names: ["れきしの ひけん", "むしゃの ひけん", "てんかむそう 丸", "でんせつの れきし剣 てんかいっとう"] },
 ];
 const HIKEN_ATK = [30, 48, 62, 76];
+const HIKEN_ATK_SOC = [36, 58, 74, 90]; // 社会の国は 属性なし（弱点を つけない）なので 高め
 const HIKEN_NEED = [0, 1, 3, 5]; // しんかに ひつような ひほうの 数（しんか1・2・3）
 const HIKEN_FINAL = "wh_final";
 const hikenId = (w, lv) => `wh_${w}${lv}`;
@@ -37,7 +38,7 @@ Object.assign(MATS, {
 
 // ひけんの そうび（ショップには ならばない）
 HIKEN.forEach((h) => h.names.forEach((name, lv) => ITEMS.push({
-  id: hikenId(h.w, lv), type: "weapon", name, atk: HIKEN_ATK[lv], el: h.el, price: 0, drop: "hiken", look: "hiken",
+  id: hikenId(h.w, lv), type: "weapon", name, atk: (h.w === "soc" ? HIKEN_ATK_SOC : HIKEN_ATK)[lv], el: h.el, price: 0, drop: "hiken", look: "hiken",
   hc: h.color, lv, series: h.w, hiken: h.w, sp: { world: h.w, tok: h.tok },
 })));
 ITEMS.push({ id: HIKEN_FINAL, type: "weapon", name: "さいごの けん ほしくだき", atk: 95, el: "star", price: 0, drop: "hiken", look: "hikenfinal",
@@ -61,10 +62,15 @@ const HARD = {
   5: { hp: [330, 400], atk: [39, 42], bhp: [1800, 2000], batk: [50, 52] }, // しんか1で なんとか
   6: { hp: [430, 500], atk: [44, 47], bhp: [2100, 2400], batk: [54, 56] }, // しんか2で なんとか
 };
+// 漢字の国の 5・6年生エリアは 章が 多いので、前半は やさしめに して だんだん 強く
+const HARD_KANJI = {
+  5: { hp: [260, 400], atk: [34, 42], bhp: [1100, 2000], batk: [44, 52] },
+  6: { hp: [380, 500], atk: [40, 47], bhp: [1700, 2400], batk: [50, 56] },
+};
 function hardStats(ch, boss) {
   const gl = chHard(ch);
   if (!gl) return null;
-  const H = HARD[gl], p = hardPos(ch), L = (a) => Math.round(a[0] + (a[1] - a[0]) * p);
+  const H = (ch.w === "kanji" ? HARD_KANJI : HARD)[gl], p = hardPos(ch), L = (a) => Math.round(a[0] + (a[1] - a[0]) * p);
   return boss ? { hp: L(H.bhp), atk: L(H.batk) } : { hp: L(H.hp), atk: L(H.atk) };
 }
 
@@ -76,9 +82,11 @@ function hikenDrop(e) {
   const ch = B.st.ch, h = ch && hikenOf(ch.w);
   if (!h || ch.maou) return null;
   const got = {};
-  // ひみつの けん（3%）
-  if (!hasHiken(h.w) && !S.owned.includes(HIKEN_FINAL) && Math.random() < 0.03) {
-    S.owned.push(hikenId(h.w, 0)); got.sword = hikenId(h.w, 0);
+  // ひみつの けん（3%。その国で 60体 たおしても 出なければ 次は かならず）
+  if (!hasHiken(h.w) && !S.owned.includes(HIKEN_FINAL)) {
+    S.hs = S.hs || {};
+    S.hs[h.w] = (S.hs[h.w] || 0) + 1;
+    if (S.hs[h.w] > 60 || Math.random() < 0.03) { S.owned.push(hikenId(h.w, 0)); got.sword = hikenId(h.w, 0); }
   }
   // ひほう（ボス）
   if (e.boss) {

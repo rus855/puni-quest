@@ -57,9 +57,9 @@ function maouPool() {
 function maouEnemies(ch) {
   const mk = (o) => Object.assign({ phase: 0 }, o);
   if (ch.maou === 1) return [
-    mk({ name: "まおうの しもべ ゴーレム", hp: 300, atk: 22, el: "leaf", shape: "rock", color: ELEMENTS.leaf.color, boss: false, imm: "none" }),
-    mk({ name: "まおうの しもべ まぼろし", hp: 300, atk: 22, el: pick(ELS4), rand: true, shape: "ghost", color: "#b388ff", boss: false }),
-    mk({ name: "まおう ドンヨリ", hp: 950, atk: 27, el: "fire", shape: "boss", color: "#5e35b1", boss: true, fast: true, phases: ["fire", "water", "thunder"] }),
+    mk({ name: "まおうの しもべ ゴーレム", hp: 520, atk: 44, el: "leaf", shape: "rock", color: ELEMENTS.leaf.color, boss: false, imm: "none" }),
+    mk({ name: "まおうの しもべ まぼろし", hp: 520, atk: 44, el: pick(ELS4), rand: true, shape: "ghost", color: "#b388ff", boss: false }),
+    mk({ name: "まおう ドンヨリ", hp: 2600, atk: 52, el: "fire", shape: "boss", color: "#5e35b1", boss: true, fast: true, phases: ["fire", "water", "thunder"] }),
   ];
   return [
     mk({ name: "まおう ドンヨリ（ふっかつ）", hp: 2000, atk: 54, el: "water", shape: "boss", color: "#4527a0", boss: false, fast: true, phases: ["water", "leaf", "fire"] }),

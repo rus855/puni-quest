@@ -113,7 +113,9 @@ function prepareChapters() {
       // 区切り（sec）が あるときは、区切りの 中で ティアを きめる
       const grp = list.filter((c) => c.sec === ch.sec), j = grp.indexOf(ch);
       ch.idx = i; ch.no = j + 1;
-      ch.tier = Math.min(6, 1 + Math.floor((j * 6) / grp.length));
+      // 漢字の国の 1〜3年生エリアは やさしめ（1年：ティア1〜2、2年：1〜3、3年：1〜4）
+      const g = w.id === "kanji" ? Number(String(ch.sec || "").slice(1)) : 0, top = { 1: 2, 2: 3, 3: 4 }[g] || 6;
+      ch.tier = Math.min(top, 1 + Math.floor((j * top) / grp.length));
       const seed = i + w.id.length * 3;
       ch.els = [ELS4[seed % 4], ELS4[(seed + 1 + (i % 2)) % 4]];
       ch.last = i === list.length - 1;
@@ -314,10 +316,12 @@ const stageName = (ch, n) => (CH_STAGE_NAMES[ch.id] || STAGE_NAMES[ch.w] || STAG
 
 // ステージの情報（バトルで つかう）
 function stageInfo(ch, n) {
+  // ごほうび（コイン・そざい）は 強さに 合わせる（5・6年生の 強い 章は ティア5・6 なみ）
+  const rt = Math.max(ch.tier, typeof chHard === "function" ? chHard(ch) : 0);
   return {
-    key: `${ch.id}-${n}`, ch, n, tier: ch.tier, id: ch.tier,
-    name: stageName(ch, n), bg: TBG[ch.tier],
-    mat: TMAT[ch.tier][0], bmat: TMAT[ch.tier][1], final: ch.last && n === 4,
+    key: `${ch.id}-${n}`, ch, n, tier: ch.tier, id: ch.tier, rt,
+    name: stageName(ch, n), bg: TBG[rt],
+    mat: TMAT[rt][0], bmat: TMAT[rt][1], final: ch.last && n === 4,
   };
 }
 
@@ -329,8 +333,15 @@ function chapterOpen(ch) {
   if (ch.write) return writeOpen(ch);
   if (ch.maou) return maouOpen(ch.maou);
   const list = activeChapters(ch.w).filter((c) => c.sec === ch.sec), i = list.indexOf(ch);
-  if (i <= 0 || stStars(`${ch.id}-1`) > 0) return true;
+  if (stStars(`${ch.id}-1`) > 0) return true;
+  if (i <= 0) return !kanjiHighLocked(ch);
   return chapterDone(list[i - 1]);
+}
+// 漢字の国の 5・6年生エリア：4年生エリアの ボスを 1体 たおすまで とじている
+function kanjiHighLocked(ch) {
+  if (ch.w !== "kanji" || !["a5", "a6"].includes(ch.sec)) return false;
+  const a4 = activeChapters("kanji").filter((c) => c.sec === "a4");
+  return a4.length > 0 && !a4.some(chapterDone);
 }
 const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || !!ch.maou || (window.PQ_DEBUG && window.PQ_OPEN) || stStars(`${ch.id}-${n - 1}`) > 0);
 const chapterDone = (ch) => stStars(`${ch.id}-4`) > 0;
@@ -410,7 +421,7 @@ function openWorld(w, sec) {
       const els = ch.els.map((e) => ELEMENTS[e].icon).join("");
       return `<button class="stage ${open ? "" : "locked"} ${ch.tier === 6 ? "sfinal" : ""}" ${open ? `onclick="openChapter('${ch.id}')"` : ""} style="--b1:${TBG[ch.tier][0]};--b2:${TBG[ch.tier][1]}">
         <span class="snum">${ch.icon || i + 1}</span>
-        <span class="sinfo"><b>${i + 1}. ${ch.name}</b><small>${open ? `てき ${els}${ch.tier >= 2 ? "❓" : ""}　そざい ${MATS[TMAT[ch.tier][0]].em}${MATS[TMAT[ch.tier][1]].em}　⭐${st}/12` : "まえの 章を クリアしよう"}</small></span>
+        <span class="sinfo"><b>${i + 1}. ${ch.name}</b><small>${open ? `てき ${els}${ch.tier >= 2 ? "❓" : ""}　そざい ${MATS[TMAT[stageInfo(ch, 1).rt][0]].em}${MATS[TMAT[stageInfo(ch, 1).rt][1]].em}　⭐${st}/12` : kanjiHighLocked(ch) ? "こだまの山の ボスを 1たい たおすと ひらく" : "まえの 章を クリアしよう"}</small></span>
         <span class="sstate">${!open ? "🔒" : done ? "👑" : "▶"}</span></button>`;
     }).join("") + writeButton(curWorld, curSec[curWorld]) : `<div class="chhead" style="--b1:#fff;--b2:#f3ecff"><div class="bigicon">💤</div><b>いまは おやすみ中</b><small>おうちの人の せっていで、この国の 章は お休みに なっているよ</small></div>`}</div>`, "bg-map");
 }

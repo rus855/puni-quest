@@ -992,6 +992,9 @@ async function attack(mult, skillName) {
   let x = effNow(w.el);
   // つらぬき：いまひとつ・きかない を むしする
   if (sp.pierce && x < 1) x = 1;
+  // ひけん：その国の ボスには いまひとつ・きかないを むしする
+  const hch = B.st && B.st.ch;
+  if (sp.world && e.boss && hch && !hch.maou && (sp.world === "all" || sp.world === hch.w) && x < 1) x = 1;
   anim($("pchr"), "atk");
   if (skillName) fxText(skillName + "！", "skill");
   await wait(220);
@@ -1110,7 +1113,7 @@ async function enemyDown() {
     else { S.coins += 15; B.coins += 15; fxText("🪙 +15", "card"); }
     if (Math.random() < 0.05) dropEgg(giveEgg(0) ? 0 : "full");
   } else {
-    const c = 5 * Math.max(B.st.tier, chHard(B.st.ch));
+    const c = 5 * (B.st.rt || B.st.tier);
     S.coins += c; B.coins += c;
     fxText(`🪙 +${c}`, "card");
     // ひけん・ひほう
@@ -1125,7 +1128,7 @@ async function enemyDown() {
     const wm = WORLD_MAT[B.st.ch.w];
     if (wm && (e.boss || Math.random() < 0.25 + bonus)) got.push(wm);
     // むずかしい 章ほど レアな そざいが 出る
-    const t = B.st.tier, wr = WORLD_RARE[B.st.ch.w];
+    const t = B.st.rt || B.st.tier, wr = WORLD_RARE[B.st.ch.w];
     if (wr) {
       if (Math.random() < (e.boss ? (t >= 2 ? 0.15 + 0.1 * t : 0) : t >= 3 ? 0.04 * t - 0.08 : 0) + bonus / 2) got.push(wr[0]);
       if (Math.random() < (e.boss ? (t >= 4 ? 0.08 * (t - 3) : 0) : t >= 5 ? 0.03 : 0)) got.push(wr[1]);
@@ -1137,7 +1140,7 @@ async function enemyDown() {
     if (got.length) setTimeout(() => fxText(`${got.map((m) => MATS[m].em).join("")} ゲット！`, "card"), 450);
     // タマゴ：3章ごとの ボスを はじめて たおすと かならず。ほかは ときどき
     const sure = e.boss && !stStars(B.sid) && (B.st.ch.idx % 3 === 2 || !!B.st.ch.maou);
-    const r = rollEgg(B.st.tier, e.boss, sure);
+    const r = rollEgg(B.st.rt || B.st.tier, e.boss, sure);
     if (r !== null) dropEgg(r);
   }
   save();
@@ -1197,11 +1200,11 @@ function stageClear() {
     S.stClear = S.stClear || {}; S.tierClear = S.tierClear || {};
     S.stClear[B.sid] = Math.max(prev, stars);
     if (first) {
-      const bonus = (st.n === 4 ? 25 : 8) * st.tier;
+      const bonus = (st.n === 4 ? 25 : 8) * (st.rt || st.tier);
       S.coins += bonus; B.coins += bonus;
-    } else { const c = 5 * st.tier; S.coins += c; B.coins += c; }
+    } else { const c = 5 * (st.rt || st.tier); S.coins += c; B.coins += c; }
     // ⭐3つを はじめて とったら ごほうび
-    if (stars === 3 && prev < 3) { const g = 10 * st.tier; S.coins += g; B.coins += g; }
+    if (stars === 3 && prev < 3) { const g = 10 * (st.rt || st.tier); S.coins += g; B.coins += g; }
     if (st.ch.write || st.ch.maou) treasure = extraRewards(st, first, stars, prev);
     if (st.n === 4 && first && !st.ch.maou && !treasure) {
       // 章クリア：この強さの そうびが ショップに ならぶ
@@ -1209,7 +1212,7 @@ function stageClear() {
       const cand = ITEMS.filter((x) => x.type === "hat" && !x.gem && x.price > 0 && !S.owned.includes(x.id) && unlocked(x));
       if (st.final) { S.gems += 3; B.gems += 3; treasure = { icon: "💎", text: "ほうせき ×3" }; }
       else if (cand.length && Math.random() < 0.3) { const it = cand[0]; S.owned.push(it.id); treasure = { icon: "🎩", text: `${it.name} を てにいれた！`, item: it.id }; }
-      else { const c = 15 * st.tier; S.coins += c; B.coins += c; treasure = { icon: "🪙", text: `コイン +${c}` }; }
+      else { const c = 15 * (st.rt || st.tier); S.coins += c; B.coins += c; treasure = { icon: "🪙", text: `コイン +${c}` }; }
     }
   }
   save();
