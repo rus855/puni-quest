@@ -71,6 +71,8 @@ const SHOTS = [
   ["36_treasures", `RESTORE(); S.treasures={}; S.treasureSeen={}; treasures()`],
   ["37_trophy", `RESTORE(); worldChapters("math").forEach(c=>S.stClear[c.id+"-4"]=3); checkTreasures(); treasures(); treasureDetail(TREASURES.findIndex(t=>t.id==="hero_math"))`, 900],
   ["38_cert", `RESTORE(); S.treasures=Object.assign(S.treasures||{}, {cert:Date.now()}); treasures(); treasureDetail(TREASURES.findIndex(t=>t.id==="cert"))`, 900],
+  ["39_hiken", `RESTORE(); S.owned.push("wh_kanji1","wh_math0"); S.eq.weapon="wh_kanji1"; S.mats.hk_kanji=2; S.mats.hk_math=1; S.matSeen.hk_kanji=1; S.matSeen.hk_math=1; S.matSeen.hk_soc=1; S.mats.hk_soc=1; eqTab="weapon"; equip(); setTimeout(()=>{ const p=document.querySelector(".hkpanel"); window.scrollTo(0, p.getBoundingClientRect().top + window.scrollY - 130); }, 100)`, 900],
+  ["39b_barrier", `RESTORE(); S.owned.push("wh_kanji1"); S.eq.weapon="wh_kanji1"; startBattle("k5a-4"); B.ei=1; nextEnemy()`, 1000],
   ["27_hatch", `RESTORE(); S.eggs[0].p=20; nakama("egg"); hatchEgg(0)`, 2800],
 ];
 

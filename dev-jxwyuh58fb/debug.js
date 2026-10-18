@@ -44,6 +44,7 @@
           <button onclick="dbg.eggs()">タマゴを すぐ かえす</button>
           <button onclick="dbg.gearAll()">そうび・アクセ ぜんぶ</button>
           <button onclick="dbg.accAll()">アクセサリー ぜんぶ</button>
+          <button onclick="dbg.hiken()">ひけん0＋ひほう9こ（5国）</button>
         </div>
         <h3>進み具合</h3>
         <div class="dgrid">
@@ -119,6 +120,11 @@
       ITEMS.forEach((x) => { if (!S.owned.includes(x.id)) S.owned.push(x.id); });
       if (!S.eq.acc) S.eq.acc = "x_none";
       done(`そうびを ${ITEMS.length}こ ぜんぶ そろえたよ（アクセサリーも）`);
+    },
+    hiken() {
+      if (!needS()) return;
+      HIKEN.forEach((h) => { if (!hasHiken(h.w)) S.owned.push(hikenId(h.w, 0)); S.mats[h.hk] = (S.mats[h.hk] || 0) + 9; addMat(h.hk, 0); });
+      done("5つの 国の ひけん（しんか0）と ひほう 9こずつを 入れたよ。そうびの ぶきで しんかできるよ");
     },
     accAll() {
       if (!needS()) return;

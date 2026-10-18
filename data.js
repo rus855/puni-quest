@@ -174,6 +174,9 @@ function spText(sp) {
   if (sp.stun) t.push(`しびれ${Math.round(sp.stun * 100)}%`);
   if (sp.drain) t.push(`ダメージの${Math.round(sp.drain * 100)}%を きゅうしゅう`);
   if (sp.boss) t.push("ボスに 1.5ばい");
+  if (sp.world) t.push(sp.world === "all" ? "どの 国の てきにも 1.5ばい・バリアを やぶる" : `${(WORLDS.find((w) => w.id === sp.world) || {}).name}の てきに 1.5ばい・バリアを やぶる`);
+  if (sp.tok) t.push(`${ELEMENTS[sp.tok].icon}${ELEMENTS[sp.tok].name}の てきに 1.5ばい`);
+  if (sp.maou) t.push(`まおうに ${sp.maou}ばい`);
   if (sp.pierce) t.push("いまひとつ・きかないを むし");
   if (sp.exec) t.push("のこり少ない てきに 2ばい");
   if (sp.first) t.push("さいしょの 一撃 2ばい");

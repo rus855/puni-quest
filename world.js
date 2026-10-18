@@ -147,6 +147,9 @@ function makeEnemy(ch, el, boss, n, k) {
     hp: Math.round((boss ? T.bhp : T.hp) * (0.95 + ((n + k) % 3) * 0.05)), atk: boss ? T.batk : T.atk,
     el, shape, color: ELEMENTS[el === "rand" ? "star" : el].color, boss,
   };
+  // 5年生・6年生の 強い てき（hiken.js）。ボスは ひけんで ないと やぶれない バリアを もつ
+  const H = typeof hardStats === "function" ? hardStats(ch, boss) : null;
+  if (H) { e.hp = Math.round(H.hp * (0.95 + ((n + k) % 3) * 0.05)); e.atk = H.atk; if (boss) e.barrier = ch.w; }
   if (el === "rand") { e.name = "まぼろしスライム"; e.shape = "blob"; e.color = "#b388ff"; }
   return e;
 }
