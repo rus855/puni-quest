@@ -949,7 +949,7 @@ async function judge(ok) {
     const rg = (asp().regen || 0) + (hsp().regen || 0);
     if (rg) B.php = Math.min(pMaxHp(), B.php + Math.max(1, Math.round(pMaxHp() * rg)));
     B.coins += got; S.coins += got;
-    if (q.kind === "write" && !q.self) { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
+    if (q.kind === "write") { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
     petCharge();
     await attack(q.special ? 3 : q.kind === "write" ? 2 : 1, q.special ? q.skill || "スーパーアタック" : null);
   } else {

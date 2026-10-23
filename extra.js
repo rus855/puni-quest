@@ -228,20 +228,18 @@ function writeJudge() {
   const r = writeCheck(TR.k, TR.strokes);
   if (window.PQ_DEBUG) toast(`🛠 にている度 ${Math.round(r.s * 100)}${r.rank ? `・${r.rank}位` : ""}`);
   if (r.ok) { showMaru($("wbox")); judge(true); return; }
-  // きかいで わからなかった ときは、お手本と くらべて じぶんで きめる
-  B.busy = true;
+  // ○に ならなかった ときは、1回だけ 書きなおせる（じぶんで ○を つける しくみは なし）
+  if (!B.q.retry) {
+    B.q.retry = true;
+    traceClear();
+    snd("ng");
+    const row = $("qpanel").querySelector(".wrow");
+    if (row && !$("qpanel").querySelector(".wretry")) row.insertAdjacentHTML("beforebegin", `<p class="wself wretry">うーん、よめなかったよ。もう いちど ていねいに 書いてみよう！（あと 1回）</p>`);
+    return;
+  }
+  // 2回目も ○に ならなければ、お手本を 見せて まちがいに する
   $("wbox").insertAdjacentHTML("beforeend", `<div class="wans">${TR.k}</div>`);
-  $("qpanel").querySelector(".wrow").outerHTML = `<p class="wself">右の お手本と 同じ 字が 書けたかな？</p>
-    <div class="row wrow"><button class="big-btn" onclick="writeSelf(false)">✕ ちがった</button><button class="big-btn primary" onclick="writeSelf(true)">○ 書けてた！</button></div>`;
-  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-}
-function writeSelf(ok) {
-  // 2回 おしても 1回だけ（B.q.self が ついたら もう えらんだ）
-  if (!B || B.over || !B.q || B.q.kind !== "write" || B.q.self || !$("qpanel").querySelector(".wself")) return;
-  $("qpanel").querySelectorAll(".wrow button").forEach((b) => { b.disabled = true; });
-  B.q.self = true; B.busy = false;
-  if (ok) showMaru($("wbox"));
-  judge(ok);
+  judge(false);
 }
 function writeGiveUp() {
   if (!B || B.busy || !B.q || B.q.kind !== "write") return;
