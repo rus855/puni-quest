@@ -744,3 +744,13 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 /* 敵の じょうたい（じゃくてん・きかない・バリア）が ふえても「あと3」は 1行で */
 #eturn { white-space: nowrap; flex: none; }
 .witem .effs i { display: inline-block; height: auto; line-height: 1.5; padding: 2px 8px; }
+
+/* おかえりイベント */
+.okaeri { text-align: center; }
+.okaeri .letter { background: #fff8e1; border: 2px dashed #f3c26b; border-radius: 16px; padding: 10px 12px; margin: 6px 0 10px; line-height: 1.8; }
+.okgift { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0; }
+.okgift span { background: #fff; border: 2px solid #ffd6e7; border-radius: 99px; padding: 3px 12px; font-weight: 900; }
+.okboost { background: linear-gradient(90deg, #fff3b0, #ffe0f0); border-radius: 14px; padding: 8px 10px; margin: 8px 0; }
+.oknews { text-align: left; margin: 4px auto 10px; padding-left: 1.4em; max-width: 300px; font-size: 14px; }
+.okaeri .big-btn { margin-top: 6px; width: 100%; }
+.okbar { margin: 6px auto; max-width: 340px; background: linear-gradient(90deg, #fff3b0, #ffe0f0); border-radius: 99px; padding: 5px 12px; font-weight: 900; font-size: 13px; text-align: center; }

@@ -45,6 +45,7 @@
           <button onclick="dbg.gearAll()">そうび・アクセ ぜんぶ</button>
           <button onclick="dbg.accAll()">アクセサリー ぜんぶ</button>
           <button onclick="dbg.hiken()">ひけん0＋ひほう9こ（5国）</button>
+          <button onclick="dbg.okaeri(4)">おかえり（4日ぶり）</button><button onclick="dbg.okaeri(15)">おかえり（15日ぶり）</button>
         </div>
         <h3>進み具合</h3>
         <div class="dgrid">
@@ -120,6 +121,10 @@
       ITEMS.forEach((x) => { if (!S.owned.includes(x.id)) S.owned.push(x.id); });
       if (!S.eq.acc) S.eq.acc = "x_none";
       done(`そうびを ${ITEMS.length}こ ぜんぶ そろえたよ（アクセサリーも）`);
+    },
+    okaeri(n) {
+      if (!needS()) return;
+      const d = nowDate(); d.setDate(d.getDate() - n); S.login.last = dateKey(d); S.newsV = 30; save(); closeModal(); home();
     },
     hiken() {
       if (!needS()) return;

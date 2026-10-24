@@ -139,7 +139,7 @@ function onCorrect(id) {
   else if (c.last !== d && c.s < 5) { c.s++; c.last = d; ev = "up"; }
   if (ev === "new" || ev === "up") addProg("starup3");
   // タマゴもいっしょに育つ
-  if (growEggs(hsp().egg || 1) && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
+  if (growEggs((hsp().egg || 1) * (okaeriBoost() ? 2 : 1)) && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
   return ev;
 }
 function onWrong(id) {
@@ -486,7 +486,7 @@ function setupDone() {
 // ---------- ホーム ----------
 function home() {
   ensureDaily();
-  const claimable = MISSIONS.some((m) => (S.daily.prog[m.id] || 0) >= m.goal && !S.daily.claimed[m.id]);
+  const claimable = allMissions().some((m) => (S.daily.prog[m.key || m.id] || 0) >= m.goal && !S.daily.claimed[m.id]);
   const ng = nigateIds().length;
   setScreen(`<div class="homewrap">
     <div class="topbar"><button class="back" onclick="goTitle()">🏠 タイトル</button><div class="money big"><span>🪙 ${S.coins}</span><span>💎 ${S.gems}</span></div><button class="gear" onclick="go('parent')" aria-label="せってい">⚙️</button></div>
@@ -496,6 +496,7 @@ function home() {
     <div class="pname">${esc(S.name)}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>
     ${eggStrip()}
+    ${okaeriBoost() ? `<div class="okbar">🌟 おかえりブースト中！ きょうは コインと タマゴの そだちが 2ばい</div>` : ""}
     <button class="big-btn primary" onclick="go('map')">⚔️ ぼうけんに でる！</button>
     <div class="menu4 m6">
       <button onclick="go('shop')"><span class="mi">🛒</span>ショップ${newShop() ? `<i class="badge">NEW</i>` : ""}</button>
@@ -521,10 +522,14 @@ function eggStrip() {
 function loginBonus() {
   const d = today();
   if (S.login.last === d) return false;
-  S.login.streak = S.login.last === yesterday() ? S.login.streak + 1 : 1;
+  if (S.newsV === undefined) S.newsV = 46; // おかえりイベントより 前の おしらせは 出さない
+  const last = S.login.last;
+  // れんぞくが とぎれても 0には もどさず 半分 のこす
+  S.login.streak = last === yesterday() ? S.login.streak + 1 : Math.max(1, Math.floor((S.login.streak || 0) / 2));
   S.login.last = d;
   const bonus = 20 + 5 * Math.min(S.login.streak - 1, 6);
   S.coins += bonus; save();
+  if (okaeriCheck(last, bonus)) return true;
   setTimeout(() => {
     snd("coin");
     modal(`<div class="mtitle">ログインボーナス！</div><div class="bigicon">🎁</div>
@@ -732,6 +737,7 @@ function startBattle(sid) {
     const [chId, n] = sid.split("-");
     const ch = chapterOf(chId);
     if (ch.maou) ch.items = maouPool();
+    else S.lastCh = ch.id; // おかえりの「前の つづきから」に つかう
     st = stageInfo(ch, Number(n));
     enemies = stageEnemies(ch, Number(n));
   }
@@ -948,7 +954,8 @@ async function judge(ok) {
     const got = Math.floor(raw) + (Math.random() < raw % 1 ? 1 : 0);
     const rg = (asp().regen || 0) + (hsp().regen || 0);
     if (rg) B.php = Math.min(pMaxHp(), B.php + Math.max(1, Math.round(pMaxHp() * rg)));
-    B.coins += got; S.coins += got;
+    const got2 = okaeriBoost() ? got * 2 : got; // おかえりブースト
+    B.coins += got2; S.coins += got2;
     if (q.kind === "write") { B.coins += 3; S.coins += 3; fxText("✍️ +3", "card"); }
     petCharge();
     await attack(q.special ? 3 : q.kind === "write" ? 2 : 1, q.special ? q.skill || "スーパーアタック" : null);
@@ -1209,6 +1216,7 @@ function stageClear() {
   if (isStage) {
     S.stClear = S.stClear || {}; S.tierClear = S.tierClear || {};
     S.stClear[B.sid] = Math.max(prev, stars);
+    addProg("stage1");
     if (first) {
       const bonus = (st.n === 4 ? 25 : 8) * (st.rt || st.tier);
       S.coins += bonus; B.coins += bonus;
@@ -1566,8 +1574,8 @@ function cardDetail(id) {
 // ---------- ミッション ----------
 function missions() {
   ensureDaily();
-  const list = MISSIONS.map((m) => {
-    const p = Math.min(m.goal, S.daily.prog[m.id] || 0), done = p >= m.goal, got = S.daily.claimed[m.id];
+  const list = allMissions().map((m) => {
+    const p = Math.min(m.goal, S.daily.prog[m.key || m.id] || 0), done = p >= m.goal, got = S.daily.claimed[m.id];
     const rw = m.reward.coin ? `🪙${m.reward.coin}` : `💎${m.reward.gem}`;
     return `<div class="mis ${got ? "got" : ""}"><div class="mtext"><b>${m.text}</b><div class="bar mb"><i style="width:${(p / m.goal) * 100}%"></i><span>${p} / ${m.goal}</span></div></div>
       <button class="sbtn ${done && !got ? "" : "no"}" ${done && !got ? `onclick="claim('${m.id}')"` : "disabled"}>${got ? "うけとった" : rw}</button></div>`;
@@ -1576,7 +1584,7 @@ function missions() {
     <p class="note">ミッションは まいにち あたらしくなるよ</p>`, "bg-shop");
 }
 function claim(id) {
-  const m = MISSIONS.find((x) => x.id === id);
+  const m = allMissions().find((x) => x.id === id);
   S.daily.claimed[id] = true;
   if (m.reward.coin) S.coins += m.reward.coin;
   if (m.reward.gem) S.gems += m.reward.gem;
