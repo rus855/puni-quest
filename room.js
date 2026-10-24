@@ -61,7 +61,7 @@ const FURN = [
   // --- とくべつ ---
   { id: "f_kake", name: "かけじく", em: "🖌️", set: "sp", wall: 1, price: 300, mat: { moji: 3 }, kira: 12,
     need: () => kakeList().length > 0, hint: "漢字カードを ★5に すると ならぶよ" },
-  { id: "f_trophy", name: "トロフィーだな", em: "🏆", set: "sp", price: 300, kira: 12,
+  { id: "f_trophy", name: "トロフィーだな", em: "🏆", set: "sp", w: 2, price: 300, kira: 12,
     need: () => Object.keys(S.treasures || {}).length >= 3, hint: "たからものを 3つ あつめると ならぶよ" },
   { id: "f_hiken", name: "ひけんの かざりだい", em: "🗡️", set: "sp", price: 400, kira: 15,
     need: () => typeof hasHiken === "function" && WORLDS.some((w) => hasHiken(w.id)), hint: "ひみつの けんを 見つけると ならぶよ" },
@@ -78,15 +78,19 @@ FURN.forEach((f) => {
 const furnById = (id) => FURN.find((f) => f.id === id);
 // かぐの しゅるい（えらぶ ときの なかま分け）。かべの かぐは ぜんぶ「かべ」
 const FKIND = {
-  rest: { name: "くつろぐ", em: "🛋️", ids: ["f_bed", "f_sofa", "f_chair", "f_k4", "f_okaeri"] },
+  sleep: { name: "ねる", em: "🛏️", ids: ["f_bed", "f_okaeri"] },
+  sit: { name: "すわる", em: "🪑", ids: ["f_sofa", "f_chair"] },
+  table: { name: "つくえ", em: "🍵", ids: ["f_k4"] },
+  light: { name: "あかり", em: "💡", ids: ["f_candle"] },
   play: { name: "あそぶ", em: "🧸", ids: ["f_bear", "f_ball", "f_balloon", "f_gift", "f_tv", "f_t5", "f_m3", "f_m4"] },
   study: { name: "まなぶ", em: "📚", ids: ["f_shelf", "f_t2", "f_m2", "f_m5", "f_s2", "f_s3", "f_s4"] },
+  store: { name: "しゅうのう", em: "🗄️", ids: [] },
   nature: { name: "しぜん", em: "🌿", ids: ["f_plant", "f_basket", "f_k3", "f_k5"] },
-  deco: { name: "おきもの", em: "🏺", ids: ["f_candle", "f_clock", "f_k2", "f_t3", "f_s5", "f_h2", "f_h3", "f_h4", "f_h5", "f_trophy", "f_hiken"] },
+  deco: { name: "おきもの", em: "🏺", ids: ["f_clock", "f_k2", "f_t3", "f_s5", "f_h2", "f_h3", "f_h4", "f_h5", "f_trophy", "f_hiken"] },
   rug: { name: "しきもの", em: "🧶", ids: [] },
   wall: { name: "かべ", em: "🖼️", ids: [] },
 };
-const fKind = (f) => (f.wall ? "wall" : f.rug ? "rug" : Object.keys(FKIND).find((k) => FKIND[k].ids.includes(f.id)) || "deco");
+const fKind = (f) => (f.wall ? "wall" : f.rug ? "rug" : f.k ? f.k : Object.keys(FKIND).find((k) => FKIND[k].ids.includes(f.id)) || "deco");
 let roomCat = "all"; // しまってある かぐの なかま分け
 const FURN_SETS = ["kanji", "kotoba", "math", "sci", "soc"];
 const fMax = (f) => f.max || 1;
@@ -96,6 +100,14 @@ const ROOM_BIG = 60, ROOM_TWO = 150;
 function roomData() {
   if (!S.room) S.room = { cur: 0, rooms: [[], []], pets: [], kake: "", stamps: {} };
   S.furn = S.furn || {};
+  if (!S.room.v2) {
+    S.room.v2 = 1;
+    // トロフィーだなが 2マスに なった：となりが ふさがっている ときは しまう
+    const C = S.room.big ? 6 : 5;
+    S.room.rooms.forEach((r) => { for (let i = r.length - 1; i >= 0; i--) { const p = r[i]; if (p.id !== "f_trophy") continue;
+      const busy = r.some((q) => q !== p && q.y === p.y && !furnById(q.id).rug && q.x <= p.x + 1 && p.x + 1 < q.x + (furnById(q.id).w || 1));
+      if (busy || p.x + 2 > C) r.splice(i, 1); } });
+  }
   return S.room;
 }
 const fOwn = (id) => (S.furn || {})[id] || 0;
@@ -128,34 +140,51 @@ function giveFurn(id) {
 // ---------- ショップの「かぐ」タブ ----------
 function furnShopList() {
   roomData();
-  const group = [["base", "🏠 ふつうの かぐ"], ...FURN_SETS.map((w) => [w, `${WORLDS.find((x) => x.id === w).icon} ${WORLDS.find((x) => x.id === w).name}セット`]), ["sp", "✨ とくべつな かぐ"]];
-  const chips = `<div class="fcats sticky"><button class="${shopFCat === "all" ? "on" : ""}" onclick="shopFCat='all';shop('furn')">すべて</button>${group.map(([g, t]) => `<button class="${shopFCat === g ? "on" : ""}" onclick="shopFCat='${g}';shop('furn')">${t.replace("セット", "").replace(/の国$/, "").replace(/の かぐ$|な かぐ$/, "")}</button>`).join("")}</div>`;
-  return chips + group.filter(([g]) => shopFCat === "all" || shopFCat === g).map(([g, title]) => {
-    const items = FURN.filter((f) => f.set === g && !f.gift).map((f) => {
+  S.fseen = S.fseen || {};
+  // ふつうの かぐ（はじめから ある もの・国を すすめると ふえる もの）は しゅるいべつ
+  const kinds = Object.keys(FKIND).filter((k) => FURN.some((f) => (f.set === "base" || f.set === "more") && fKind(f) === k));
+  const group = [...kinds.map((k) => [k, `${FKIND[k].em} ${FKIND[k].name}`]), ...FURN_SETS.map((w) => [w, `${WORLDS.find((x) => x.id === w).icon} ${WORLDS.find((x) => x.id === w).name}セット`]), ["sp", "✨ とくべつな かぐ"]];
+  const inGroup = (f, g) => (FURN_SETS.includes(g) || g === "sp" ? f.set === g : (f.set === "base" || f.set === "more") && fKind(f) === g);
+  const isNew = (f) => f.u && furnOpen(f) && !S.fseen[f.id];
+  const chips = `<div class="fcats"><button class="${shopFCat === "all" ? "on" : ""}" onclick="shopFCat='all';shop('furn')">すべて</button>${[...kinds.map((k) => [k, FKIND[k].em + FKIND[k].name]), ["sets", "🌏 国セット"], ["sp", "✨ とくべつ"]].map(([g, t]) => `<button class="${shopFCat === g ? "on" : ""}" onclick="shopFCat='${g}';shop('furn')">${t}${FURN.some((f) => (g === "sets" ? FURN_SETS.includes(f.set) : inGroup(f, g)) && isNew(f)) ? `<i>NEW</i>` : ""}</button>`).join("")}</div>`;
+  const show = group.filter(([g]) => shopFCat === "all" || shopFCat === g || (shopFCat === "sets" && FURN_SETS.includes(g)));
+  const html = chips + show.map(([g, title]) => {
+    let locked = 0;
+    const list = FURN.filter((f) => inGroup(f, g) && !f.gift);
+    // まだ ならばない かぐは、つぎに ひらく 2つだけ ヒントを 出す
+    const shown = list.filter((f) => furnOpen(f)).concat(list.filter((f) => !furnOpen(f)).sort((a, b) => a.u[1] - b.u[1]).slice(0, 2));
+    const items = shown.map((f) => {
+      if (!furnOpen(f)) { locked++; return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${furnHint(f)}</small></div><button class="sbtn" disabled>🔒</button></div>`; }
       if (f.need && !f.need()) return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${f.hint}</small></div><button class="sbtn" disabled>🔒</button></div>`;
       const own = fOwn(f.id), full = own >= fMax(f);
       const matOk = Object.entries(f.mat || {}).every(([k, v]) => (S.mats[k] || 0) >= v);
       const can = S.coins >= f.price && matOk;
       const need = f.mat && !full ? `<span class="mneed">${Object.entries(f.mat).map(([k, v]) => `<i class="${(S.mats[k] || 0) >= v ? "" : "lack"}">${MATS[k].em}${S.mats[k] || 0}/${v}</i>`).join("")}</span>` : "";
+      const from = f.u ? `<i class="fu">${WORLDS.find((w) => w.id === f.u[0]).icon}</i>` : "";
       return `<div class="sitem ${full ? "own" : ""}">
         <div class="sprev fprev">${fIcon(f)}</div>
-        <div class="sname"><b>${f.name}</b><small>✨きらきら +${f.kira}${f.wall ? "・かべに かざる" : ""}${f.rug ? `・${f.w}×${f.h}マス、上に かぐを おける` : ""}${fMax(f) > 1 ? `・もってる ${own}/${fMax(f)}` : ""}</small>${need}</div>
+        <div class="sname"><b>${from}${f.name}${isNew(f) ? `<i class="newtag">NEW</i>` : ""}</b><small>✨きらきら +${f.kira}${f.wall ? "・かべに かざる" : ""}${f.rug ? `・${f.w}×${f.h}マス、上に かぐを おける` : ""}${(f.w || 1) > 1 && !f.rug ? "・2マス" : ""}${fMax(f) > 1 ? `・もってる ${own}/${fMax(f)}` : ""}</small>${need}</div>
         ${full ? `<button class="sbtn" disabled>もってる</button>` : `<button class="sbtn ${can ? "" : "no"}" onclick="buyFurn('${f.id}')">🪙${f.price}</button>`}
       </div>`;
     }).join("");
-    return `<div class="fgroup">${title}${g !== "base" && g !== "sp" ? `<small>5つ ぜんぶ おくと スタンプ！</small>` : ""}</div>${items}`;
-  }).join("") + `<p class="note">かった かぐは ホームの「🏠 ひみつきち」に おけるよ。</p>`;
+    const more = list.filter((f) => !furnOpen(f)).length - locked;
+    return `<div class="fgroup">${title}${FURN_SETS.includes(g) ? `<small>5つ ぜんぶ おくと スタンプ！</small>` : ""}</div>${items}${more > 0 ? `<p class="note">ほかにも ？？？ が ${more}こ。国の 章を すすめると ふえるよ</p>` : ""}`;
+  }).join("") + `<p class="note">かった かぐは ホームの「🏠 ひみつきち」に おけるよ。<br>国の 章を クリアするほど、ならぶ かぐが ふえるよ。</p>`;
+  // 見た あたらしい かぐは NEW を けす
+  FURN.forEach((f) => { if (f.u && furnOpen(f) && show.some(([g]) => inGroup(f, g))) S.fseen[f.id] = 1; });
+  save();
+  return html;
 }
 function buyFurn(id) {
   const f = furnById(id);
-  if (!f || f.gift || fOwn(id) >= fMax(f) || (f.need && !f.need())) return;
+  if (!f || f.gift || fOwn(id) >= fMax(f) || (f.need && !f.need()) || !furnOpen(f)) return;
   const lack = Object.entries(f.mat || {}).filter(([k, v]) => (S.mats[k] || 0) < v);
   if (lack.length) { snd("ng"); toast(`そざいが たりないよ（${lack.map(([k]) => MATS[k].em + MATS[k].name).join("・")}）`); return; }
   if (S.coins < f.price) { snd("ng"); toast("コインが たりないよ"); return; }
   S.coins -= f.price;
   Object.entries(f.mat || {}).forEach(([k, v]) => { S.mats[k] -= v; });
   giveFurn(id); save(); snd("coin");
-  toast(`${f.em} ${f.name}を かったよ！ ひみつきちに おこう`);
+  toast(`${f.em || "🪑"} ${f.name}を かったよ！ ひみつきちに おこう`);
   shop();
 }
 
@@ -214,6 +243,7 @@ function roomTap(x, y) {
   const list = roomList();
   if (RM.sel) {
     const f = furnById(RM.sel);
+    if (fOwn(f.id) - fPlaced(f.id) <= 0) { RM.sel = ""; room(); return; }
     // 2マスの かぐは、右はしを タップしても おけるように 1マス ずらす
     const sp = fitSpot(f, x, y);
     if (sp) [x, y] = sp;

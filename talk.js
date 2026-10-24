@@ -59,10 +59,10 @@ const TONE_PREF = {
   genki: { like: ["play"], hate: ["study"] },
   teinei: { like: ["study", "art"], hate: [] },
   cool: { like: ["shiny", "sci"], hate: ["soft"] },
-  ottori: { like: ["soft", "nature", "rest"], hate: [] },
+  ottori: { like: ["soft", "nature", "sleep", "sit"], hate: [] },
   samurai: { like: ["wa"], hate: ["play"] },
   ojou: { like: ["art", "shiny"], hate: ["nature"] },
-  roujin: { like: ["wa", "rest"], hate: [] },
+  roujin: { like: ["wa", "sit", "table"], hate: [] },
   kansai: { like: ["play"], hate: ["study"] },
   shy: { like: ["soft", "nature"], hate: [] },
   hakase: { like: ["study", "sci"], hate: ["play"] },
@@ -163,7 +163,11 @@ function talkLines(pet, isMe) {
   // --- しゅるいの かたより ---
   const [tk, tkn] = topOf(st.kinds);
   const KIND_TALK = {
-    rest: "くつろげる ものが いっぱい{dane} ごろごろ したい{yo}",
+    sleep: "ねる ものが いっぱい{dane} どこで ねようか まよう{yo}",
+    sit: "すわる ものが いっぱい{dane} みんなで すわれる{yo}",
+    table: "つくえが いっぱい{dane} べんきょうも おちゃも できそう{da}",
+    light: "あかりが いっぱい{dane} よるでも あかるい{yo}",
+    store: "しゅうのうが いっぱい{dane} おかたづけ ばっちり{da}",
     play: "あそぶ ものが いっぱい{dane} まるで あそびば{da}",
     study: "べんきょうの ものが いっぱい{dane} かしこく なれそう{da}",
     nature: "みどりが いっぱい{dane} もりの 中みたい{da}",
@@ -181,6 +185,9 @@ function talkLines(pet, isMe) {
   // --- とくべつな かぐ ---
   if (st.ids.f_kake && roomData().kake) add(14, `かけじくの「${esc(roomData().kake.slice(2))}」って 字、かっこいい{ne} {you}が ★5に した 字{dane}`);
   if (st.ids.f_kake && !roomData().kake) add(10, "かけじくが まっしろ{dane} タップして 漢字を えらんでね");
+  if (st.list.some((p) => furnById(p.id).shine)) add(10, "きらきら ひかる かぐが ある{ne} ほうせきみたい{da}");
+  const art = st.list.filter((p) => furnById(p.id).u);
+  if (art.length) { const f = furnById(pick(art).id); add(10, `${f.name}、${WORLDS.find((w) => w.id === f.u[0]).name}で がんばった ごほうび{dane}`); }
   if (st.ids.f_trophy) add(10, `たからものが ${Object.keys(S.treasures || {}).length}こ{dane} がんばった しるし{da}`);
   if (st.ids.f_okaeri) add(10, "おかえりの ソファ、すわると ほっと する かんじ{da}");
   if (st.ids.f_hiken) add(10, "ひけんの かざりだい、つよそう{dane} さわったら おこられそう{da}");

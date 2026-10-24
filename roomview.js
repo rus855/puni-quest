@@ -97,23 +97,29 @@ function rugSVG(g, p, i) {
 const fw = (p) => furnById(p.id).w || 1, fh = (p) => furnById(p.id).h || 1;
 // となり（ななめも）に あるか
 const adjacent = (a, b) => Math.max(0, Math.max(a.x, b.x) - Math.min(a.x + fw(a) - 1, b.x + fw(b) - 1)) <= 1 && Math.max(0, Math.max(a.y, b.y) - Math.min(a.y + fh(a) - 1, b.y + fh(b) - 1)) <= 1;
-const findPair = (L, a, bs, ok = adjacent) => { for (const p of L.filter((q) => q.id === a && q.y >= 0)) for (const q of L.filter((r) => bs.includes(r.id) && r.y >= 0)) if (ok(p, q)) return p; return null; };
+const findPair = (L, a, bs, ok = adjacent) => { const as = [].concat(a); for (const p of L.filter((q) => as.includes(q.id) && q.y >= 0)) for (const q of L.filter((r) => bs.includes(r.id) && r.y >= 0)) if (ok(p, q)) return p; return null; };
+// しゅるいで まとめた かぐの id（あたらしい ベッドや いすも くみあわせに つかえる）
+const kindIds = (...ks) => FURN.filter((f) => ks.includes(fKind(f))).map((f) => f.id);
 const COMBOS = [
-  { id: "tv", name: "テレビタイム", em: "📺", find: (L) => findPair(L, "f_tv", ["f_sofa", "f_okaeri", "f_chair"], (a, b) => b.y > a.y && b.y - a.y <= 2 && a.x < b.x + fw(b) && b.x < a.x + fw(a)) },
-  { id: "read", name: "どくしょコーナー", em: "📖", find: (L) => findPair(L, "f_shelf", ["f_chair", "f_sofa", "f_okaeri"]) || findPair(L, "f_t2", ["f_chair", "f_sofa"]) },
-  { id: "tea", name: "おちゃかい", em: "🍵", find: (L) => findPair(L, "f_k4", ["f_chair", "f_k2", "f_sofa", "f_okaeri"]) },
-  { id: "sun", name: "ひなたぼっこ", em: "☀️", find: (L) => { for (const w of L.filter((p) => p.id === "f_window" || p.id === "f_niji")) { const q = L.find((p) => ["f_bed", "f_sofa", "f_okaeri", "f_rug1", "f_rug2", "f_rug3", "f_rug4"].includes(p.id) && p.y >= 0 && p.y <= 1 && p.x <= w.x + 1 && p.x + fw(p) >= w.x); if (q) return q; } return null; } },
+  { id: "tv", name: "テレビタイム", em: "📺", find: (L) => findPair(L, "f_tv", kindIds("sit", "sleep"), (a, b) => b.y > a.y && b.y - a.y <= 2 && a.x < b.x + fw(b) && b.x < a.x + fw(a)) },
+  { id: "read", name: "どくしょコーナー", em: "📖", find: (L) => findPair(L, "f_shelf", kindIds("sit")) || findPair(L, "f_t2", kindIds("sit")) || findPair(L, "g_k08", kindIds("sit")) },
+  { id: "tea", name: "おちゃかい", em: "🍵", find: (L) => findPair(L, "f_k4", [...kindIds("sit"), "f_k2"]) || findPair(L, "g_k03", ["g_k02", "g_k04"]) || findPair(L, "g_t08", kindIds("sit")) },
+  { id: "sun", name: "ひなたぼっこ", em: "☀️", find: (L) => { for (const w of L.filter((p) => p.id === "f_window" || p.id === "f_niji")) { const q = L.find((p) => [...kindIds("sleep", "sit", "rug")].includes(p.id) && p.y >= 0 && p.y <= 1 && p.x <= w.x + 1 && p.x + fw(p) >= w.x); if (q) return q; } return null; } },
   { id: "star", name: "ほしぞら かんそく", em: "🔭", find: (L) => (L.some((p) => ["f_s1", "f_window", "f_niji"].includes(p.id)) ? L.find((p) => p.id === "f_s2") : null) },
-  { id: "music", name: "おんがくかい", em: "🎹", find: (L) => findPair(L, "f_t5", ["f_chair", "f_bear", "f_sofa"]) },
-  { id: "game", name: "ゲームコーナー", em: "🎲", find: (L) => findPair(L, "f_m3", ["f_m4", "f_ball", "f_tv"]) || findPair(L, "f_m4", ["f_chair"]) },
+  { id: "music", name: "おんがくかい", em: "🎹", find: (L) => findPair(L, "f_t5", [...kindIds("sit"), "f_bear"]) },
+  { id: "game", name: "ゲームコーナー", em: "🎲", find: (L) => findPair(L, "f_m3", ["f_m4", "f_ball", "f_tv"]) || findPair(L, "f_m4", kindIds("sit")) },
   { id: "wa", name: "わの こころ", em: "🍡", find: (L) => (L.some((p) => p.id === "f_kake") ? L.find((p) => p.id === "f_k4" || p.id === "f_k2") : null) },
-  { id: "sleep", name: "おやすみセット", em: "🌙", find: (L) => findPair(L, "f_bed", ["f_candle", "f_clock", "f_bear"]) },
+  { id: "sleep", name: "おやすみセット", em: "🌙", find: (L) => findPair(L, kindIds("sleep"), ["f_candle", "f_clock", "f_bear", ...kindIds("light")]) },
   { id: "dino", name: "きょうりゅう はかせ", em: "🦕", find: (L) => findPair(L, "f_s5", ["f_s4", "f_s3", "f_shelf"]) },
   { id: "lab", name: "じっけんしつ", em: "🧪", find: (L) => findPair(L, "f_s3", ["f_s4", "f_m5"]) },
-  { id: "cozy", name: "ふかふかエリア", em: "🧸", find: (L) => { for (const r of L.filter((p) => furnById(p.id).rug)) { const q = L.find((p) => ["f_bed", "f_sofa", "f_bear", "f_okaeri", "f_chair"].includes(p.id) && p.y >= r.y && p.y < r.y + fh(r) && p.x >= r.x && p.x + fw(p) <= r.x + fw(r)); if (q) return q; } return null; } },
+  { id: "cozy", name: "ふかふかエリア", em: "🧸", find: (L) => { for (const r of L.filter((p) => furnById(p.id).rug)) { const q = L.find((p) => [...kindIds("sleep", "sit"), "f_bear"].includes(p.id) && p.y >= r.y && p.y < r.y + fh(r) && p.x >= r.x && p.x + fw(p) <= r.x + fw(r)); if (q) return q; } return null; } },
   { id: "garden", name: "おしろの おにわ", em: "🏯", find: (L) => findPair(L, "f_h2", ["f_plant", "f_h3", "f_h4", "f_k5", "f_h5"]) },
   { id: "party", name: "パーティー", em: "🎉", find: (L) => (L.filter((p) => ["f_balloon", "f_gift"].includes(p.id)).length >= 3 ? L.find((p) => p.id === "f_gift" || p.id === "f_balloon") : null) },
   { id: "museum", name: "ミニはくぶつかん", em: "🏛️", find: (L) => findPair(L, "f_trophy", ["f_hiken", "f_h3", "f_h4", "f_k2"]) || findPair(L, "f_hiken", ["f_h3", "f_h4"]) },
+  { id: "study2", name: "べんきょうコーナー", em: "✏️", find: (L) => findPair(L, ["g_t02", "g_s04"], kindIds("sit")) },
+  { id: "kotatsu", name: "こたつで ぬくぬく", em: "🍊", find: (L) => findPair(L, "g_k07", ["g_k02", "g_k04", ...kindIds("sleep")]) },
+  { id: "camp", name: "キャンプごっこ", em: "🏕️", find: (L) => findPair(L, ["g_s01", "g_s07", "g_s03"], ["f_plant", "f_candle", "f_k3", "g_s05"]) },
+  { id: "royal", name: "おうきゅうの へや", em: "👑", find: (L) => findPair(L, "g_h07", ["g_h08", "g_h04", "g_h05", "g_h03", "f_hiken"]) },
   { id: "post", name: "おてがみコーナー", em: "📮", find: (L) => findPair(L, "f_t3", ["f_chair", "f_t2", "f_shelf"]) },
 ];
 const COMBO_KIRA = 5;
@@ -159,10 +165,10 @@ function roomHTML() {
   const items = list.map((p, i) => {
     const f = furnById(p.id), w = f.w || 1;
     if (f.rug || p.x + w > C || p.y >= R) return "";
-    let inner = `<span class="fem">${f.em}</span>`;
+    let inner = f.art ? furnArtSVG(f) : `<span class="fem">${f.em}</span>`;
     if (p.id === "f_kake") inner = `<span class="kake">${roomData().kake ? esc(roomData().kake.slice(2)) : "？"}</span>`;
     if (p.id === "f_window" || p.id === "f_niji") inner = windowHTML(p.id === "f_niji");
-    if (p.id === "f_trophy") inner += `<i class="fcount">${Object.keys(S.treasures || {}).length}</i>`;
+    if (p.id === "f_trophy") inner = trophyShelfHTML();
     if (p.id === "f_okaeri") inner = `<span class="fem">🛋️</span><i class="fheart">💗</i>`;
     if (p.id === "f_tv" && hasCombo("tv")) inner += `<i class="tvon"></i>`;
     if (p.id === "f_k4" && hasCombo("tea")) inner += `<i class="steam">♨️</i>`;
@@ -176,8 +182,9 @@ function roomHTML() {
     }
     // ゆかの かぐ：マスの すこし てまえに たてる。おくほど 小さい
     const ta = p.y + 0.82, cx = g.X(p.x + w / 2, ta), cw = g.cw(ta);
+    if (f.glow) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.6 * C) / g.H, r: cw * 2.6, c: f.glow, k: "lamp" });
     if (p.id === "f_candle" || p.id === "f_tv" && hasCombo("tv")) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.5 * C) / g.H, r: cw * (p.id === "f_tv" ? 1.6 : 2.2), c: p.id === "f_tv" ? "140,200,255" : "255,170,80", k: "lamp" });
-    return `<div class="fi ${w > 1 ? "w2" : ""} ${RM.move === i ? "moving" : ""}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
+    return `<div class="fi ${w > 1 ? "w2" : ""} ${f.art ? "art" : ""} ${f.shine ? "shine" : ""} ${f.rainbow ? "rainbow" : ""} ${p.id === "f_trophy" ? "tshelf" : ""} ${RM.move === i ? "moving" : ""}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
   }).join("");
   // まどからの ひかり（ゆかに さしこむ）
   let beams = "";
@@ -267,4 +274,13 @@ function roomThemePick() {
 }
 
 // かぐの アイコン（ラグは いろの みほん）
-const fIcon = (f) => (f.rug ? `<i class="rugsw" style="--a:${f.rc[0]};--b:${f.rc[1]}"></i>` : f.em);
+const fIcon = (f) => (f.art ? `<span class="ficon ${f.rainbow ? "rainbow" : ""}">${furnArtSVG(f)}</span>` : f.rug ? `<i class="rugsw" style="--a:${f.rc[0]};--b:${f.rc[1]}"></i>` : f.em);
+
+// ---------- トロフィーだな ----------
+// もらった じゅんに たからものを よこに ならべる（ふえたら 2だんに）
+function trophyShelfHTML() {
+  const got = TREASURES.filter((t) => (S.treasures || {})[t.id]).sort((a, b) => S.treasures[a.id] - S.treasures[b.id]);
+  const per = got.length > 6 ? Math.ceil(got.length / 2) : Math.max(3, got.length);
+  const rows = got.length > 6 ? [got.slice(0, per), got.slice(per)] : [got];
+  return `<span class="tshelf-in" style="--per:${per}">${rows.map((r) => `<span class="tsrow">${r.map((t) => `<span class="tsone">${treasureSVG(t, false)}</span>`).join("") || `<small class="tsempty">まだ からっぽ</small>`}</span>`).join("")}</span>`;
+}

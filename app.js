@@ -1416,11 +1416,11 @@ const unlocked = (it) => (PQ_DEBUG && window.PQ_OPEN) || !it.unlock || !!(S.tier
 // まだ ならんでいない しなものの ヒント
 const lockHint = (it) => (it.unlock === "maou" ? "🌑 まおうを たおすと ならぶよ" : `${MATS[TMAT[it.unlock][0]].em} の 章を クリアすると ならぶよ`);
 // まだ見ていない新商品があるか
-function newShop() { return ITEMS.some((x) => x.price > 0 && !x.drop && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]); }
+function newShop() { return ITEMS.some((x) => x.price > 0 && !x.drop && unlocked(x) && !S.owned.includes(x.id) && !(S.seen || {})[x.id]) || (typeof newFurn === "function" && newFurn()); }
 
 function shop(tab) {
   if (tab) shopTab = tab;
-  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"], ["acc", "アクセ"], ["furn", "かぐ"]];
+  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"], ["acc", "アクセ"], ["furn", typeof newFurn === "function" && newFurn() ? `かぐ<i class="tdot"></i>` : "かぐ"]];
   S.seen = S.seen || {};
   ITEMS.forEach((x) => { if (unlocked(x)) S.seen[x.id] = 1; });
   save();
