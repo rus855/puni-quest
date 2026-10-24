@@ -437,7 +437,7 @@ function setScreen(html, cls = "") {
 }
 function go(name, arg) {
   snd("tap");
-  ({ home, map, shop, equip, zukan, missions, parent, nakama, openWorld, openChapter, treasures })[name](arg);
+  ({ home, map, shop, equip, zukan, missions, parent, nakama, openWorld, openChapter, treasures, room })[name](arg);
 }
 function topBar(title, back = "home") {
   return `<div class="topbar"><button class="back" onclick="go('${back}')">◀ もどる</button><div class="ttl">${title}</div>
@@ -506,7 +506,8 @@ function home() {
       <button onclick="go('zukan')"><span class="mi">🃏</span>ずかん${ng ? `<i class="badge">${ng}</i>` : ""}</button>
       <button onclick="go('missions')"><span class="mi">📜</span>ミッション${claimable ? `<i class="badge">!</i>` : ""}</button>
       <button onclick="saveMenu()"><span class="mi">💾</span>セーブ</button>
-      <button class="tbtn" onclick="go('treasures')"><span class="mi">🏆</span>たからもの${unseenTreasures().length ? `<i class="badge">NEW</i>` : ""}</button>
+      <div class="hrow2"><button class="tbtn" onclick="go('treasures')"><span class="mi">🏆</span>たからもの${unseenTreasures().length ? `<i class="badge">NEW</i>` : ""}</button>
+      <button class="tbtn rbtn" onclick="go('room')"><span class="mi">🏠</span>ひみつきち</button></div>
     </div></div>`, "bg-home");
   // ログインボーナス → たからもの → タマゴがかえる の順に1つずつ見せる
   if (!loginBonus() && !treasureEvents()) petEvents();
@@ -1419,13 +1420,13 @@ function newShop() { return ITEMS.some((x) => x.price > 0 && !x.drop && unlocked
 
 function shop(tab) {
   if (tab) shopTab = tab;
-  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"], ["acc", "アクセ"]];
+  const tabs = [["weapon", "ぶき"], ["armor", "よろい"], ["hat", "ぼうし"], ["acc", "アクセ"], ["furn", "かぐ"]];
   S.seen = S.seen || {};
   ITEMS.forEach((x) => { if (unlocked(x)) S.seen[x.id] = 1; });
   save();
   let lockShown = 0;
   const lockAll = ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !x.drop && !unlocked(x)).length;
-  const list = ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !x.drop).map((it) => {
+  const list = shopTab === "furn" ? furnShopList() : ITEMS.filter((x) => x.type === shopTab && x.price > 0 && !x.drop).map((it) => {
     if (!unlocked(it)) {
       if (++lockShown > 3) return "";
       return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${lockHint(it)}</small></div><button class="sbtn" disabled>🔒</button></div>`;
@@ -1445,7 +1446,7 @@ function shop(tab) {
   const mats = Object.keys(MATS).filter((k) => S.mats[k]);
   setScreen(`${topBar("ショップ")}
     <div class="matbar">${mats.length ? mats.map((k) => `<span>${MATS[k].em}${S.mats[k]}</span>`).join("") : "<small>そざいは てきを たおすと 手に はいるよ</small>"}</div>
-    <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === shopTab ? "on" : ""}" onclick="shop('${k}')">${l}</button>`).join("")}</div>
+    <div class="tabs t5">${tabs.map(([k, l]) => `<button class="${k === shopTab ? "on" : ""}" onclick="shop('${k}')">${l}</button>`).join("")}</div>
     <div class="slist">${list}${lockAll > 3 ? `<p class="note">ほかにも ？？？ が ${lockAll - 3}こ あるよ</p>` : ""}
     ${shopTab === "acc" ? `<p class="note">✨ ショップに ない めずらしい アクセサリーも あるよ。<br>かきとり道場や まおうの しろで 手に 入るかも…？</p>` : ""}</div>`, "bg-shop");
 }

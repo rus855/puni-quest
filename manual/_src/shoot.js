@@ -27,6 +27,7 @@ S.stats.tot=420; S.stats.cor=356; S.login={last:today(), streak:4};
 ensureDaily(); S.daily.prog = { correct10: 10, starup3: 2 };
 checkTreasures(); S.treasureSeen={}; Object.keys(S.treasures).forEach(k=>S.treasureSeen[k]=1);
 save(); window.SAVED=JSON.stringify(S);
+window.ROOMDEMO=()=>{ S.furn={}; ["f_bed","f_window","f_pic","f_plant","f_bear","f_kake","f_k1","f_k2","f_k3","f_s1","f_s2","f_s3","f_chair","f_balloon"].forEach(id=>S.furn[id]=1); const k=Object.keys(S.cards).find(id=>id.startsWith("k:")); S.cards[k].s=5; S.room={cur:0,rooms:[[{id:"f_bed",x:0,y:0},{id:"f_window",x:1,y:-1},{id:"f_kake",x:3,y:-1},{id:"f_k1",x:0,y:-1},{id:"f_plant",x:4,y:0},{id:"f_bear",x:2,y:0},{id:"f_k2",x:0,y:3},{id:"f_k3",x:4,y:3},{id:"f_s1",x:4,y:-1},{id:"f_chair",x:3,y:2}],[]],pets:[],kake:k,stamps:{}}; };
 window.RESTORE=()=>{ S=JSON.parse(window.SAVED); SL.slots[0]=S; };
 window.FAKE=(k)=>{ const N=64,c=document.createElement("canvas"); c.width=c.height=N; const g=c.getContext("2d",{willReadFrequently:true}); g.translate(N/2,N/2); g.rotate(-0.05); g.scale(0.92,1.05); g.translate(-N/2,-N/2); g.font=(N*0.78)+"px serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(k,N/2+1,N/2+2); const sk=thinGrid(gridOf(g,N,100),N), st=[]; for(let y=0;y<N;y++) for(let x=0;x<N;x++) if(sk[y*N+x]) st.push([[x/N+Math.sin(y/7)*0.012,y/N+Math.sin(x/8)*0.012]]); return st; };
 window.WQ=(sid)=>{ startBattle(sid); TR.strokes=FAKE(TR.k); redrawTrace(); };
@@ -75,6 +76,9 @@ const SHOTS = [
   ["38_cert", `RESTORE(); S.treasures=Object.assign(S.treasures||{}, {cert:Date.now()}); treasures(); treasureDetail(TREASURES.findIndex(t=>t.id==="cert"))`, 900],
   ["39_hiken", `RESTORE(); S.owned.push("wh_kanji1","wh_math0"); S.eq.weapon="wh_kanji1"; S.mats.hk_kanji=2; S.mats.hk_math=1; S.matSeen.hk_kanji=1; S.matSeen.hk_math=1; S.matSeen.hk_soc=1; S.mats.hk_soc=1; eqTab="weapon"; equip(); setTimeout(()=>{ const p=document.querySelector(".hkpanel"); window.scrollTo(0, p.getBoundingClientRect().top + window.scrollY - 130); }, 100)`, 900],
   ["39b_barrier", `RESTORE(); S.owned.push("wh_kanji1"); S.eq.weapon="wh_kanji1"; startBattle("k5a-4"); B.ei=1; nextEnemy()`, 1000],
+  ["50_room", `RESTORE(); window.ROOMDEMO(); room()`, 1500],
+  ["50b_place", `RESTORE(); window.ROOMDEMO(); room(); roomPick("f_s2")`, 1500],
+  ["50c_furnshop", `RESTORE(); S.coins=2480; addMat("kagaku",5); shop("furn"); setTimeout(()=>{ const g=[...document.querySelectorAll(".fgroup")][4]; if(g) window.scrollTo(0, g.getBoundingClientRect().top + window.scrollY - 150); }, 100)`, 900],
   ["27_hatch", `RESTORE(); S.eggs[0].p=20; nakama("egg"); hatchEgg(0)`, 2800],
 ];
 

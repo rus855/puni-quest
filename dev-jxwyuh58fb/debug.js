@@ -45,7 +45,7 @@
           <button onclick="dbg.gearAll()">そうび・アクセ ぜんぶ</button>
           <button onclick="dbg.accAll()">アクセサリー ぜんぶ</button>
           <button onclick="dbg.hiken()">ひけん0＋ひほう9こ（5国）</button>
-          <button onclick="dbg.okaeri(4)">おかえり（4日ぶり）</button><button onclick="dbg.okaeri(15)">おかえり（15日ぶり）</button><button onclick="dbg.otsukai()">おつかいを すぐ かえす</button>
+          <button onclick="dbg.okaeri(4)">おかえり（4日ぶり）</button><button onclick="dbg.okaeri(15)">おかえり（15日ぶり）</button><button onclick="dbg.otsukai()">おつかいを すぐ かえす</button><button onclick="dbg.furn()">かぐ ぜんぶ</button>
         </div>
         <h3>進み具合</h3>
         <div class="dgrid">
@@ -125,6 +125,12 @@
     okaeri(n) {
       if (!needS()) return;
       const d = nowDate(); d.setDate(d.getDate() - n); S.login.last = dateKey(d); S.newsV = 30; save(); closeModal(); home();
+    },
+    furn() {
+      if (!needS()) return;
+      S.furn = S.furn || {};
+      FURN.forEach((f) => { S.furn[f.id] = fMax(f); });
+      save(); done(`かぐを ${FURN.length}しゅるい ぜんぶ 入れたよ`);
     },
     otsukai() {
       if (!needS()) return;

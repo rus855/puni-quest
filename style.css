@@ -780,3 +780,49 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 /* なかま画面は タブが 5つ（1行に おさめる） */
 .tabs.t5 { gap: 4px; }
 .tabs.t5 button { padding: 9px 1px; font-size: 12px; white-space: nowrap; letter-spacing: -.3px; }
+/* ホーム：たからもの と ひみつきち */
+.menu4.m6 .hrow2 { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu4.m6 .hrow2 .tbtn { grid-column: auto; font-size: 14px; }
+.menu4.m6 .tbtn.rbtn { background: linear-gradient(135deg, #e3f7ff, #9fd8ff); }
+/* ひみつきち */
+.kira { background: #fff; border-radius: 14px; padding: 6px 12px; margin: 4px 0 8px; display: grid; gap: 2px; text-align: center; }
+.kira .bar { height: 8px; }
+.kira small { color: #777; font-size: 11px; }
+.stamps { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; }
+.stamps span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #eee; filter: grayscale(1); opacity: .45; font-size: 16px; }
+.stamps span.on { background: #fff3b0; filter: none; opacity: 1; box-shadow: 0 0 0 2px #ffc400; }
+.stamps small { font-size: 11px; color: #888; }
+.room { position: relative; width: 100%; max-width: 360px; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);
+  background: linear-gradient(#fbe7d0 0 var(--wh), #e8c9a0 var(--wh)); }
+.room::before { content: ""; position: absolute; left: 0; right: 0; top: var(--wh); bottom: 0;
+  background-image: linear-gradient(45deg, rgba(255,255,255,.18) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.18) 75%), linear-gradient(45deg, rgba(255,255,255,.18) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.18) 75%);
+  background-size: 40px 40px; background-position: 0 0, 20px 20px; }
+.room::after { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--wh) - 4px); height: 6px; background: #c99a6b; }
+.rc { position: absolute; border: 0; background: transparent; padding: 0; z-index: 1; }
+.rc.ok { background: rgba(120, 220, 140, .35); outline: 2px dashed #3cc45a; outline-offset: -3px; border-radius: 8px; }
+.fi { position: absolute; z-index: 2; pointer-events: none; display: grid; place-items: center; }
+.fi.moving { opacity: .4; }
+.fem { font-size: min(9vw, 40px); line-height: 1; filter: drop-shadow(0 3px 2px rgba(0,0,0,.18)); }
+.fem.w2 { font-size: min(15vw, 66px); }
+.kake { writing-mode: vertical-rl; background: #fffaf0; border: 3px solid #8d6e63; border-top-width: 6px; border-bottom-width: 6px; padding: 4px 2px; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-weight: 900; font-size: min(7vw, 30px); line-height: 1; color: #222; }
+.fcount { position: absolute; bottom: 6%; right: 18%; font-style: normal; font-size: 11px; font-weight: 900; background: #ffc400; border-radius: 99px; padding: 0 5px; }
+.fheart { position: absolute; top: 4%; right: 30%; font-style: normal; font-size: 18px; }
+.ract { position: absolute; z-index: 3; pointer-events: none; width: 15%; transition: left 2.4s ease-in-out, top 2.4s ease-in-out; display: grid; place-items: center; }
+.ract.rpet { font-size: min(8vw, 34px); line-height: 1; filter: drop-shadow(0 3px 2px rgba(0,0,0,.2)); }
+.ract.rme svg { width: 100%; height: auto; }
+.ract.flip { transform: scaleX(-1); }
+.rmhint { text-align: center; font-size: 13px; font-weight: 700; margin: 8px 0; min-height: 20px; }
+.rmhint .mini { border: 0; border-radius: 99px; padding: 3px 10px; background: #fff; box-shadow: var(--shadow); font-weight: 900; margin-left: 4px; }
+.fstock { display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 8px; }
+.fstock button { flex: 0 0 auto; width: 80px; border: 3px solid #e6dcef; background: #fff; border-radius: 14px; padding: 4px 2px; display: grid; gap: 1px; position: relative; }
+.fstock button span { font-size: 28px; line-height: 1.2; }
+.fstock button small { font-size: 9.5px; font-weight: 700; line-height: 1.2; }
+.fstock button i { position: absolute; top: 2px; right: 4px; font-style: normal; font-size: 11px; font-weight: 900; color: #e0567f; }
+.fstock button.on { border-color: #3cc45a; background: #eaffee; }
+.fgroup { font-weight: 900; margin: 12px 4px 4px; display: flex; align-items: baseline; gap: 8px; }
+.fgroup small { font-size: 11px; color: #c77d00; }
+.sprev.fprev { font-size: 40px; display: grid; place-items: center; }
+.kakel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 50vh; overflow-y: auto; margin: 8px 0; }
+.kakel button { border: 3px solid #e6dcef; background: #fff; border-radius: 12px; font-size: 26px; font-weight: 900; padding: 6px 0; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; }
+.kakel button.on { border-color: #ff7eb3; background: #fff0f6; }
+.ngtag.okt { background: #3cc45a; color: #fff; }
