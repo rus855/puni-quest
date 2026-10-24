@@ -65,6 +65,17 @@ const FURN = [
   { id: "f_okaeri", name: "おかえりの ソファ", em: "💝", set: "sp", w: 2, gift: 1, kira: 15, hint: "ひさしぶりに あそびに くると もらえるかも…" },
 ];
 const furnById = (id) => FURN.find((f) => f.id === id);
+// かぐの しゅるい（えらぶ ときの なかま分け）。かべの かぐは ぜんぶ「かべ」
+const FKIND = {
+  rest: { name: "くつろぐ", em: "🛋️", ids: ["f_bed", "f_sofa", "f_chair", "f_k4", "f_okaeri"] },
+  play: { name: "あそぶ", em: "🧸", ids: ["f_bear", "f_ball", "f_balloon", "f_gift", "f_tv", "f_t5", "f_m3", "f_m4"] },
+  study: { name: "まなぶ", em: "📚", ids: ["f_shelf", "f_t2", "f_m2", "f_m5", "f_s2", "f_s3", "f_s4"] },
+  nature: { name: "しぜん", em: "🌿", ids: ["f_plant", "f_basket", "f_k3", "f_k5"] },
+  deco: { name: "おきもの", em: "🏺", ids: ["f_candle", "f_clock", "f_k2", "f_t3", "f_s5", "f_h2", "f_h3", "f_h4", "f_h5", "f_trophy", "f_hiken"] },
+  wall: { name: "かべ", em: "🖼️", ids: [] },
+};
+const fKind = (f) => (f.wall ? "wall" : Object.keys(FKIND).find((k) => FKIND[k].ids.includes(f.id)) || "deco");
+let roomCat = "all"; // しまってある かぐの なかま分け
 const FURN_SETS = ["kanji", "kotoba", "math", "sci", "soc"];
 const fMax = (f) => f.max || 1;
 // きらきら度の ごほうび（へやが ひろく なる・2つめの へや）
@@ -106,7 +117,8 @@ function giveFurn(id) {
 function furnShopList() {
   roomData();
   const group = [["base", "🏠 ふつうの かぐ"], ...FURN_SETS.map((w) => [w, `${WORLDS.find((x) => x.id === w).icon} ${WORLDS.find((x) => x.id === w).name}セット`]), ["sp", "✨ とくべつな かぐ"]];
-  return group.map(([g, title]) => {
+  const chips = `<div class="fcats sticky"><button class="${shopFCat === "all" ? "on" : ""}" onclick="shopFCat='all';shop('furn')">すべて</button>${group.map(([g, t]) => `<button class="${shopFCat === g ? "on" : ""}" onclick="shopFCat='${g}';shop('furn')">${t.replace("セット", "").replace(/の国$/, "").replace(/の かぐ$|な かぐ$/, "")}</button>`).join("")}</div>`;
+  return chips + group.filter(([g]) => shopFCat === "all" || shopFCat === g).map(([g, title]) => {
     const items = FURN.filter((f) => f.set === g && !f.gift).map((f) => {
       if (f.need && !f.need()) return `<div class="sitem locked"><div class="sprev qmark">？</div><div class="sname"><b>？？？</b><small>${f.hint}</small></div><button class="sbtn" disabled>🔒</button></div>`;
       const own = fOwn(f.id), full = own >= fMax(f);
@@ -136,6 +148,7 @@ function buyFurn(id) {
 }
 
 // ---------- ひみつきち の 画面 ----------
+let shopFCat = "all"; // ショップの かぐの しぼりこみ
 let RM = { sel: "", move: -1 }; // sel：おこうと している かぐ、move：うごかしている かぐの ばんごう
 let roomTimer = 0;
 
@@ -145,14 +158,19 @@ function room() {
   const { C } = roomSize();
   const k = kiraScore(), next = k < ROOM_BIG ? ROOM_BIG : k < ROOM_TWO ? ROOM_TWO : 0;
   const prev = k < ROOM_BIG ? 0 : ROOM_BIG;
-  const stock = FURN.filter((f) => fOwn(f.id) - fPlaced(f.id) > 0);
+  const stockAll = FURN.filter((f) => fOwn(f.id) - fPlaced(f.id) > 0);
+  const kinds = Object.keys(FKIND).filter((k) => stockAll.some((f) => fKind(f) === k));
+  if (roomCat !== "all" && !kinds.includes(roomCat)) roomCat = "all";
+  const stock = stockAll.filter((f) => roomCat === "all" || fKind(f) === roomCat);
   setScreen(`${topBar("ひみつきち")}
     <div class="kira"><b>✨ きらきら度 ${k}</b>${next ? `<span class="bar"><i style="width:${Math.min(100, ((k - prev) / (next - prev)) * 100)}%"></i></span><small>${next === ROOM_BIG ? "へやが ひろく なる" : "2つめの へやが できる"}まで あと ${next - k}</small>` : `<small>へやは ぜんぶ ひらいたよ！</small>`}</div>
     ${roomTwo() ? `<div class="tabs">${[0, 1].map((i) => `<button class="${R.cur === i ? "on" : ""}" onclick="roomData().cur=${i};RM={sel:'',move:-1};room()">へや ${i + 1}</button>`).join("")}</div>` : ""}
     <div class="stamps">${FURN_SETS.map((w) => `<span class="${R.stamps[w] ? "on" : ""}" title="${WORLDS.find((x) => x.id === w).name}セット">${WORLDS.find((x) => x.id === w).icon}</span>`).join("")}<small>セットの スタンプ</small></div>
     <div id="roombox">${roomHTML()}</div>
     <div class="rmhint" id="rmhint">${roomHint()}</div>
+    ${!RM.sel && RM.move < 0 && (roomPetList().length || 1) ? `<p class="small rmtip">💬 ぷにまるや なかまを タップすると おしゃべり するよ</p>` : ""}
     <div class="sub">🪑 しまってある かぐ</div>
+    ${kinds.length > 1 ? `<div class="fcats"><button class="${roomCat === "all" ? "on" : ""}" onclick="roomCat='all';room()">すべて<i>${stockAll.length}</i></button>${kinds.map((k) => `<button class="${roomCat === k ? "on" : ""}" onclick="roomCat='${k}';room()">${FKIND[k].em}${FKIND[k].name}<i>${stockAll.filter((f) => fKind(f) === k).length}</i></button>`).join("")}</div>` : ""}
     <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${f.em}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
     <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかまを よぶ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐを かう</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
@@ -187,8 +205,8 @@ function roomHTML() {
     return `<div class="fi ${RM.move === i ? "moving" : ""}" style="left:${(p.x / C) * 100}%;top:${top};width:${(w / C) * 100}%;height:${h}">${inner}</div>`;
   }).join("");
   // ぷにまると なかま（あるきまわる）
-  const pets = roomPetList().map((u) => { const pet = S.pets.find((p) => p.u === u); return pet ? `<div class="ract rpet">${petSp(pet.sp).em}</div>` : ""; }).join("");
-  return `<div class="room" style="--wh:${(1.4 / (R + 1.4)) * 100}%;aspect-ratio:${C} / ${R + 1.4}">${cells.join("")}${items}<div class="ract rme">${charSVG(S.eq, S.color)}</div>${pets}</div>`;
+  const pets = roomPetList().map((u) => { const pet = S.pets.find((p) => p.u === u); return pet ? `<div class="ract rpet" onclick="roomTalk(this,${u})"><span class="rbody">${petSp(pet.sp).em}</span></div>` : ""; }).join("");
+  return `<div class="room ${placing ? "placing" : ""}" style="--wh:${(1.4 / (R + 1.4)) * 100}%;aspect-ratio:${C} / ${R + 1.4}">${cells.join("")}${items}<div class="ract rme" onclick="roomTalk(this,0)"><span class="rbody">${charSVG(S.eq, S.color)}</span></div>${pets}</div>`;
 }
 
 // へやに いる なかま（えらんで いなければ あいぼう＋2ひき。おつかい中は いない）
@@ -315,7 +333,7 @@ function roomWalk() {
     const box = document.querySelector(".room");
     if (!box) { clearInterval(roomTimer); return; }
     const { C, R } = roomSize();
-    box.querySelectorAll(".ract").forEach((el) => {
+    box.querySelectorAll(".ract:not(.talking)").forEach((el) => {
       const x = Math.random() * (C - 0.9), y = Math.random() * (R - 0.6);
       el.style.left = `${(x / C) * 100}%`;
       el.style.top = `calc(var(--wh) + (100% - var(--wh)) * ${y / R} - 6%)`;
