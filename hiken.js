@@ -78,15 +78,19 @@ function hardStats(ch, boss) {
 const hasHiken = (w) => [0, 1, 2, 3].some((lv) => S.owned.includes(hikenId(w, lv)));
 const hikenLv = (w) => [3, 2, 1, 0].find((lv) => S.owned.includes(hikenId(w, lv)));
 // てきを たおしたとき（ふつうの 章・かきとり道場）
+// ひけんが 出る 確率と、かならず 出るまでの 体数
+const HIKEN_RATE = 0.015, HIKEN_PITY = 120;
 function hikenDrop(e) {
   const ch = B.st.ch, h = ch && hikenOf(ch.w);
   if (!h || ch.maou) return null;
   const got = {};
-  // ひみつの けん（3%。その国で 60体 たおしても 出なければ 次は かならず）
+  // ひみつの けん（1.5%。その国で 120体 たおしても 出なければ 次は かならず。5年生相当の 章でも かならず）
   if (!hasHiken(h.w) && !S.owned.includes(HIKEN_FINAL)) {
     S.hs = S.hs || {};
     S.hs[h.w] = (S.hs[h.w] || 0) + 1;
-    if (S.hs[h.w] > 60 || Math.random() < 0.03) { S.owned.push(hikenId(h.w, 0)); got.sword = hikenId(h.w, 0); }
+    // 5年生相当の 章（バリアの ある ボス）に 来たら かならず。先へ 進めなく ならないように
+    const hard = typeof chHard === "function" && chHard(ch) >= 5;
+    if (hard || S.hs[h.w] > HIKEN_PITY || Math.random() < HIKEN_RATE) { S.owned.push(hikenId(h.w, 0)); got.sword = hikenId(h.w, 0); }
   }
   // ひほう（ボス）
   if (e.boss) {
