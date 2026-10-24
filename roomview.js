@@ -85,7 +85,7 @@ function roomBgSVG(g) {
 function rugSVG(g, p, i) {
   const f = furnById(p.id), w = f.w || 1, h = f.h || 1, [c1, c2] = f.rc;
   const x0 = p.x + 0.08, x1 = p.x + w - 0.08, t0 = p.y + 0.08, t1 = p.y + h - 0.08;
-  let s = `<g class="${RM.move === i ? "rgmove" : ""}"><polygon points="${quad(g, x0, t0, x1, t1)}" fill="${c1}"/>`;
+  let s = `<g class="${RM.move === i ? "rgmove" : ""}" data-rug="${i}"><polygon points="${quad(g, x0, t0, x1, t1)}" fill="${c1}"/>`;
   if (f.pat === "stripe") for (let k = 0; k < w * 2; k += 2) s += `<polygon points="${quad(g, x0 + (k * (x1 - x0)) / (w * 2), t0, x0 + ((k + 1) * (x1 - x0)) / (w * 2), t1)}" fill="${c2}"/>`;
   if (f.pat === "border") s += `<polygon points="${quad(g, x0 + 0.15, t0 + 0.15, x1 - 0.15, t1 - 0.15)}" fill="none" stroke="${c2}" stroke-width="3" vector-effect="non-scaling-stroke"/>`;
   if (f.pat === "star") [[0.3, 0.3], [0.7, 0.55], [0.45, 0.8], [0.8, 0.2], [0.2, 0.7]].forEach(([a, b]) => { const [x, y] = pt(g, x0 + a * (x1 - x0), t0 + b * (t1 - t0)).split(","); s += `<circle cx="${x}" cy="${y}" r="0.8" fill="${c2}"/>`; });
@@ -150,13 +150,14 @@ function roomHTML() {
   const placing = !!f0, part = dayPart(), skip = RM.move;
   const cells = [];
   // タップする マス（かべ・ゆか）。ゆかの マスは おくゆきに あわせた 台形
-  for (let x = 0; x < C; x++) cells.push(`<button class="rc ${placing && f0.wall && fitSpot(f0, x, -1, skip) ? "ok" : ""}" style="left:${pc(g.WX(x))};top:0;width:${pc(g.WX(x + 1) - g.WX(x))};height:${pc(g.WH)}" onclick="roomTap(${x},-1)"></button>`);
+  const has = (x, y) => (!placing && itemAt(x, y) >= 0 ? "has" : "");
+  for (let x = 0; x < C; x++) cells.push(`<button class="rc ${has(x, -1)} ${placing && f0.wall && fitSpot(f0, x, -1, skip) ? "ok" : ""}" data-x="${x}" data-y="-1" style="left:${pc(g.WX(x))};top:0;width:${pc(g.WX(x + 1) - g.WX(x))};height:${pc(g.WH)}" onclick="roomTap(${x},-1)"></button>`);
   for (let y = 0; y < R; y++) for (let x = 0; x < C; x++) {
     const tl = g.X(x, y), tr = g.X(x + 1, y), bl = g.X(x, y + 1), br = g.X(x + 1, y + 1), top = g.Y(y), bot = g.Y(y + 1);
     const l = Math.min(tl, bl), r = Math.max(tr, br), W = r - l;
     const cp = `polygon(${pc((tl - l) / W)} 0, ${pc((tr - l) / W)} 0, ${pc((br - l) / W)} 100%, ${pc((bl - l) / W)} 100%)`;
     const ok = placing && !f0.wall && !!fitSpot(f0, x, y, skip);
-    cells.push(`<button class="rc fl ${ok ? "ok" : ""} ${placing ? "show" : ""}" style="left:${pc(l)};top:${pc(top)};width:${pc(W)};height:${pc(bot - top)};clip-path:${cp}" onclick="roomTap(${x},${y})"></button>`);
+    cells.push(`<button class="rc fl ${has(x, y)} ${ok ? "ok" : ""} ${placing ? "show" : ""}" data-x="${x}" data-y="${y}" style="left:${pc(l)};top:${pc(top)};width:${pc(W)};height:${pc(bot - top)};clip-path:${cp}" onclick="roomTap(${x},${y})"></button>`);
   }
   const combos = roomCombos(list), comboAt = new Map(combos.map((x) => [x.p, x.c]));
   const hasCombo = (id) => combos.some((x) => x.c.id === id);
@@ -178,13 +179,13 @@ function roomHTML() {
       // かべの かぐ：おくの かべの まんなかの たかさ
       const cx = g.WX(p.x + w / 2), cw = (g.WX(1) - g.WX(0)) * 0.86;
       if (["f_k1", "f_window", "f_niji"].includes(p.id)) glows.push({ x: cx, y: g.WH * 0.5, r: cw * (p.id === "f_k1" ? 2.4 : 2.8), c: p.id === "f_k1" ? "255,150,80" : part === "night" ? "120,150,255" : "255,245,200", k: p.id === "f_k1" ? "lamp" : "win" });
-      return `<div class="fi wall ${RM.move === i ? "moving" : ""}" style="left:${pc(cx)};top:${pc(g.WH * 0.48)};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:20">${inner}${tag}</div>`;
+      return `<div class="fi wall ${RM.move === i ? "moving" : ""}" data-i="${i}" style="left:${pc(cx)};top:${pc(g.WH * 0.48)};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:20">${inner}${tag}</div>`;
     }
     // ゆかの かぐ：マスの すこし てまえに たてる。おくほど 小さい
     const ta = p.y + 0.82, cx = g.X(p.x + w / 2, ta), cw = g.cw(ta);
     if (f.glow) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.6 * C) / g.H, r: cw * 2.6, c: f.glow, k: "lamp" });
     if (p.id === "f_candle" || p.id === "f_tv" && hasCombo("tv")) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.5 * C) / g.H, r: cw * (p.id === "f_tv" ? 1.6 : 2.2), c: p.id === "f_tv" ? "140,200,255" : "255,170,80", k: "lamp" });
-    return `<div class="fi ${w > 1 ? "w2" : ""} ${f.art ? "art" : ""} ${f.shine ? "shine" : ""} ${f.rainbow ? "rainbow" : ""} ${p.id === "f_trophy" ? "tshelf" : ""} ${RM.move === i ? "moving" : ""}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
+    return `<div class="fi ${w > 1 ? "w2" : ""} ${f.art ? "art" : ""} ${f.shine ? "shine" : ""} ${f.rainbow ? "rainbow" : ""} ${p.id === "f_trophy" ? "tshelf" : ""} ${RM.move === i ? "moving" : ""}" data-i="${i}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
   }).join("");
   // まどからの ひかり（ゆかに さしこむ）
   let beams = "";
@@ -283,4 +284,65 @@ function trophyShelfHTML() {
   const per = got.length > 6 ? Math.ceil(got.length / 2) : Math.max(3, got.length);
   const rows = got.length > 6 ? [got.slice(0, per), got.slice(per)] : [got];
   return `<span class="tshelf-in" style="--per:${per}">${rows.map((r) => `<span class="tsrow">${r.map((t) => `<span class="tsone">${treasureSVG(t, false)}</span>`).join("") || `<small class="tsempty">まだ からっぽ</small>`}</span>`).join("")}</span>`;
+}
+
+// ---------- ドラッグで かぐを うごかす ----------
+// かぐの ある マスを おして うごかすと ドラッグ。うごかさずに はなすと いつもの タップ（メニュー）
+let RD = null, roomDragEnd = 0;
+function roomDragInit() {
+  const box = document.querySelector(".room");
+  if (!box || RM.sel || RM.move >= 0) return;
+  box.addEventListener("pointerdown", (e) => {
+    const c = e.target.closest(".rc.has");
+    if (!c || e.button > 0) return;
+    const x = +c.dataset.x, y = +c.dataset.y, i = itemAt(x, y);
+    if (i < 0) return;
+    RD = { i, x, y, sx: e.clientX, sy: e.clientY, on: false, id: e.pointerId, tx: null, ty: null };
+  });
+  box.addEventListener("pointermove", (e) => {
+    if (!RD || e.pointerId !== RD.id) return;
+    if (!RD.on) {
+      if (Math.hypot(e.clientX - RD.sx, e.clientY - RD.sy) < 8) return;
+      dragStart(box);
+    }
+    e.preventDefault();
+    dragMove(box, e);
+  });
+  const end = (e) => {
+    if (!RD || e.pointerId !== RD.id) return;
+    const d = RD; RD = null;
+    if (!d.on) return; // うごかして いない → クリック（タップ）として あつかう
+    roomDragEnd = Date.now();
+    const p = roomList()[d.i], f = furnById(p.id);
+    const sp = d.tx === null ? null : fitSpot(f, d.tx, d.ty, d.i);
+    if (sp && (sp[0] !== p.x || sp[1] !== p.y)) { p.x = sp[0]; p.y = sp[1]; snd("ok"); afterPlace(); }
+    else { if (d.tx !== null && !sp) { snd("ng"); toast("そこには おけないよ"); } room(); }
+  };
+  box.addEventListener("pointerup", end);
+  box.addEventListener("pointercancel", (e) => { if (RD && RD.on) { RD = null; room(); } else RD = null; });
+}
+function dragStart(box) {
+  RD.on = true;
+  const p = roomList()[RD.i], f = furnById(p.id);
+  try { box.setPointerCapture(RD.id); } catch (err) { /* うごかなくても よい */ }
+  box.classList.add("dragging");
+  // うごかす かぐを うすく、おける マスを みどりに
+  const el = box.querySelector(`.fi[data-i="${RD.i}"], g[data-rug="${RD.i}"]`);
+  if (el) el.classList.add(el.tagName === "g" ? "rgmove" : "moving");
+  box.querySelectorAll(".rc").forEach((c) => c.classList.toggle("ok", !!fitSpot(f, +c.dataset.x, +c.dataset.y, RD.i)));
+  const gh = document.createElement("div");
+  gh.className = "rdrag";
+  gh.innerHTML = fIcon(f);
+  box.appendChild(gh);
+  RD.gh = gh;
+  snd("tap");
+}
+function dragMove(box, e) {
+  const r = box.getBoundingClientRect();
+  RD.gh.style.left = `${e.clientX - r.left}px`;
+  RD.gh.style.top = `${e.clientY - r.top}px`;
+  // ゆびの 下の マス（かぐや なかまは すどおり）
+  const hit = document.elementsFromPoint(e.clientX, e.clientY).find((n) => n.classList && n.classList.contains("rc"));
+  box.querySelectorAll(".rc.tgt").forEach((c) => c.classList.remove("tgt"));
+  if (hit) { hit.classList.add("tgt"); RD.tx = +hit.dataset.x; RD.ty = +hit.dataset.y; } else { RD.tx = RD.ty = null; }
 }

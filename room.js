@@ -217,12 +217,13 @@ function room() {
     <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
   roomWalk();
+  roomDragInit();
 }
 
 function roomHint() {
   if (RM.sel) { const f = furnById(RM.sel); return `${fIcon(f)} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${fIcon(f)} ${f.name}を どこへ うごかす？ <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
-  return "かぐを えらんで、へやの すきな ところに おこう！";
+  return "かぐを えらんで、へやの すきな ところに おこう！<br><small>おいた かぐは ドラッグで うごかせるよ</small>";
 }
 const roomList = () => roomData().rooms[roomData().cur];
 
@@ -240,6 +241,7 @@ function roomPick(id) {
   room();
 }
 function roomTap(x, y) {
+  if (Date.now() - roomDragEnd < 400) return; // ドラッグの おわりの クリックは むし
   const list = roomList();
   if (RM.sel) {
     const f = furnById(RM.sel);

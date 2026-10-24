@@ -942,3 +942,12 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .tsone .tsvg { width: 100%; height: auto; display: block; }
 .tsempty { color: #f3dcc0; font-size: 10px; font-weight: 700; padding: 6px 0; }
 .tdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff4d6d; margin-left: 3px; vertical-align: top; }
+/* ドラッグで うごかす */
+.room .rc.has { touch-action: none; cursor: grab; }
+.room.dragging, .room.dragging .rc { cursor: grabbing; }
+.room.dragging .ract { pointer-events: none; }
+.room .rc.tgt { outline: 3px solid #3cc45a; outline-offset: -3px; }
+.room .rc.tgt:not(.ok) { outline-color: #ff4d6d; background: rgba(255, 77, 109, .25); }
+.rdrag { position: absolute; z-index: 600; pointer-events: none; translate: -50% -75%; font-size: 40px; line-height: 1; filter: drop-shadow(0 6px 6px rgba(0,0,0,.3)); scale: 1.15; }
+.rdrag .ficon { width: 64px; }
+.rdrag .rugsw { width: 56px; height: 36px; }
