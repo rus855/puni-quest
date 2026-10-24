@@ -226,14 +226,15 @@ let nkTab = "pets";
 let breedSel = [0, 0];
 function nakama(tab) {
   if (tab) nkTab = tab;
-  const tabs = [["pets", "なかま"], ["egg", "タマゴ"], ["breed", "かけあわせ"], ["dex", "ずかん"]];
+  const tabs = [["pets", "なかま"], ["egg", "タマゴ"], ["otsukai", "おつかい"], ["breed", "かけあわせ"], ["dex", "ずかん"]];
   let body = "";
   if (nkTab === "pets") body = petsTab();
   else if (nkTab === "egg") body = eggTab();
+  else if (nkTab === "otsukai") body = otsukaiTab();
   else if (nkTab === "breed") body = breedTab();
   else body = dexTab();
   setScreen(`${topBar("なかま")}
-    <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === nkTab ? "on" : ""}" onclick="nakama('${k}')">${l}${k === "egg" && readyEggs().length ? " 🐣" : ""}</button>`).join("")}</div>
+    <div class="tabs t5">${tabs.map(([k, l]) => `<button class="${k === nkTab ? "on" : ""}" onclick="nakama('${k}')">${l}${k === "egg" && readyEggs().length ? " 🐣" : ""}${k === "otsukai" && otBack().length ? " 🎒" : ""}</button>`).join("")}</div>
     ${body}`, "bg-shop");
 }
 
@@ -243,7 +244,7 @@ function petCard(pet, onclick, extra = "") {
     <span class="pem2">${sp.em}</span>
     <span class="pinfo"><b>${sp.name} <small>Lv${pet.lv}</small></b><small>${RARITY[sp.r].stars} ${ELEMENTS[sp.el].icon} ${ABILITY[sp.ab].icon}${ABILITY[sp.ab].name}</small>
     <span class="bar xb"><i style="width:${pet.lv >= MAX_PET_LV ? 100 : (pet.xp / xpNeed(pet.lv)) * 100}%"></i></span></span>
-    ${S.partner === pet.u ? '<i class="curtag">あいぼう</i>' : ""}${extra}</button>`;
+    ${S.partner === pet.u ? '<i class="curtag">あいぼう</i>' : ""}${onErrand(pet.u) ? '<i class="curtag ottag">おつかい中</i>' : ""}${extra}</button>`;
 }
 
 function petsTab() {
@@ -265,10 +266,10 @@ function petDetail(u) {
     <div class="pname2">${sp.name} <small>${RARITY[sp.r].stars}</small></div>
     <p class="small">Lv <b>${pet.lv}</b>${pet.lv < MAX_PET_LV ? `（つぎの レベルまで あと ${xpNeed(pet.lv) - pet.xp}問 正解）` : "（MAX）"}</p>
     <div class="abox"><b>${ABILITY[sp.ab].icon} ${sp.waza}</b><br>${petDesc(pet)}<br><small>${ELEMENTS[sp.el].icon} ${ELEMENTS[sp.el].name} ぞくせい ／ ${sp.cd}問 正解ごとに つかう</small></div>
-    ${S.partner === u ? `<p class="tip">いまの あいぼう</p>` : `<button class="big-btn primary" onclick="setPartner(${u})">あいぼうに する</button>`}
+    ${S.partner === u ? `<p class="tip">いまの あいぼう</p>` : onErrand(u) ? `<p class="tip">🎒 おつかい中（かえってきたら あいぼうに できるよ）</p>` : `<button class="big-btn primary" onclick="setPartner(${u})">あいぼうに する</button>`}
     <button class="big-btn" onclick="closeModal()">とじる</button>`);
 }
-function setPartner(u) { S.partner = u; save(); snd("ok"); closeModal(); nakama("pets"); toast("あいぼうを かえたよ！"); }
+function setPartner(u) { if (onErrand(u)) return; S.partner = u; save(); snd("ok"); closeModal(); nakama("pets"); toast("あいぼうを かえたよ！"); }
 
 function eggTab() {
   const cells = [];
@@ -330,7 +331,7 @@ function breedPick(k) {
   const list = S.pets.filter((p) => p.u !== other);
   if (!list.length) { toast("なかまが 2ひき いると かけあわせ できるよ"); return; }
   modal(`<div class="mtitle">なかまを えらぶ</div><div class="plist sm">${list.map((p) => {
-    const why = p.lv < BREED_LV ? `Lv${BREED_LV}から` : p.bred === today() ? "きょうは おやすみ" : "";
+    const why = onErrand(p.u) ? "おつかい中" : p.lv < BREED_LV ? `Lv${BREED_LV}から` : p.bred === today() ? "きょうは おやすみ" : "";
     return petCard(p, why ? `toast('${why}')` : `breedSet(${k},${p.u})`, why ? `<i class="ngtag">${why}</i>` : "");
   }).join("")}</div><button class="big-btn" onclick="closeModal()">とじる</button>`);
 }
@@ -338,7 +339,7 @@ function breedSet(k, u) { breedSel[k] = u; closeModal(); nakama("breed"); }
 
 function doBreed() {
   const a = S.pets.find((p) => p.u === breedSel[0]), b = S.pets.find((p) => p.u === breedSel[1]);
-  if (!a || !b || !breedable(a) || !breedable(b) || S.coins < BREED_COST || S.eggs.length >= MAX_EGGS) return;
+  if (!a || !b || onErrand(a.u) || onErrand(b.u) || !breedable(a) || !breedable(b) || S.coins < BREED_COST || S.eggs.length >= MAX_EGGS) return;
   const rec = RECIPES.find(([pair]) => (pair[0] === a.sp && pair[1] === b.sp) || (pair[0] === b.sp && pair[1] === a.sp));
   if (rec) giveEgg(0, rec[1]);
   else {

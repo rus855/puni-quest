@@ -754,3 +754,29 @@ a.manualbtn { display: block; text-align: center; text-decoration: none; color: 
 .oknews { text-align: left; margin: 4px auto 10px; padding-left: 1.4em; max-width: 300px; font-size: 14px; }
 .okaeri .big-btn { margin-top: 6px; width: 100%; }
 .okbar { margin: 6px auto; max-width: 340px; background: linear-gradient(90deg, #fff3b0, #ffe0f0); border-radius: 99px; padding: 5px 12px; font-weight: 900; font-size: 13px; text-align: center; }
+/* おつかい */
+.otlist { display: grid; gap: 8px; margin: 8px 0; }
+.otslot { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: #fff; border: 3px solid var(--pc, #e6dcef); min-height: 64px; text-align: left; }
+.otslot.empty { justify-content: center; border-style: dashed; color: #8a6fa8; font-weight: 900; font-size: 15px; }
+.otslot.lock { justify-content: center; background: #f3eef5; color: #999; border-color: #ddd; font-size: 13px; font-weight: 700; }
+.otinfo { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.otinfo small { color: #777; }
+.otleft { font-size: 12px; text-align: center; color: #666; white-space: nowrap; }
+.otslot .otgo { width: auto; margin: 0; padding: 8px 14px; font-size: 15px; }
+.otworlds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0 10px; }
+.otworlds button { border: 3px solid #e6dcef; background: #fff; border-radius: 14px; padding: 6px 2px; font-weight: 900; font-size: 12px; display: grid; gap: 1px; }
+.otworlds button span { font-size: 24px; }
+.otworlds button.on { border-color: #ff7eb3; background: #fff0f6; }
+.ottimes { display: grid; gap: 6px; }
+.ottimes .big-btn { margin: 0; }
+.otquiz { background: #faf6ff; border-radius: 16px; padding: 8px; margin: 8px 0; }
+.otng { font-size: 12px; font-weight: 900; color: #7e57c2; }
+.otex { font-size: 13px; font-weight: 700; margin: 8px 0 0; }
+.otgift { flex-wrap: wrap; }
+.otx { color: #ff4d8d; }
+.petbig.sm { width: 84px; height: 84px; font-size: 50px; }
+.curtag.ottag { background: #ffb547; }
+button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: pointer; }
+/* なかま画面は タブが 5つ（1行に おさめる） */
+.tabs.t5 { gap: 4px; }
+.tabs.t5 button { padding: 9px 1px; font-size: 12px; white-space: nowrap; letter-spacing: -.3px; }

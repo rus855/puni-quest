@@ -496,12 +496,13 @@ function home() {
     <div class="pname">${esc(S.name)}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>
     ${eggStrip()}
+    ${otBanner()}
     ${okaeriBoost() ? `<div class="okbar">🌟 おかえりブースト中！ きょうは コインと タマゴの そだちが 2ばい</div>` : ""}
     <button class="big-btn primary" onclick="go('map')">⚔️ ぼうけんに でる！</button>
     <div class="menu4 m6">
       <button onclick="go('shop')"><span class="mi">🛒</span>ショップ${newShop() ? `<i class="badge">NEW</i>` : ""}</button>
       <button onclick="go('equip')"><span class="mi">🎽</span>そうび</button>
-      <button onclick="go('nakama')"><span class="mi">🐾</span>なかま${readyEggs().length ? `<i class="badge">🐣</i>` : ""}</button>
+      <button onclick="go('nakama')"><span class="mi">🐾</span>なかま${readyEggs().length ? `<i class="badge">🐣</i>` : otBack().length ? `<i class="badge">🎒</i>` : ""}</button>
       <button onclick="go('zukan')"><span class="mi">🃏</span>ずかん${ng ? `<i class="badge">${ng}</i>` : ""}</button>
       <button onclick="go('missions')"><span class="mi">📜</span>ミッション${claimable ? `<i class="badge">!</i>` : ""}</button>
       <button onclick="saveMenu()"><span class="mi">💾</span>セーブ</button>
