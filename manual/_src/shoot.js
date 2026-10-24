@@ -58,7 +58,7 @@ const SHOTS = [
   ["19c_otsukai", `RESTORE(); PETS.slice(0,10).forEach(p=>S.petDex[p.id]=1); var n=Date.now(), rw={coin:60,mats:{suuji:4,hidama:3},rare:[],egg:-1,xp:10}; S.otsukai=[{u:2,w:"math",h:8,start:n-8*3600000,end:n-1000,rw},{u:4,w:"sci",h:4,start:n-3600000,end:n+2*3600000+1500000,rw}]; nakama("otsukai")`],
   ["19d_otquiz", `RESTORE(); var n=Date.now(), rw={coin:60,mats:{suuji:4,hidama:3},rare:[],egg:-1,xp:10}; S.otsukai=[{u:2,w:"math",h:8,start:n-8*3600000,end:n-1000,rw}]; var id=CHAPTERS.find(c=>c.id==="k1b").items[3]; onWrong(id); nakama("otsukai"); S.otsukai[0].quiz=Object.assign({ng:true,cls:""},(function(){ for(let i=0;i<20;i++){ const q=makeQ(id,"kread"); if(q.kind==="choice") return {id:q.id,head:q.head,opts:q.opts,ai:q.ai,explain:q.explain}; } })()); otReturn(0)`, 900],
   ["20_dex", `RESTORE(); nakama("dex")`],
-  ["21_zukan", `RESTORE(); zukan("kanji")`],
+  ["21_zukan", `RESTORE(); S.cardLog=CHAPTERS.find(c=>c.id==="k1b").items.slice(0,6).map((id,i)=>({id,k:i%3?"new":"up",s:1,at:Date.now()-i*36e5*(i>3?20:1)})); zukan("new")`],
   ["22_mats", `RESTORE(); zukan("mats")`],
   ["23_missions", `RESTORE(); missions()`],
   ["24_settings", `RESTORE(); parent()`],

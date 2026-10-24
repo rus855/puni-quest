@@ -137,11 +137,19 @@ function onCorrect(id) {
     if (c.s === 0) { c.s = 1; c.last = d; ev = "new"; }
   } else if (c.s === 0) { c.s = 1; c.last = d; ev = "new"; }
   else if (c.last !== d && c.s < 5) { c.s++; c.last = d; ev = "up"; }
-  if (ev === "new" || ev === "up") addProg("starup3");
+  if (ev === "new" || ev === "up") { addProg("starup3"); logCard(id, ev, c.s); }
   // タマゴもいっしょに育つ
   if (growEggs((hsp().egg || 1) * (okaeriBoost() ? 2 : 1)) && typeof B !== "undefined" && B && $("fx")) fxText("🥚 タマゴが うごいた！", "card");
   return ev;
 }
+// あたらしく なった カード（ずかんの「🆕 あたらしい」に ならべる。さいきんの 80こ）
+function logCard(id, k, s) {
+  S.cardLog = (S.cardLog || []).filter((x) => x.id !== id);
+  S.cardLog.unshift({ id, k, s, at: Date.now() });
+  S.cardLog.length = Math.min(S.cardLog.length, 80);
+}
+// まだ 見ていない あたらしい カードの かず
+const newCards = () => (S.cardLog || []).filter((x) => x.at > (S.cardSeenAt || 0)).length;
 function onWrong(id) {
   const c = card(id);
   c.tot++; c.ng = true; c.st = 0; c.cs = 0; recordStat(false);
@@ -503,7 +511,7 @@ function home() {
       <button onclick="go('shop')"><span class="mi">🛒</span>ショップ${newShop() ? `<i class="badge">NEW</i>` : ""}</button>
       <button onclick="go('equip')"><span class="mi">🎽</span>そうび</button>
       <button onclick="go('nakama')"><span class="mi">🐾</span>なかま${readyEggs().length ? `<i class="badge">🐣</i>` : otBack().length ? `<i class="badge">🎒</i>` : ""}</button>
-      <button onclick="go('zukan')"><span class="mi">🃏</span>ずかん${ng ? `<i class="badge">${ng}</i>` : ""}</button>
+      <button onclick="go('zukan', newCards() ? 'new' : undefined)"><span class="mi">🃏</span>ずかん${newCards() ? `<i class="badge">NEW</i>` : ""}</button>
       <button onclick="go('missions')"><span class="mi">📜</span>ミッション${claimable ? `<i class="badge">!</i>` : ""}</button>
       <button onclick="saveMenu()"><span class="mi">💾</span>セーブ</button>
       <div class="hrow2"><button class="tbtn" onclick="go('treasures')"><span class="mi">🏆</span>たからもの${unseenTreasures().length ? `<i class="badge">NEW</i>` : ""}</button>
@@ -1500,7 +1508,8 @@ function worldCards(w) {
 // デバッグ：ずかん 全表示
 const zukanAll = () => PQ_DEBUG && window.PQ_ZUKANALL;
 function zukanTabs() {
-  return `<div class="tabs wtabs">${WORLDS.map((w) => `<button class="${zTab === w.id ? "on" : ""}" onclick="zukan('${w.id}')">${w.icon}<small>${w.name.replace("の国", "")}</small></button>`).join("")}<button class="${zTab === "mats" ? "on" : ""}" onclick="zukan('mats')">🧺<small>そざい</small></button></div>`;
+  const nn = newCards();
+  return `<div class="tabs wtabs"><button class="znew ${zTab === "new" ? "on" : ""}" onclick="zukan('new')">🆕<small>あたらしい</small>${nn ? `<i class="badge">${nn > 99 ? "99+" : nn}</i>` : ""}</button>${WORLDS.map((w) => `<button class="${zTab === w.id ? "on" : ""}" onclick="zukan('${w.id}')">${w.icon}<small>${w.name.replace("の国", "")}</small></button>`).join("")}<button class="${zTab === "mats" ? "on" : ""}" onclick="zukan('mats')">🧺<small>そざい</small></button></div>`;
 }
 // そざいずかん：どこで 手に入るか（一度 手に入れた そざいだけ）
 function matPlaces(k) {
@@ -1534,9 +1543,35 @@ function matZukan() {
       : `<div class="mcard lock"><span class="mem">？</span><div><b>？？？</b><small>まだ 見つけていない そざい</small></div></div>`).join("")}</div>`, "bg-shop");
 }
 
+// あたらしい カード（はじめて 手に いれた・★が ふえた）を あたらしい じゅんに
+function newZukan() {
+  const seen = S.cardSeenAt || 0, log = (S.cardLog || []).filter((x) => S.cards[x.id]).sort((a, b) => b.at - a.at);
+  const day = (t) => { const d = Math.round((new Date(today() + "T00:00:00") - new Date(dateKey(new Date(t)) + "T00:00:00")) / 864e5); return d <= 0 ? "きょう" : d === 1 ? "きのう" : `${d}日まえ`; };
+  let last = "", tiles = "";
+  log.forEach((x) => {
+    const c = S.cards[x.id], d = day(x.at), w = cardWorld(x.id);
+    if (d !== last) { tiles += `<div class="zday">${d}</div>`; last = d; }
+    tiles += `<button class="zc ${x.id.startsWith("k:") ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${x.id}')">
+      ${x.at > seen ? `<i class="znewtag">NEW</i>` : ""}<i class="zkind ${x.k}">${x.k === "new" ? "はじめて" : "★アップ"}</i>
+      <b>${esc(cardLabel(x.id))}</b><span class="stars">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</span>${w ? `<i class="zw">${w.icon}</i>` : ""}</button>`;
+  });
+  setScreen(`${topBar("ずかん")}${zukanTabs()}
+    <div class="zhead">🆕 あたらしい カード</div>
+    <p class="note">はじめて 手に いれた カードと ★が ふえた カードが、あたらしい じゅんに ならぶよ（さいきんの 80こ）</p>
+    ${log.length ? `<div class="zgrid znewgrid">${tiles}</div>` : `<div class="empty-note"><div class="bigicon">🃏</div><p>まだ ないよ。<br>バトルで 正解すると カードが ふえるよ！</p></div>`}`, "bg-shop");
+  // 見たので NEW を けす（つぎに ひらいた ときから）
+  S.cardSeenAt = Date.now(); save();
+}
+// カードが どの国の ものか
+function cardWorld(id) {
+  if (id.startsWith("k:")) return WORLDS.find((w) => w.id === "kanji");
+  const ch = CHAPTERS.find((c) => c.items && c.items.includes(id));
+  return ch ? WORLDS.find((w) => w.id === ch.w) : null;
+}
 function zukan(tab) {
   if (tab) zTab = tab;
   if (zTab === "mats") return matZukan();
+  if (zTab === "new") return newZukan();
   const ids = worldCards(zTab);
   const got = ids.filter((id) => S.cards[id] && S.cards[id].s > 0).length;
   const big = zTab === "kanji";
