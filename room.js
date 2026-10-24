@@ -23,6 +23,11 @@ const FURN = [
   { id: "f_tv", name: "テレビ", em: "📺", set: "base", price: 200, kira: 6, max: 1 },
   { id: "f_window", name: "まど", em: "🪟", set: "base", wall: 1, price: 80, kira: 4, max: 2 },
   { id: "f_pic", name: "え", em: "🖼️", set: "base", wall: 1, price: 100, kira: 4, max: 3 },
+  // しきもの（ゆかに しく。上に ほかの かぐを おける）。h：おくゆき、rc：いろ
+  { id: "f_rug1", name: "ふわふわラグ", em: "🩷", set: "base", rug: 1, w: 2, h: 2, price: 120, kira: 4, max: 2, rc: ["#ffc6dc", "#ff8fb8"] },
+  { id: "f_rug2", name: "しましまラグ", em: "🔵", set: "base", rug: 1, w: 3, h: 2, price: 180, kira: 5, max: 2, rc: ["#bfe3ff", "#fffdf5"], pat: "stripe" },
+  { id: "f_rug3", name: "ほしぞらラグ", em: "🌌", set: "base", rug: 1, w: 2, h: 2, price: 250, kira: 6, max: 1, rc: ["#3b3f8f", "#ffe066"], pat: "star" },
+  { id: "f_rug4", name: "はっぱの ラグ", em: "🍃", set: "base", rug: 1, w: 2, h: 2, price: 150, kira: 4, max: 2, rc: ["#a8e6a1", "#4f9e4c"], pat: "border" },
   // --- 漢字の国 ---
   { id: "f_k1", name: "ちょうちん", em: "🏮", set: "kanji", wall: 1, price: 220, mat: { moji: 3 }, kira: 8 },
   { id: "f_k2", name: "ひなにんぎょう", em: "🎎", set: "kanji", price: 300, mat: { moji: 5 }, kira: 8 },
@@ -64,6 +69,12 @@ const FURN = [
     need: () => typeof otMaou === "function" && otMaou(), hint: "まおうを たおすと ならぶよ" },
   { id: "f_okaeri", name: "おかえりの ソファ", em: "💝", set: "sp", w: 2, gift: 1, kira: 15, hint: "ひさしぶりに あそびに くると もらえるかも…" },
 ];
+// ねだんの ちょうせい：ぜんたい 2ばい、レアな そざいを つかう かぐは 2.5ばい、とくべつな かぐは 3ばい
+FURN.forEach((f) => {
+  if (!f.price) return;
+  const rare = Object.keys(f.mat || {}).some((k) => MATS[k] && MATS[k].rare);
+  f.price = Math.round((f.price * (f.set === "sp" ? 3 : rare ? 2.5 : 2)) / 10) * 10;
+});
 const furnById = (id) => FURN.find((f) => f.id === id);
 // かぐの しゅるい（えらぶ ときの なかま分け）。かべの かぐは ぜんぶ「かべ」
 const FKIND = {
@@ -72,9 +83,10 @@ const FKIND = {
   study: { name: "まなぶ", em: "📚", ids: ["f_shelf", "f_t2", "f_m2", "f_m5", "f_s2", "f_s3", "f_s4"] },
   nature: { name: "しぜん", em: "🌿", ids: ["f_plant", "f_basket", "f_k3", "f_k5"] },
   deco: { name: "おきもの", em: "🏺", ids: ["f_candle", "f_clock", "f_k2", "f_t3", "f_s5", "f_h2", "f_h3", "f_h4", "f_h5", "f_trophy", "f_hiken"] },
+  rug: { name: "しきもの", em: "🧶", ids: [] },
   wall: { name: "かべ", em: "🖼️", ids: [] },
 };
-const fKind = (f) => (f.wall ? "wall" : Object.keys(FKIND).find((k) => FKIND[k].ids.includes(f.id)) || "deco");
+const fKind = (f) => (f.wall ? "wall" : f.rug ? "rug" : Object.keys(FKIND).find((k) => FKIND[k].ids.includes(f.id)) || "deco");
 let roomCat = "all"; // しまってある かぐの なかま分け
 const FURN_SETS = ["kanji", "kotoba", "math", "sci", "soc"];
 const fMax = (f) => f.max || 1;
@@ -97,7 +109,7 @@ const setDone = (w) => FURN.filter((f) => f.set === w).every((f) => fPlaced(f.id
 function kiraScore() {
   const R = roomData();
   let k = 0;
-  R.rooms.forEach((r) => r.forEach((p) => { k += furnById(p.id).kira; }));
+  R.rooms.forEach((r) => { r.forEach((p) => { k += furnById(p.id).kira; }); k += roomCombos(r).length * COMBO_KIRA; });
   return k + FURN_SETS.filter((w) => R.stamps[w]).length * 20;
 }
 // へやの おおきさ（よこ C・たて R の ゆか）
@@ -126,8 +138,8 @@ function furnShopList() {
       const can = S.coins >= f.price && matOk;
       const need = f.mat && !full ? `<span class="mneed">${Object.entries(f.mat).map(([k, v]) => `<i class="${(S.mats[k] || 0) >= v ? "" : "lack"}">${MATS[k].em}${S.mats[k] || 0}/${v}</i>`).join("")}</span>` : "";
       return `<div class="sitem ${full ? "own" : ""}">
-        <div class="sprev fprev">${f.em}</div>
-        <div class="sname"><b>${f.name}</b><small>✨きらきら +${f.kira}${f.wall ? "・かべに かざる" : ""}${fMax(f) > 1 ? `・もってる ${own}/${fMax(f)}` : ""}</small>${need}</div>
+        <div class="sprev fprev">${fIcon(f)}</div>
+        <div class="sname"><b>${f.name}</b><small>✨きらきら +${f.kira}${f.wall ? "・かべに かざる" : ""}${f.rug ? `・${f.w}×${f.h}マス、上に かぐを おける` : ""}${fMax(f) > 1 ? `・もってる ${own}/${fMax(f)}` : ""}</small>${need}</div>
         ${full ? `<button class="sbtn" disabled>もってる</button>` : `<button class="sbtn ${can ? "" : "no"}" onclick="buyFurn('${f.id}')">🪙${f.price}</button>`}
       </div>`;
     }).join("");
@@ -167,47 +179,23 @@ function room() {
     ${roomTwo() ? `<div class="tabs">${[0, 1].map((i) => `<button class="${R.cur === i ? "on" : ""}" onclick="roomData().cur=${i};RM={sel:'',move:-1};room()">へや ${i + 1}</button>`).join("")}</div>` : ""}
     <div class="stamps">${FURN_SETS.map((w) => `<span class="${R.stamps[w] ? "on" : ""}" title="${WORLDS.find((x) => x.id === w).name}セット">${WORLDS.find((x) => x.id === w).icon}</span>`).join("")}<small>セットの スタンプ</small></div>
     <div id="roombox">${roomHTML()}</div>
+    ${comboStrip()}
     <div class="rmhint" id="rmhint">${roomHint()}</div>
     ${!RM.sel && RM.move < 0 && (roomPetList().length || 1) ? `<p class="small rmtip">💬 ぷにまるや なかまを タップすると おしゃべり するよ</p>` : ""}
     <div class="sub">🪑 しまってある かぐ</div>
     ${kinds.length > 1 ? `<div class="fcats"><button class="${roomCat === "all" ? "on" : ""}" onclick="roomCat='all';room()">すべて<i>${stockAll.length}</i></button>${kinds.map((k) => `<button class="${roomCat === k ? "on" : ""}" onclick="roomCat='${k}';room()">${FKIND[k].em}${FKIND[k].name}<i>${stockAll.filter((f) => fKind(f) === k).length}</i></button>`).join("")}</div>` : ""}
-    <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${f.em}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
-    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかまを よぶ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐを かう</button></div>
+    <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${fIcon(f)}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
+    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
   roomWalk();
 }
 
 function roomHint() {
-  if (RM.sel) { const f = furnById(RM.sel); return `${f.em} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
-  if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${f.em} ${f.name}を どこへ うごかす？ <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
+  if (RM.sel) { const f = furnById(RM.sel); return `${fIcon(f)} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
+  if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${fIcon(f)} ${f.name}を どこへ うごかす？ <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   return "かぐを えらんで、へやの すきな ところに おこう！";
 }
 const roomList = () => roomData().rooms[roomData().cur];
-
-// へやの え（かべ ＋ ゆか）
-function roomHTML() {
-  const { C, R } = roomSize(), list = roomList();
-  const f0 = RM.sel ? furnById(RM.sel) : RM.move >= 0 ? furnById(list[RM.move].id) : null;
-  const placing = !!f0;
-  const cells = [];
-  // かべ（y = -1 の 1れつ）
-  for (let x = 0; x < C; x++) cells.push(`<button class="rc wallc ${placing && f0.wall && canPlace(f0, x, -1) ? "ok" : ""}" style="left:${(x / C) * 100}%;top:0;width:${100 / C}%;height:var(--wh)" onclick="roomTap(${x},-1)"></button>`);
-  for (let y = 0; y < R; y++) for (let x = 0; x < C; x++) cells.push(`<button class="rc ${placing && !f0.wall && canPlace(f0, x, y) ? "ok" : ""}" style="left:${(x / C) * 100}%;top:calc(var(--wh) + (100% - var(--wh)) * ${y / R});width:${100 / C}%;height:calc((100% - var(--wh)) / ${R})" onclick="roomTap(${x},${y})"></button>`);
-  const items = list.map((p, i) => {
-    const f = furnById(p.id), w = f.w || 1;
-    if (p.x + w > C || p.y >= R) return ""; // ひろさが かわって はみでた ものは 出さない（ねんのため）
-    const top = p.y < 0 ? "0px" : `calc(var(--wh) + (100% - var(--wh)) * ${p.y / R})`;
-    const h = p.y < 0 ? "var(--wh)" : `calc((100% - var(--wh)) / ${R})`;
-    let inner = `<span class="fem ${w > 1 ? "w2" : ""}">${f.em}</span>`;
-    if (p.id === "f_kake") inner = `<span class="kake">${roomData().kake ? esc(roomData().kake.slice(2)) : "？"}</span>`;
-    if (p.id === "f_trophy") inner += `<i class="fcount">${Object.keys(S.treasures || {}).length}</i>`;
-    if (p.id === "f_okaeri") inner = `<span class="fem w2">🛋️</span><i class="fheart">💗</i>`;
-    return `<div class="fi ${RM.move === i ? "moving" : ""}" style="left:${(p.x / C) * 100}%;top:${top};width:${(w / C) * 100}%;height:${h}">${inner}</div>`;
-  }).join("");
-  // ぷにまると なかま（あるきまわる）
-  const pets = roomPetList().map((u) => { const pet = S.pets.find((p) => p.u === u); return pet ? `<div class="ract rpet" onclick="roomTalk(this,${u})"><span class="rbody">${petSp(pet.sp).em}</span></div>` : ""; }).join("");
-  return `<div class="room ${placing ? "placing" : ""}" style="--wh:${(1.4 / (R + 1.4)) * 100}%;aspect-ratio:${C} / ${R + 1.4}">${cells.join("")}${items}<div class="ract rme" onclick="roomTalk(this,0)"><span class="rbody">${charSVG(S.eq, S.color)}</span></div>${pets}</div>`;
-}
 
 // へやに いる なかま（えらんで いなければ あいぼう＋2ひき。おつかい中は いない）
 function roomPetList() {
@@ -215,21 +203,6 @@ function roomPetList() {
   let l = R.pets.filter((u) => S.pets.some((p) => p.u === u));
   if (!R.pets.length) l = [S.partner, ...S.pets.map((p) => p.u).filter((u) => u !== S.partner)].filter(Boolean).slice(0, 3);
   return l.filter((u) => !(typeof onErrand === "function" && onErrand(u)));
-}
-
-// その ばしょに おけるか（ほかの かぐと かさならない・へやから はみださない）
-function canPlace(f, x, y, skip = -1) {
-  const { C, R } = roomSize(), w = f.w || 1;
-  if (!!f.wall !== (y < 0) || x < 0 || x + w > C || y >= R) return false;
-  return !roomList().some((p, i) => {
-    if (i === skip) return false;
-    const g = furnById(p.id), pw = g.w || 1;
-    return p.y === y && x < p.x + pw && p.x < x + w;
-  });
-}
-// その マスに ある かぐの ばんごう
-function itemAt(x, y) {
-  return roomList().findIndex((p) => { const w = furnById(p.id).w || 1; return p.y === y && x >= p.x && x < p.x + w; });
 }
 
 function roomPick(id) {
@@ -242,8 +215,9 @@ function roomTap(x, y) {
   if (RM.sel) {
     const f = furnById(RM.sel);
     // 2マスの かぐは、右はしを タップしても おけるように 1マス ずらす
-    if (!canPlace(f, x, y) && (f.w || 1) > 1 && canPlace(f, x - 1, y)) x--;
-    if (!canPlace(f, x, y)) { snd("ng"); toast(f.wall ? "かべの あいている ところを えらんでね" : "ゆかの あいている ところを えらんでね"); return; }
+    const sp = fitSpot(f, x, y);
+    if (sp) [x, y] = sp;
+    if (!sp) { snd("ng"); toast(f.wall ? "かべの あいている ところを えらんでね" : "ゆかの あいている ところを えらんでね"); return; }
     list.push({ id: f.id, x, y });
     snd("ok");
     if (fOwn(f.id) - fPlaced(f.id) <= 0) RM.sel = "";
@@ -252,8 +226,9 @@ function roomTap(x, y) {
   }
   if (RM.move >= 0) {
     const p = list[RM.move], f = furnById(p.id);
-    if (!canPlace(f, x, y, RM.move) && (f.w || 1) > 1 && canPlace(f, x - 1, y, RM.move)) x--;
-    if (!canPlace(f, x, y, RM.move)) { snd("ng"); toast("そこには おけないよ"); return; }
+    const sp = fitSpot(f, x, y, RM.move);
+    if (sp) [x, y] = sp;
+    if (!sp) { snd("ng"); toast("そこには おけないよ"); return; }
     p.x = x; p.y = y; RM.move = -1; snd("ok");
     afterPlace();
     return;
@@ -262,7 +237,7 @@ function roomTap(x, y) {
   if (i < 0) return;
   const f = furnById(list[i].id);
   snd("tap");
-  modal(`<div class="mtitle">${f.em} ${f.name}</div>
+  modal(`<div class="mtitle">${fIcon(f)} ${f.name}</div>
     ${f.id === "f_kake" ? `<button class="big-btn primary" onclick="kakePick()">🖌️ かざる 漢字を えらぶ</button>` : ""}
     ${f.id === "f_trophy" ? `<p>たからもの <b>${Object.keys(S.treasures || {}).length}こ</b> を かざっているよ</p>` : ""}
     <button class="big-btn" onclick="closeModal();RM={sel:'',move:${i}};room()">↔️ うごかす</button>
@@ -289,6 +264,9 @@ function afterPlace() {
   if (k >= ROOM_TWO) R.two = 1;
   if (!before.big && R.big) msg += `<p>✨ きらきら度が ${ROOM_BIG}に なった！<br><b>へやが ひろく なったよ</b></p>`;
   if (!before.two && R.two) msg += `<p>✨ きらきら度が ${ROOM_TWO}に なった！<br><b>2つめの へやが できたよ</b></p>`;
+  // セットが そろうと もようがえが ふえる
+  if (msg.includes("コンプリート")) msg += `<p class="small">🎨「もようがえ」で あたらしい かべと ゆかが えらべるように なったよ</p>`;
+  comboCheck();
   save(); room();
   if (msg) { snd("special"); modal(`<div class="mtitle">🎉 やったね！</div>${msg}<button class="big-btn primary" onclick="closeModal()">うれしい！</button>`); }
 }
@@ -326,20 +304,3 @@ function roomPetToggle(u) {
   if (pl) pl.scrollTop = sc;
 }
 
-// ぷにまると なかまが ゆかを あるきまわる
-function roomWalk() {
-  clearInterval(roomTimer);
-  const move = () => {
-    const box = document.querySelector(".room");
-    if (!box) { clearInterval(roomTimer); return; }
-    const { C, R } = roomSize();
-    box.querySelectorAll(".ract:not(.talking)").forEach((el) => {
-      const x = Math.random() * (C - 0.9), y = Math.random() * (R - 0.6);
-      el.style.left = `${(x / C) * 100}%`;
-      el.style.top = `calc(var(--wh) + (100% - var(--wh)) * ${y / R} - 6%)`;
-      el.classList.toggle("flip", Math.random() < 0.5);
-    });
-  };
-  move();
-  roomTimer = setInterval(move, 2600);
-}

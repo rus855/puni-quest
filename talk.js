@@ -129,7 +129,7 @@ function talkLines(pet, isMe) {
   const st = roomStats(), L = [];
   const add = (w, t) => L.push([w, t]);
   const sp = pet ? petSp(pet.sp) : null;
-  const hour = new Date().getHours();
+  const hour = typeof roomHour === "function" ? roomHour() : new Date().getHours();
 
   // --- へやの かぐの かず ---
   if (st.n === 0) {
@@ -187,6 +187,23 @@ function talkLines(pet, isMe) {
   if (st.ids.f_niji) add(10, "にじの まど、きれい{dane} まおうに かった しるし{da}");
   if (st.ids.f_tv) add(5, "テレビ、なにを みようかな？");
   if (st.ids.f_clock) add(4, `はしらどけいを 見たら、いまは ${hour}じ{dane}`);
+  // --- くみあわせ・もようがえ・まど ---
+  const cmb = typeof roomCombos === "function" ? roomCombos() : [];
+  const CMB_TALK = {
+    tv: "テレビタイム{da} ソファで いっしょに みよう！", read: "どくしょコーナーで ほんを よみたい{ne}", tea: "おちゃかいの じゅんびは ばっちり{dane}",
+    sun: "まどの そばは ぽかぽか{dane} ひなたぼっこ さいこう！", star: "ぼうえんきょうで ほしを 見たい{ne}", music: "ピアノの えんそうかい、ききたい{ne}",
+    game: "ゲームコーナーで しょうぶ{da}", wa: "かけじくと おちゃ…わの こころ{dane}", sleep: "おやすみセット{dane} よく ねむれそう{da}",
+    dino: "きょうりゅうの けんきゅう、おもしろそう{dane}", lab: "じっけんしつ{dane} なにを まぜようかな", cozy: "ラグの 上は ふかふか{dane} ごろんと したい{yo}",
+    garden: "おしろの おにわ みたい{dane} りっぱ{da}", party: "パーティー{da} わくわく{da}", museum: "ミニはくぶつかん{dane} たからものが いっぱい{da}", post: "おてがみ、だれに かこうかな？",
+  };
+  cmb.forEach((x) => add(12, CMB_TALK[x.c.id] || `${x.c.name}、いい かんじ{dane}`));
+  if (cmb.length >= 3) add(14, `くみあわせが ${cmb.length}こも！ センスが いい{ne}`);
+  if (typeof roomTheme === "function" && roomTheme() !== "base") add(10, `${THEMES[roomTheme()].name}の もよう、すてき{dane}`);
+  if (st.ids.f_window || st.ids.f_niji) {
+    const dp = dayPart();
+    add(8, { morning: "まどの そとが あかるい{ne}", day: "まどの そとは いい てんき{dane}", evening: "まどの そとが ゆうやけ{dane} きれい{da}", night: "まどの そとに おつきさま{da}" }[dp]);
+  }
+  if (st.n >= 4 && !st.list.some((p) => furnById(p.id).rug)) add(6, "ラグを しいたら、もっと まとまりそう{da}");
   // --- きらきら度 ---
   const k = kiraScore();
   if (k >= ROOM_TWO) add(6, `きらきら度 ${k}！ りっぱな ひみつきち{dane}`);

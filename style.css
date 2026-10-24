@@ -848,3 +848,74 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .rbubble.below::after { bottom: auto; top: -9px; border-top: 0; border-bottom: 8px solid #ff9ec4; }
 @keyframes bpop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .rmtip { text-align: center; margin: -4px 0 6px; color: #8a6fa8; }
+/* ===== ひみつきち：おくゆきの ある へや ===== */
+.room { container-type: inline-size; background: #e9d3b5; }
+.room::before, .room::after { content: none; }
+.room .rbg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+.room .rgmove { opacity: .4; }
+.room .rc { z-index: 50; }
+.room .rc.fl.show { outline: 1px dashed rgba(255,255,255,.55); outline-offset: -2px; }
+.room .rc.ok { background: rgba(110, 220, 130, .45); outline: none; border-radius: 0; }
+/* かぐ：下の まんなかを ばしょに あわせる */
+.fi { position: absolute; z-index: 100; width: calc(var(--fw) * 100cqw); transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
+.fi.wall { transform: translate(-50%, -50%); }
+.fi .fem { font-size: calc(var(--fw) / var(--w, 1) * 74cqw); line-height: 1; filter: drop-shadow(0 2px 1px rgba(0,0,0,.18)); position: relative; z-index: 1; }
+.fi.w2 .fem { font-size: calc(var(--fw) * 52cqw); }
+.fi .fsh, .ract .fsh { position: absolute; left: 50%; bottom: -6%; width: 86%; height: 22%; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(60,30,10,.35), rgba(60,30,10,0)); z-index: 0; }
+.fi.wall .kake { font-size: calc(var(--fw) * 42cqw); }
+.fi .ctag { position: absolute; top: -18%; right: 0; font-style: normal; font-size: calc(var(--fw) * 26cqw); animation: ctag 2.4s ease-in-out infinite; z-index: 2; }
+@keyframes ctag { 0%, 100% { translate: 0 0; opacity: .9; } 50% { translate: 0 -4px; opacity: 1; } }
+.fi .tvon { position: absolute; left: 22%; right: 22%; top: 30%; bottom: 34%; border-radius: 3px; background: linear-gradient(135deg, #9ff3ff, #7aa7ff, #ffb3e6); animation: tvon 1.6s linear infinite; z-index: 2; opacity: .85; }
+@keyframes tvon { 50% { filter: hue-rotate(90deg) brightness(1.2); } }
+.fi .steam { position: absolute; top: -20%; font-style: normal; font-size: calc(var(--fw) * 30cqw); animation: steam 2s ease-out infinite; z-index: 2; }
+@keyframes steam { from { translate: 0 4px; opacity: .9; } to { translate: 0 -8px; opacity: 0; } }
+.fi .fheart { font-size: calc(var(--fw) * 22cqw); top: -10%; right: 20%; }
+.fi .fcount { font-size: calc(var(--fw) * 18cqw); }
+/* まどの けしき */
+.win { position: relative; display: block; width: calc(var(--fw) * 82cqw); aspect-ratio: 1 / 1.1; border: calc(var(--fw) * 5cqw) solid #fff; border-radius: 6px 6px 3px 3px; overflow: hidden;
+  background: linear-gradient(var(--s1), var(--s2)); box-shadow: 0 2px 3px rgba(0,0,0,.2), inset 0 0 0 1px rgba(0,0,0,.08); }
+.win .wbar { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 47%, #fff 47% 53%, transparent 53%), linear-gradient(transparent 47%, #fff 47% 53%, transparent 53%); }
+.win .wsun { position: absolute; width: 34%; aspect-ratio: 1; border-radius: 50%; right: 12%; top: 12%; background: radial-gradient(#fff7b0, #ffd23f); box-shadow: 0 0 10px #ffe680; }
+.win .wsun.ev { right: auto; left: 30%; top: 58%; background: radial-gradient(#ffe0a0, #ff7a3c); }
+.win .wcloud { position: absolute; width: 46%; height: 16%; left: 8%; top: 56%; background: #fff; border-radius: 99px; opacity: .9; animation: cloud 14s linear infinite alternate; }
+@keyframes cloud { to { translate: 40% 0; } }
+.win .wmoon { position: absolute; right: 10%; top: 6%; font-style: normal; font-size: calc(var(--fw) * 26cqw); }
+.win .wst { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; animation: tw 2.2s ease-in-out infinite; }
+.win.niji { border-color: #fff6fb; }
+.win .wrain { position: absolute; inset: 15% -20% auto -20%; height: 70%; border-radius: 50% 50% 0 0;
+  background: radial-gradient(circle at 50% 100%, transparent 38%, #ff6b6b 38% 44%, #ffd23f 44% 50%, #6fdc6f 50% 56%, #4aa8ff 56% 62%, #c77dff 62% 68%, transparent 68%); opacity: .85; }
+@keyframes tw { 50% { opacity: .2; } }
+/* あるきまわる なかま */
+.ract { width: calc(var(--fw, .15) * 100cqw); transform: translate(-50%, -100%); transition: left 2.4s ease-in-out, top 2.4s ease-in-out, width 2.4s ease-in-out; }
+.ract.rpet .rbody { font-size: calc(var(--fw, .15) * 74cqw); line-height: 1; position: relative; z-index: 1; }
+.ract.rme .rbody { position: relative; z-index: 1; }
+/* よる・ゆうがたの くらさ と あかり */
+.room .rshade { position: absolute; inset: 0; z-index: 300; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, rgba(30,30,80,calc(var(--night) * .6)) 30%, rgba(20,20,60,calc(var(--night) + .14)) 100%); }
+.room.dp-evening .rshade { background: radial-gradient(ellipse at 50% 45%, rgba(255,140,60,.08) 30%, rgba(80,30,40,.24) 100%); }
+.room .rglows { position: absolute; inset: 0; z-index: 310; pointer-events: none; mix-blend-mode: screen; }
+.room .glow { position: absolute; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: radial-gradient(closest-side, rgba(var(--gc), .55), rgba(var(--gc), 0)); }
+.room .glow.lamp { animation: flick 3s ease-in-out infinite; }
+@keyframes flick { 50% { transform: scale(1.06); filter: brightness(1.1); } }
+.room .rsparks { position: absolute; inset: 0; z-index: 320; pointer-events: none; }
+.room .spark { position: absolute; width: 6px; height: 6px; background: radial-gradient(#fff, rgba(255,240,150,.0) 70%); border-radius: 50%; animation: spark 4s ease-in-out infinite; }
+.room .spark::before, .room .spark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 1.5px; translate: -50% -50%; background: linear-gradient(90deg, transparent, #fff8c4, transparent); }
+.room .spark::after { rotate: 90deg; }
+@keyframes spark { 0%, 100% { opacity: 0; transform: translateY(6px) scale(.5); } 40%, 60% { opacity: 1; transform: translateY(-4px) scale(1); } }
+.room .beam { mix-blend-mode: screen; }
+/* くみあわせ・もようがえ・ラグ */
+.combos { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 8px 0 2px; }
+.combos span { background: linear-gradient(135deg, #fff6c2, #ffe0f0); border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 900; box-shadow: 0 2px 0 #f0d9a0; }
+.combos small { font-size: 11px; color: #8a6fa8; text-align: center; }
+.rmbtns .big-btn { font-size: 14px; }
+.thlist { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.thlist button { border: 3px solid #e6dcef; background: #fff; border-radius: 14px; padding: 6px; font-weight: 900; font-size: 13px; display: grid; gap: 4px; justify-items: center; }
+.thlist button.on { border-color: #ff7eb3; background: #fff0f6; }
+.thlist button.lock { color: #aaa; }
+.thsw { width: 100%; height: 44px; border-radius: 8px; background: linear-gradient(var(--a) 0 45%, var(--c) 45% 48%, var(--b) 48%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.rugsw { display: inline-block; width: 1.2em; height: .8em; border-radius: 30%; vertical-align: middle; background: repeating-linear-gradient(90deg, var(--a) 0 6px, var(--b) 6px 9px); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.sprev.fprev .rugsw { width: 52px; height: 34px; }
+.fi .ctag { font-size: calc(var(--fw) / var(--w, 1) * 22cqw); top: -6%; right: -4%; opacity: .95; }
+.room.dp-night .rshade { background: radial-gradient(ellipse at 50% 50%, rgba(25,30,95,.4) 30%, rgba(8,8,45,.62) 100%); }
+.room.dp-day .rshade, .room.dp-morning .rshade { background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(60,30,20,.16) 100%); }
+.rbubble { z-index: 500; }
