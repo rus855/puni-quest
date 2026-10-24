@@ -32,6 +32,7 @@ const NEWS = [
   { v: 52, t: "🎨 ひみつきちが おくゆきの ある へやに なって、もようがえ・ラグ・くみあわせが ふえた" },
   { v: 53, t: "🛏️ かぐが 40しゅるい ふえた（国を すすめると ショップに ならぶよ）" },
   { v: 54, t: "👆 ひみつきちの かぐを ドラッグで うごかせるように なった" },
+  { v: 55, t: "📁 ひみつきちの へやを きろく・よみこみ できるように なった" },
 ];
 
 const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
@@ -76,7 +77,7 @@ function okaeriCheck(last, bonus) {
       <p class="okboost">🌟 きょうは <b>おかえりブースト</b>！<br><small>正解の コインと タマゴの そだちが 2ばい。おかえりミッションも あるよ</small></p>
       ${news.length ? `<div class="sub">あたらしく なったこと</div><ul class="oknews">${news.map((n) => `<li>${n.t}</li>`).join("")}</ul>` : ""}
       ${ch && !ch.maou ? `<button class="big-btn primary" onclick="closeModal();openChapter('${ch.id}')">▶ 前の つづきから（${esc(ch.name)}）</button>` : ""}
-      <button class="big-btn ${ch && !ch.maou ? "" : "primary"}" onclick="closeModal();home()">ただいま！</button></div>`);
+      <button class="big-btn ${ch && !ch.maou ? "" : "primary"}" onclick="closeModal();home()">ただいま！</button></div>`, "tmodal");
   }, 300);
   return true;
 }

@@ -214,6 +214,7 @@ function roomHTML() {
 // できている くみあわせの いちらん（へやの 下）
 function comboStrip() {
   const c = roomCombos();
+  if (!c.length && roomList().length < 3) return "";
   return `<div class="combos">${c.length ? c.map((x) => `<span>${x.c.em} ${x.c.name}</span>`).join("") : `<small>かぐを くみあわせて おくと ✨ くみあわせ ボーナス！（どんな くみあわせが あるかな？）</small>`}</div>`;
 }
 
@@ -250,8 +251,12 @@ function roomWalk() {
     const box = document.querySelector(".room");
     if (!box) { clearInterval(roomTimer); return; }
     const g = rgeo();
+    const free = [];
+    for (let y = 0; y < g.R; y++) for (let x = 0; x < g.C; x++) { const i = itemAt(x, y); if (i < 0 || furnById(roomList()[i].id).rug) free.push([x, y]); }
     box.querySelectorAll(".ract:not(.talking)").forEach((el) => {
-      const t = 0.35 + Math.random() * (g.R - 0.45), x = 0.4 + Math.random() * (g.C - 0.8);
+      // かぐの ない マスの 中の どこか（ラグの 上は あるける）
+      const c = free.length ? pick(free) : [Math.random() * (g.C - 1), Math.random() * (g.R - 1)];
+      const x = c[0] + 0.3 + Math.random() * 0.4, t = c[1] + 0.45 + Math.random() * 0.4;
       el.style.left = pc(g.X(x, t));
       el.style.top = pc(g.Y(t));
       el.style.setProperty("--fw", (g.cw(t) * (el.classList.contains("rme") ? 1.05 : 0.95)).toFixed(4));
@@ -275,7 +280,7 @@ function roomThemePick() {
 }
 
 // かぐの アイコン（ラグは いろの みほん）
-const fIcon = (f) => (f.art ? `<span class="ficon ${f.rainbow ? "rainbow" : ""}">${furnArtSVG(f)}</span>` : f.rug ? `<i class="rugsw" style="--a:${f.rc[0]};--b:${f.rc[1]}"></i>` : f.em);
+const fIcon = (f) => (f.art ? `<span class="ficon ${f.rainbow ? "rainbow" : ""}">${furnArtSVG(f)}</span>` : f.rug ? `<span class="rugsw" style="--a:${f.rc[0]};--b:${f.rc[1]}"></span>` : f.em);
 
 // ---------- トロフィーだな ----------
 // もらった じゅんに たからものを よこに ならべる（ふえたら 2だんに）

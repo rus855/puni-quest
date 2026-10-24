@@ -214,7 +214,7 @@ function room() {
     <div class="sub">🪑 しまってある かぐ</div>
     ${kinds.length > 1 ? `<div class="fcats"><button class="${roomCat === "all" ? "on" : ""}" onclick="roomCat='all';room()">すべて<i>${stockAll.length}</i></button>${kinds.map((k) => `<button class="${roomCat === k ? "on" : ""}" onclick="roomCat='${k}';room()">${FKIND[k].em}${FKIND[k].name}<i>${stockAll.filter((f) => fKind(f) === k).length}</i></button>`).join("")}</div>` : ""}
     <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${fIcon(f)}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
-    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
+    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="roomSaveMenu()">📁 きろく</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
   roomWalk();
   roomDragInit();
@@ -223,7 +223,7 @@ function room() {
 function roomHint() {
   if (RM.sel) { const f = furnById(RM.sel); return `${fIcon(f)} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${fIcon(f)} ${f.name}を どこへ うごかす？ <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
-  return "かぐを えらんで、へやの すきな ところに おこう！<br><small>おいた かぐは ドラッグで うごかせるよ</small>";
+  return `かぐを えらんで、へやの すきな ところに おこう！${roomList().length ? "<br><small>おいた かぐは ドラッグで うごかせるよ</small>" : ""}`;
 }
 const roomList = () => roomData().rooms[roomData().cur];
 
@@ -336,3 +336,72 @@ function roomPetToggle(u) {
   if (pl) pl.scrollTop = sc;
 }
 
+
+// ---------- へやの きろく（ほぞん・よみこみ・まっさら） ----------
+// きろくは 3つ。どの へやにも つかえる（かぐの ならびと もようがえ）
+const ROOM_SAVES = 3;
+const roomSaves = () => { const R = roomData(); R.saves = R.saves || []; return R.saves; };
+function roomSaveMenu() {
+  snd("tap");
+  const sv = roomSaves();
+  const row = (i) => {
+    const d = sv[i];
+    if (!d) return `<div class="rsv"><b>きろく ${i + 1}</b><small class="rsvempty">（からっぽ）</small><span class="rsvbtn"><button class="mini" onclick="roomSaveTo(${i})">💾 ほぞん</button></span></div>`;
+    const t = new Date(d.at), icons = d.items.slice(0, 8).map((p) => fIcon(furnById(p.id) || { em: "？" })).join("");
+    return `<div class="rsv"><b>きろく ${i + 1}</b><small>${t.getMonth() + 1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")}・かぐ ${d.items.length}こ・${(THEMES[d.theme] || THEMES.base).name}</small>
+      <span class="rsvicons">${icons}</span><span class="rsvbtn"><button class="mini" onclick="roomLoad(${i})">📂 よみこむ</button><button class="mini" onclick="roomSaveTo(${i})">💾 うわがき</button></span></div>`;
+  };
+  modal(`<div class="mtitle">📁 へやの きろく</div><p class="small">いまの へや（へや ${roomData().cur + 1}）の かぐの ならびと もようがえを きろくできるよ</p>
+    <div class="rsvlist">${[...Array(ROOM_SAVES).keys()].map(row).join("")}</div>
+    <button class="big-btn" onclick="roomClearAsk()">🧹 へやを まっさらに する</button>
+    <button class="big-btn" onclick="closeModal()">とじる</button>`, "tmodal");
+}
+function roomSaveTo(i, after) {
+  const sv = roomSaves();
+  if (sv[i] && !after) {
+    modal(`<div class="mtitle">💾 うわがき する？</div><p>きろく ${i + 1} を いまの へやで うわがき するよ。<br>まえの きろくは きえるよ。</p>
+      <button class="big-btn primary" onclick="roomSaveTo(${i},'ok')">うわがき する</button><button class="big-btn" onclick="roomSaveMenu()">やめる</button>`);
+    return;
+  }
+  if (!roomList().length && after !== "clear") { toast("かぐが ない へやは きろく できないよ"); return; }
+  sv[i] = { at: Date.now(), theme: roomTheme(), items: roomList().map((p) => ({ id: p.id, x: p.x, y: p.y })) };
+  save(); snd("ok");
+  if (after === "clear") return;
+  toast(`きろく ${i + 1} に ほぞん したよ！`);
+  roomSaveMenu();
+}
+// よみこみ：いまの へやの かぐは しまってから ならべなおす。たりない かぐは とばす
+function roomLoad(i) {
+  const d = roomSaves()[i];
+  if (!d) return;
+  const R = roomData(), L = roomList();
+  L.length = 0;
+  let skip = 0;
+  d.items.forEach((p) => {
+    const f = furnById(p.id);
+    if (!f || fOwn(p.id) - fPlaced(p.id) <= 0 || !canPlace(f, p.x, p.y)) { skip++; return; }
+    L.push({ id: p.id, x: p.x, y: p.y });
+  });
+  R.themes = R.themes || ["base", "base"];
+  R.themes[R.cur] = THEMES[d.theme] && themeOpen(d.theme) ? d.theme : "base";
+  RM = { sel: "", move: -1 };
+  closeModal(); snd("special");
+  afterPlace();
+  toast(skip ? `きろく ${i + 1} を よみこんだよ（${skip}こは もう 1つの へやで つかっているか、もっていないので おけなかったよ）` : `きろく ${i + 1} を よみこんだよ！`);
+}
+// まっさら：まず きろくを すすめる
+function roomClearAsk() {
+  if (!roomList().length) { toast("へやは もう まっさらだよ"); return; }
+  const sv = roomSaves(), free = [...Array(ROOM_SAVES).keys()].find((i) => !sv[i]);
+  modal(`<div class="mtitle">🧹 へやを まっさらに する？</div>
+    <p>へやの かぐを ぜんぶ しまうよ。<br><b>いまの へやを きろく しておく？</b><br><small>きろく しておくと、あとで もとに もどせるよ</small></p>
+    <div class="rsvpick">${[...Array(ROOM_SAVES).keys()].map((i) => `<button class="big-btn ${i === (free ?? -1) ? "primary" : ""}" onclick="roomSaveTo(${i},'clear');roomClear(${i})">💾 きろく ${i + 1} に のこして まっさら${sv[i] ? "<small>（うわがき）</small>" : ""}</button>`).join("")}</div>
+    <button class="big-btn" onclick="roomClear(-1)">のこさないで まっさら</button>
+    <button class="big-btn" onclick="roomSaveMenu()">やめる</button>`, "tmodal");
+}
+function roomClear(saved) {
+  roomList().length = 0;
+  RM = { sel: "", move: -1 };
+  save(); closeModal(); snd("tap"); room();
+  toast(saved >= 0 ? `きろく ${saved + 1} に のこして、へやを まっさらに したよ` : "へやを まっさらに したよ");
+}
