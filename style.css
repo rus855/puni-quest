@@ -826,3 +826,4 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .kakel button { border: 3px solid #e6dcef; background: #fff; border-radius: 12px; font-size: 26px; font-weight: 900; padding: 6px 0; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; }
 .kakel button.on { border-color: #ff7eb3; background: #fff0f6; }
 .ngtag.okt { background: #3cc45a; color: #fff; }
+.rmbtns .big-btn { font-size: 15px; padding-left: 4px; padding-right: 4px; }

@@ -27,6 +27,7 @@ const NEWS = [
   { v: 47, t: "💌 おかえりイベントが はじまった" },
   { v: 48, t: "🎒 なかまを おつかいに 出せるように なった" },
   { v: 49, t: "🏠 ぷにまるの ひみつきちが できた" },
+  { v: 50, t: "🪑 おつかいや おかえりで かぐが もらえるように なった" },
 ];
 
 const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
@@ -48,6 +49,13 @@ function okaeriCheck(last, bonus) {
   let eggTxt = "";
   if (giveEgg(g.egg)) eggTxt = `🥚 ${RARITY[g.egg].name}の タマゴ`;
   else { S.coins += 100; eggTxt = "🪙 +100（タマゴが いっぱいだったので）"; }
+  // かぐ（7日いじょう：ふつうの かぐ、14日いじょう：おかえりの ソファ）
+  let furnTxt = "";
+  if (gap >= 7 && typeof FURN !== "undefined") {
+    let fu = gap >= 14 && fOwn("f_okaeri") < 1 ? furnById("f_okaeri") : null;
+    if (!fu) { const fl = FURN.filter((x) => x.set === "base" && fOwn(x.id) < fMax(x)); fu = fl.length ? pick(fl) : null; }
+    if (fu) { giveFurn(fu.id); furnTxt = `${fu.id === "f_okaeri" ? "💝" : fu.em} ${fu.name}（かぐ）`; }
+  }
   // まだ 見ていない おしらせ
   const seen = S.newsV || 0, news = NEWS.filter((n) => n.v > seen && n.v <= (window.APP_V || 999)).slice(-4);
   if (window.APP_V) S.newsV = window.APP_V;
@@ -60,7 +68,7 @@ function okaeriCheck(last, bonus) {
       <div class="hero sm">${charSVG(S.eq, S.color, "bounce")}</div>
       <p class="letter"><b>${gap}日ぶり</b>だね！ ずっと まってたよ。<br>また いっしょに ぼうけんしよう！</p>
       <div class="sub">おかえりの プレゼント</div>
-      <div class="okgift"><span>🪙 +${g.coin + bonus}</span><span>${eggTxt}</span></div>
+      <div class="okgift"><span>🪙 +${g.coin + bonus}</span><span>${eggTxt}</span>${furnTxt ? `<span>${furnTxt}</span>` : ""}</div>
       <p class="okboost">🌟 きょうは <b>おかえりブースト</b>！<br><small>正解の コインと タマゴの そだちが 2ばい。おかえりミッションも あるよ</small></p>
       ${news.length ? `<div class="sub">あたらしく なったこと</div><ul class="oknews">${news.map((n) => `<li>${n.t}</li>`).join("")}</ul>` : ""}
       ${ch && !ch.maou ? `<button class="big-btn primary" onclick="closeModal();openChapter('${ch.id}')">▶ 前の つづきから（${esc(ch.name)}）</button>` : ""}

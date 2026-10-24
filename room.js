@@ -154,7 +154,7 @@ function room() {
     <div class="rmhint" id="rmhint">${roomHint()}</div>
     <div class="sub">🪑 しまってある かぐ</div>
     <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${f.em}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
-    <div class="row"><button class="big-btn" onclick="roomPets()">🐾 へやの なかまを えらぶ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐを かう</button></div>
+    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかまを よぶ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐを かう</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
   roomWalk();
 }

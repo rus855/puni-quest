@@ -38,7 +38,9 @@ function otRoll(pet, w, t) {
   if (t.h >= 8 && Math.random() < 0.05 * f) rare.push(WORLD_RARE[w][1]);
   const eggP = t.h >= 8 ? 0.2 : t.h >= 4 ? 0.08 : 0;
   const egg = Math.random() < eggP ? (Math.random() < 0.15 * f ? 1 : 0) : -1;
-  return { coin: Math.round(15 * u * f), mats, rare, egg, xp: 2 * u };
+  // その国の かぐ（もらう ときに まだ もっていない ものから えらぶ）
+  const furn = Math.random() < (t.h >= 8 ? 0.18 : t.h >= 4 ? 0.08 : 0) * f;
+  return { coin: Math.round(15 * u * f), mats, rare, egg, xp: 2 * u, furn };
 }
 
 // ---------- なかま画面の「おつかい」タブ ----------
@@ -60,7 +62,7 @@ function otsukaiTab() {
         ${left <= 0 ? `<button class="big-btn primary otgo" onclick="otReturn(${i})">むかえる</button>` : `<span class="otleft">あと<br><b>${otLeftText(left)}</b></span>`}</div>`;
     }
   }
-  return html + `</div><p class="small">おみやげ：その国の そざい・なかまの ぞくせいの たま・コイン。ときどき レアな そざいや タマゴも！<br>Lvが 高い なかま・レアな なかまほど たくさん もってくるよ。</p>`;
+  return html + `</div><p class="small">おみやげ：その国の そざい・なかまの ぞくせいの たま・コイン。ときどき レアな そざいや タマゴ、その国の かぐも！<br>Lvが 高い なかま・レアな なかまほど たくさん もってくるよ。</p>`;
 }
 function otLeftText(ms) {
   const m = Math.ceil(ms / 60000);
@@ -158,6 +160,11 @@ function otReward(i, ok) {
   let eggTxt = "";
   if (r.egg >= 0) eggTxt = giveEgg(r.egg) ? `🥚 ${RARITY[r.egg].name}の タマゴ` : "🪙 +50（タマゴが いっぱいだったので）";
   if (r.egg >= 0 && eggTxt.startsWith("🪙")) S.coins += 50;
+  // かぐ（その国の セットで まだ もっていない もの）
+  if (r.furn && typeof FURN !== "undefined") {
+    const fl = FURN.filter((x) => x.set === o.w && fOwn(x.id) < fMax(x));
+    if (fl.length) { const fu = pick(fl); giveFurn(fu.id); got.push(`${fu.em}<small>${fu.name}（かぐ）</small>`); }
+  }
   // なかまの けいけんち
   let up = false;
   if (pet && pet.lv < MAX_PET_LV) {
