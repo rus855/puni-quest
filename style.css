@@ -971,3 +971,14 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .rsvbtn .mini { border: 0; border-radius: 99px; padding: 6px 12px; background: #fff; box-shadow: var(--shadow); font-weight: 900; font-size: 13px; }
 .rsvpick { display: grid; gap: 6px; }
 .rsvpick .big-btn { margin: 0; font-size: 15px; }
+/* きろくは へやタブの 列の 左はし。下の ボタンは 1れつ */
+.tabs.rmtabs { justify-content: flex-start; }
+.tabs.rmtabs .rmsave { flex: 0 0 auto; padding: 10px 14px; background: linear-gradient(135deg, #fff6c2, #ffe0f0); box-shadow: 0 3px 0 #f0d9a0; color: #6b4a1e; }
+.tabs.rmtabs button:not(.rmsave) { flex: 1 1 0; }
+.rmbtns { flex-wrap: nowrap; gap: 6px; }
+.rmbtns .big-btn { flex: 1 1 0; min-width: 0; font-size: 13px; padding: 12px 2px; white-space: nowrap; margin: 0; }
+.rmbtns { margin: 4px 0 10px; }
+.tabs.rmtabs { position: static; align-items: center; margin: 0 0 8px; padding: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.tabs.rmtabs .stamps { flex: 1; margin: 0; gap: 4px; }
+.tabs.rmtabs .stamps span { width: 28px; height: 28px; font-size: 15px; }
+.stamps small { line-height: 1.2; }

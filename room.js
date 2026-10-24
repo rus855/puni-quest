@@ -205,21 +205,23 @@ function room() {
   const stock = stockAll.filter((f) => roomCat === "all" || fKind(f) === roomCat);
   setScreen(`${topBar("ひみつきち")}
     <div class="kira"><b>✨ きらきら度 ${k}</b>${next ? `<span class="bar"><i style="width:${Math.min(100, ((k - prev) / (next - prev)) * 100)}%"></i></span><small>${next === ROOM_BIG ? "へやが ひろく なる" : "2つめの へやが できる"}まで あと ${next - k}</small>` : `<small>へやは ぜんぶ ひらいたよ！</small>`}</div>
-    ${roomTwo() ? `<div class="tabs">${[0, 1].map((i) => `<button class="${R.cur === i ? "on" : ""}" onclick="roomData().cur=${i};RM={sel:'',move:-1};room()">へや ${i + 1}</button>`).join("")}</div>` : ""}
-    <div class="stamps">${FURN_SETS.map((w) => `<span class="${R.stamps[w] ? "on" : ""}" title="${WORLDS.find((x) => x.id === w).name}セット">${WORLDS.find((x) => x.id === w).icon}</span>`).join("")}<small>セットの スタンプ</small></div>
+    <div class="tabs rmtabs"><button class="rmsave" onclick="roomSaveMenu()">📁 きろく</button>${roomTwo() ? [0, 1].map((i) => `<button class="${R.cur === i ? "on" : ""}" onclick="roomData().cur=${i};RM={sel:'',move:-1};room()">へや ${i + 1}</button>`).join("") : stampsHTML()}</div>
+    ${roomTwo() ? stampsHTML() : ""}
     <div id="roombox">${roomHTML()}</div>
     ${comboStrip()}
     <div class="rmhint" id="rmhint">${roomHint()}</div>
     ${!RM.sel && RM.move < 0 && (roomPetList().length || 1) ? `<p class="small rmtip">💬 ぷにまるや なかまを タップすると おしゃべり するよ</p>` : ""}
+    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <div class="sub">🪑 しまってある かぐ</div>
     ${kinds.length > 1 ? `<div class="fcats"><button class="${roomCat === "all" ? "on" : ""}" onclick="roomCat='all';room()">すべて<i>${stockAll.length}</i></button>${kinds.map((k) => `<button class="${roomCat === k ? "on" : ""}" onclick="roomCat='${k}';room()">${FKIND[k].em}${FKIND[k].name}<i>${stockAll.filter((f) => fKind(f) === k).length}</i></button>`).join("")}</div>` : ""}
     <div class="fstock">${stock.length ? stock.map((f) => `<button class="${RM.sel === f.id ? "on" : ""}" onclick="roomPick('${f.id}')"><span>${fIcon(f)}</span><small>${f.name}</small>${fOwn(f.id) - fPlaced(f.id) > 1 ? `<i>×${fOwn(f.id) - fPlaced(f.id)}</i>` : ""}</button>`).join("") : `<p class="small">ショップの「かぐ」で かえるよ。おいた かぐを タップすると しまえるよ。</p>`}</div>
-    <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="roomSaveMenu()">📁 きろく</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <p class="small" style="text-align:center">へやの ひろさ：よこ ${C}マス${roomData().rooms[1].length || roomTwo() ? "・へやは 2つ" : ""}</p>`, "bg-home");
   roomWalk();
   roomDragInit();
 }
 
+// 国セットの スタンプ（へやが 1つの ときは「きろく」の よこに ならべる）
+const stampsHTML = () => `<div class="stamps">${FURN_SETS.map((w) => `<span class="${roomData().stamps[w] ? "on" : ""}" title="${WORLDS.find((x) => x.id === w).name}セット">${WORLDS.find((x) => x.id === w).icon}</span>`).join("")}<small>セットの<br>スタンプ</small></div>`;
 function roomHint() {
   if (RM.sel) { const f = furnById(RM.sel); return `${fIcon(f)} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${fIcon(f)} ${f.name}を どこへ うごかす？ <button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
