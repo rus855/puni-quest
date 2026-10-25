@@ -208,8 +208,8 @@ function room() {
     <div class="tabs rmtabs"><button class="rmsave" onclick="roomSaveMenu()">📁 きろく</button>${roomTwo() ? [0, 1].map((i) => `<button class="${R.cur === i ? "on" : ""}" onclick="roomData().cur=${i};RM={sel:'',move:-1};room()">へや ${i + 1}</button>`).join("") : stampsHTML()}</div>
     ${roomTwo() ? stampsHTML() : ""}
     <div id="roombox">${roomHTML()}</div>
-    ${comboStrip()}
-    <div class="rmhint" id="rmhint">${roomHint()}</div>
+    <div id="rmcombo">${comboStrip()}</div>
+    <div class="rmhint ${RM.rot >= 0 ? "rot" : ""}" id="rmhint">${roomHint()}</div>
     ${!RM.sel && RM.move < 0 && (roomPetList().length || 1) ? `<p class="small rmtip">💬 ぷにまるや なかまを タップすると おしゃべり するよ</p>` : ""}
     <div class="row rmbtns"><button class="big-btn" onclick="roomPets()">🐾 なかま</button><button class="big-btn" onclick="roomThemePick()">🎨 もようがえ</button><button class="big-btn" onclick="go('shop','furn')">🛒 かぐ</button></div>
     <div class="sub">🪑 しまってある かぐ</div>
@@ -223,6 +223,7 @@ function room() {
 // 国セットの スタンプ（へやが 1つの ときは「きろく」の よこに ならべる）
 const stampsHTML = () => `<div class="stamps">${FURN_SETS.map((w) => `<span class="${roomData().stamps[w] ? "on" : ""}" title="${WORLDS.find((x) => x.id === w).name}セット">${WORLDS.find((x) => x.id === w).icon}</span>`).join("")}<small>セットの<br>スタンプ</small></div>`;
 function roomHint() {
+  if (RM.rot >= 0 && roomList()[RM.rot]) return rotHint();
   if (RM.sel) { const f = furnById(RM.sel); return `${fIcon(f)} ${f.name}：${f.wall ? "かべの" : "ゆかの"} おきたい ところを タップしてね ${placeDirBtn(f.id)}<button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   if (RM.move >= 0) { const f = furnById(roomList()[RM.move].id); return `${fIcon(f)} ${f.name}を どこへ うごかす？ ${placeDirBtn(f.id)}<button class="mini" onclick="RM={sel:'',move:-1};room()">やめる</button>`; }
   return `かぐを えらんで、へやの すきな ところに おこう！${roomList().length ? "<br><small>おいた かぐは ドラッグで うごかせるよ</small>" : ""}`;
@@ -233,7 +234,9 @@ function placeDirBtn(id) {
   if (!t) return "";
   const d = RM.dir;
   const label = d === undefined || d === null ? "じどう" : t === "m" ? (d === 3 ? "はんてん" : "そのまま") : DIR_NAME[d];
-  return `<button class="mini" onclick="placeDirNext('${id}')">🔄 むき：${label}</button>`;
+  // えらんだ むきの 小さな 絵（じどうの ときは まえ むきで 見せる）
+  const f = furnById(id), pic = f.art ? `<span class="ficon">${furnArtSVG(f, d === undefined || d === null ? 0 : d)}</span>` : "";
+  return `<button class="mini" onclick="placeDirNext('${id}')">🔄 むき：${pic}${label}</button>`;
 }
 function placeDirNext(id) {
   const t = dirType(id), seq = t === 4 ? [null, 0, 1, 2, 3] : t === 2 ? [null, 0, 2] : [null, 0, 3];
@@ -259,6 +262,11 @@ function roomPick(id) {
 function roomTap(x, y) {
   if (Date.now() - roomDragEnd < 400) return; // ドラッグの おわりの クリックは むし
   const list = roomList();
+  if (RM.rot >= 0) {
+    const j = itemAt(x, y);
+    if (j >= 0 && dirType(list[j].id)) { RM.rot = j; snd("tap"); roomRefresh(); return; }
+    RM = { sel: "", move: -1 }; snd("tap"); room(); return;
+  }
   if (RM.sel) {
     const f = furnById(RM.sel);
     if (fOwn(f.id) - fPlaced(f.id) <= 0) { RM.sel = ""; room(); return; }
@@ -305,16 +313,45 @@ function roomDirButtons(i) {
   return `<button class="big-btn primary" onclick="roomRotate(${i})">🔄 むきを かえる <small>（いま：${DIR_NAME[d]}${p.man ? "・じぶんで きめた" : "・じどう"}）</small></button>
     ${p.man ? `<button class="big-btn" onclick="roomAutoDir(${i})">🧭 じどうに もどす</button>` : ""}`;
 }
-// むきを かえる（じぶんで きめた むき に なる）。メニューは ひらいた まま
-function roomRotate(i) {
-  const p = roomList()[i];
-  p.d = nextDir(p.id, effDir(p)); p.man = 1;
-  snd("tap"); afterPlace(); closeModal(); roomTap(p.x, p.y);
-}
+// むきを かえる モード：メニューを とじて、へやを 見ながら まわす
 function roomAutoDir(i) {
   const p = roomList()[i];
   delete p.d; delete p.man;
   snd("tap"); afterPlace(); closeModal(); roomTap(p.x, p.y);
+}
+function roomRotate(i) {
+  closeModal(); snd("tap");
+  RM = { sel: "", move: -1, rot: i };
+  room();
+  const box = $("roombox"); if (box) box.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+function rotHint() {
+  const p = roomList()[RM.rot], f = furnById(p.id), t = dirType(p.id), d = effDir(p);
+  const btns = t === 4
+    ? `<button class="mini big" onclick="rotStep(-1)">⟲ まわす</button><button class="mini big" onclick="rotStep(1)">⟳ まわす</button>`
+    : t === 2 ? `<button class="mini big" onclick="rotStep(1)">🔄 まえ ⇔ うしろ</button>` : `<button class="mini big" onclick="rotStep(1)">↔️ はんてん</button>`;
+  return `<b>🔄 ${esc(f.name)}の むき</b>：いま <b>${t === "m" ? (d === 3 ? "はんてん" : "そのまま") : DIR_NAME[d]}</b>${p.man ? "（じぶんで きめた）" : "（じどう）"}
+    <div class="rotbtns">${btns}${p.man ? `<button class="mini" onclick="rotAuto()">🧭 じどう</button>` : ""}<button class="mini ok" onclick="RM={sel:'',move:-1};snd('ok');room()">✅ できた</button></div>
+    <small>ほかの かぐを タップすると その かぐの むきを かえられるよ</small>`;
+}
+// まわす（⟳ は 上から 見て 時計まわり：まえ→ひだり→うしろ→みぎ）
+function rotStep(k) {
+  const p = roomList()[RM.rot], t = dirType(p.id), d = effDir(p);
+  p.d = t === 4 ? (k > 0 ? [3, 0, 1, 2][d] : [1, 2, 3, 0][d]) : nextDir(p.id, d);
+  p.man = 1; snd("tap"); save(); comboCheck(); roomRefresh();
+}
+function rotAuto() {
+  const p = roomList()[RM.rot];
+  delete p.d; delete p.man; snd("tap"); save(); roomRefresh();
+}
+// へやの 絵・くみあわせ・ヒントだけ かきかえる（画面が うごかない ように）
+function roomRefresh() {
+  const box = $("roombox");
+  if (!box) return room();
+  box.innerHTML = roomHTML();
+  const c = $("rmcombo"); if (c) c.innerHTML = comboStrip();
+  const h = $("rmhint"); if (h) { h.innerHTML = roomHint(); h.classList.toggle("rot", RM.rot >= 0); }
+  roomWalk(); roomDragInit();
 }
 function roomStore(i) {
   roomList().splice(i, 1);

@@ -186,7 +186,7 @@ function roomHTML() {
     const ta = p.y + 0.82, cx = g.X(p.x + w / 2, ta), cw = g.cw(ta);
     if (f.glow) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.6 * C) / g.H, r: cw * 2.6, c: f.glow, k: "lamp" });
     if (p.id === "f_candle" || p.id === "f_tv" && hasCombo("tv")) glows.push({ x: cx, y: g.Y(ta) - (cw * 0.5 * C) / g.H, r: cw * (p.id === "f_tv" ? 1.6 : 2.2), c: p.id === "f_tv" ? "140,200,255" : "255,170,80", k: "lamp" });
-    return `<div class="fi ${w > 1 ? "w2" : ""} ${f.art ? "art" : ""} ${f.shine ? "shine" : ""} ${f.rainbow ? "rainbow" : ""} ${p.id === "f_trophy" ? "tshelf" : ""} ${RM.move === i ? "moving" : ""}" data-i="${i}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
+    return `<div class="fi ${w > 1 ? "w2" : ""} ${f.art ? "art" : ""} ${f.shine ? "shine" : ""} ${f.rainbow ? "rainbow" : ""} ${p.id === "f_trophy" ? "tshelf" : ""} ${RM.move === i ? "moving" : ""} ${RM.rot === i ? "rotating" : ""}" data-i="${i}" style="left:${pc(cx)};top:${pc(g.Y(ta))};--fw:${(cw * w).toFixed(4)};--w:${w};z-index:${100 + Math.round(ta * 10)}"><i class="fsh"></i>${inner}${tag}</div>`;
   }).join("");
   // まどからの ひかり（ゆかに さしこむ）
   let beams = "";
@@ -316,7 +316,7 @@ function trophyShelfHTML() {
 let RD = null, roomDragEnd = 0;
 function roomDragInit() {
   const box = document.querySelector(".room");
-  if (!box || RM.sel || RM.move >= 0) return;
+  if (!box || RM.sel || RM.move >= 0 || RM.rot >= 0) return;
   box.addEventListener("pointerdown", (e) => {
     const c = e.target.closest(".rc.has");
     if (!c || e.button > 0) return;
