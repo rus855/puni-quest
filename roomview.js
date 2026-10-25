@@ -101,7 +101,7 @@ const findPair = (L, a, bs, ok = adjacent) => { const as = [].concat(a); for (co
 // しゅるいで まとめた かぐの id（あたらしい ベッドや いすも くみあわせに つかえる）
 const kindIds = (...ks) => FURN.filter((f) => ks.includes(fKind(f))).map((f) => f.id);
 const COMBOS = [
-  { id: "tv", name: "テレビタイム", em: "📺", find: (L) => findPair(L, "f_tv", kindIds("sit", "sleep"), (a, b) => b.y > a.y && b.y - a.y <= 2 && a.x < b.x + fw(b) && b.x < a.x + fw(a)) },
+  { id: "tv", name: "テレビタイム", em: "📺", find: (L) => findPair(L, "f_tv", SEATS, (a, b) => gapOf(a, b) <= 3 && faces(b, a, L) && faces(a, b, L)) },
   { id: "read", name: "どくしょコーナー", em: "📖", find: (L) => findPair(L, "f_shelf", kindIds("sit")) || findPair(L, "f_t2", kindIds("sit")) || findPair(L, "g_k08", kindIds("sit")) },
   { id: "tea", name: "おちゃかい", em: "🍵", find: (L) => findPair(L, "f_k4", [...kindIds("sit"), "f_k2"]) || findPair(L, "g_k03", ["g_k02", "g_k04"]) || findPair(L, "g_t08", kindIds("sit")) },
   { id: "sun", name: "ひなたぼっこ", em: "☀️", find: (L) => { for (const w of L.filter((p) => p.id === "f_window" || p.id === "f_niji")) { const q = L.find((p) => [...kindIds("sleep", "sit", "rug")].includes(p.id) && p.y >= 0 && p.y <= 1 && p.x <= w.x + 1 && p.x + fw(p) >= w.x); if (q) return q; } return null; } },
@@ -166,12 +166,13 @@ function roomHTML() {
   const items = list.map((p, i) => {
     const f = furnById(p.id), w = f.w || 1;
     if (f.rug || p.x + w > C || p.y >= R) return "";
-    let inner = f.art ? furnArtSVG(f) : `<span class="fem">${f.em}</span>`;
+    const d = effDir(p, list);
+    let inner = f.art ? furnArtSVG(f, d) : `<span class="fem"${d === 3 ? ' style="display:inline-block;transform:scaleX(-1)"' : ""}>${f.em}</span>`;
     if (p.id === "f_kake") inner = `<span class="kake">${roomData().kake ? esc(roomData().kake.slice(2)) : "？"}</span>`;
     if (p.id === "f_window" || p.id === "f_niji") inner = windowHTML(p.id === "f_niji");
     if (p.id === "f_trophy") inner = trophyShelfHTML();
-    if (p.id === "f_okaeri") inner = `<span class="fem">🛋️</span><i class="fheart">💗</i>`;
-    if (p.id === "f_tv" && hasCombo("tv")) inner += `<i class="tvon"></i>`;
+    if (p.id === "f_okaeri") inner += `<i class="fheart">💗</i>`;
+    if (p.id === "f_tv" && hasCombo("tv") && d === 0) inner += `<i class="tvon"></i>`;
     if (p.id === "f_k4" && hasCombo("tea")) inner += `<i class="steam">♨️</i>`;
     const c = comboAt.get(p);
     const tag = c ? `<i class="ctag">${c.em}</i>` : "";
@@ -253,7 +254,26 @@ function roomWalk() {
     const g = rgeo();
     const free = [];
     for (let y = 0; y < g.R; y++) for (let x = 0; x < g.C; x++) { const i = itemAt(x, y); if (i < 0 || furnById(roomList()[i].id).rug) free.push([x, y]); }
+    // すわれる ところ（2マスの ソファは 2人まで）
+    const L = roomList(), seats = [];
+    L.filter((p) => SEATS.includes(p.id) && p.y >= 0).forEach((p) => { for (let k = 0; k < fw(p); k++) seats.push({ p, x: p.x + k + 0.5, d: effDir(p, L) }); });
+    const taken = new Set();
     box.querySelectorAll(".ract:not(.talking)").forEach((el) => {
+      const free2 = seats.filter((s) => !taken.has(s));
+      if (free2.length && Math.random() < 0.35) {
+        const st = pick(free2); taken.add(st);
+        const t = st.p.y + 0.62;
+        el.style.left = pc(g.X(st.x, t));
+        // うしろ むきの ソファでは、せもたれの むこうに 頭が 見える
+        const back = st.d === 2;
+        el.style.top = pc(g.Y(t) - (back ? 0.06 : 0.02));
+        el.style.setProperty("--fw", (g.cw(t) * (el.classList.contains("rme") ? 0.95 : 0.85)).toFixed(4));
+        el.style.zIndex = 100 + Math.round((st.p.y + 0.82) * 10) + (back ? -1 : 1);
+        el.classList.add("sit");
+        el.classList.toggle("flip", st.d === 3 ? true : st.d === 1 ? false : Math.random() < 0.5);
+        return;
+      }
+      el.classList.remove("sit");
       // かぐの ない マスの 中の どこか（ラグの 上は あるける）
       const c = free.length ? pick(free) : [Math.random() * (g.C - 1), Math.random() * (g.R - 1)];
       const x = c[0] + 0.3 + Math.random() * 0.4, t = c[1] + 0.45 + Math.random() * 0.4;
