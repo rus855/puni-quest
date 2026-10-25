@@ -1277,17 +1277,7 @@ function openBox() {
 }
 
 // バトル中にぶきを付けかえる
-function swapWeapon() {
-  if (B.busy) return;
-  snd("tap");
-  const e = B.e, ch = B.st && B.st.ch, here = (w) => w.sp && w.sp.world && ch && !ch.maou && (w.sp.world === "all" || w.sp.world === ch.w);
-  // この国の ひけんを いちばん上に
-  const ws = ITEMS.filter((x) => x.type === "weapon" && S.owned.includes(x.id)).sort((a, b) => (here(b) ? 1 : 0) - (here(a) ? 1 : 0));
-  modal(`<div class="mtitle">ぶきを かえる</div><p class="small">${esc(e.name)}の ぞくせい：<b>${ELEMENTS[e.el].icon} ${ELEMENTS[e.el].name}</b></p>
-    <div class="wlist">${ws.map((w) => { const x = wEff(w), bf = wBar(w), m = x * bf; return `<button class="witem ${S.eq.weapon === w.id ? "sel" : ""} ${m >= 2 ? "good" : m < 1 ? "bad" : ""}" onclick="setWeapon('${w.id}')">
-      <span class="wel">${ELEMENTS[w.el].icon}</span><b>${w.name}</b><small>⚔️${w.atk}</small><span class="effs"><i class="eff">${EFFECT_MARK(x)} ${EFFECT_LABEL(x)}</i>${bf < 1 ? `<i class="eff bar">🛡️ ${bf === 0.5 ? "はんぶん" : "3/4"}</i>` : ""}${here(w) ? `<i class="eff hk">🗡️ この国で つよい</i>` : ""}</span>${w.sp ? `<small class="spt">${spText(w.sp)}</small>` : ""}</button>`; }).join("")}</div>
-    <button class="big-btn" onclick="closeModal()">とじる</button>`);
-}
+// ぶきを かえる ポップアップは wpick.js（おすすめ・お気に入り・しぼりこみ）
 function setWeapon(id) {
   S.eq.weapon = id; save(); closeModal(); snd("ok");
   $("pchr").innerHTML = charSVG(S.eq, S.color);
@@ -1486,7 +1476,7 @@ function equip() {
   const cnt = (t) => (t === "color" ? "" : `<small>${ITEMS.filter((x) => x.type === t && S.owned.includes(x.id)).length}</small>`);
   const body = eqTab === "color"
     ? `<div class="esec"><div class="colors">${BODY_COLORS.map((c) => `<button class="cdot ${S.color === c ? "sel" : ""}" style="background:${c}" onclick="setColor('${c}')"></button>`).join("")}</div></div>`
-    : (eqTab === "weapon" ? hikenPanel() : "") + sec(eqTab);
+    : eqTab === "weapon" ? hikenPanel() + weaponEquipList() : sec(eqTab);
   setScreen(`${topBar("そうび")}
     <div class="eqtop"><div class="hero">${charSVG(S.eq, S.color, "bounce")}</div>
     <div class="stats"><span>⚔️ ${pAtk()}</span><span>🛡️ ${pDef()}</span><span>❤️ ${pMaxHp()}</span></div>

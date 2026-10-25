@@ -995,3 +995,23 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .zc .zkind.up { background: #ffb800; }
 .zc .zw { position: absolute; bottom: 1px; right: 3px; font-style: normal; font-size: 10px; }
 .znewgrid .zc { aspect-ratio: auto; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+/* ぶきを えらびやすく（たたかいの 中） */
+.wbest { display: grid; gap: 2px; margin: 6px 0 4px; }
+.wbest small { font-size: 12px; font-weight: 700; opacity: .95; }
+.wbestok { text-align: center; font-weight: 900; font-size: 13px; background: #eaffee; border-radius: 12px; padding: 6px; margin: 6px 0 4px; color: #2e8b47; }
+.wsub { font-weight: 900; font-size: 13px; text-align: left; margin: 10px 2px 4px; color: #8a6fa8; }
+.wmore { width: 100%; border: 2px dashed #d9c8ee; background: #faf6ff; border-radius: 14px; padding: 9px; font-weight: 900; font-size: 14px; margin: 10px 0 4px; color: #6b4f8a; }
+.wmore small { font-weight: 700; color: #999; }
+.wcats, .wsorts { justify-content: flex-start; margin: 6px 0; }
+.wsorts span { font-size: 11px; font-weight: 900; color: #999; align-self: center; margin-right: 2px; }
+.wcats button { font-size: 15px; padding: 3px 10px; }
+.wcats button.goodel { border-color: #3cc45a; }
+.wcats button.goodel.on { background: #3cc45a; border-color: #3cc45a; }
+/* そうび画面：お気に入りの ☆ */
+.ewrap { position: relative; }
+.ewrap .eitem { width: 100%; padding-right: 44px; }
+.wfav { position: absolute; top: 50%; right: 6px; translate: 0 -50%; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #fff6d5; font-size: 18px; color: #c9a227; box-shadow: 0 2px 0 #f0d9a0; }
+.wfav.on { background: #ffe680; }
+.wfavnote { margin: 2px 2px 6px; color: #8a6fa8; }
+.ewrap .eitem { padding-right: 36px; height: 100%; }
+.wfav { top: 6px; right: 6px; translate: none; width: 30px; height: 30px; font-size: 15px; }
