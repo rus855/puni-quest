@@ -2,8 +2,8 @@
 "use strict";
 
 // 国を ぜんぶ クリアしたか（保護者の 設定で お休みの 章は のぞく）
-const worldAllClear = (w) => { const l = activeChapters(w); return l.length > 0 && l.every(chapterDone); };
-const allWorldsClear = () => WORLDS.every((w) => !activeChapters(w.id).length || worldAllClear(w.id)) && WORLDS.some((w) => activeChapters(w.id).length);
+const worldAllClear = (w) => { const l = progChapters(w); return l.length > 0 && l.every(chapterDone); };
+const allWorldsClear = () => WORLDS.every((w) => !progChapters(w.id).length || worldAllClear(w.id)) && WORLDS.some((w) => progChapters(w.id).length);
 const goodCount = () => (S.stats && S.stats.cor) || 0;
 const kiraCount = () => Object.values(S.cards || {}).filter((c) => c.s >= 5).length;
 const dexCount = () => Object.keys(S.petDex || {}).length;

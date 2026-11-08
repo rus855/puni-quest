@@ -38,14 +38,14 @@ function writeOpen(ch) {
 
 // ---------- まおう ----------
 // 国ごとに たおした ボスの 数
-const bossCount = (w) => activeChapters(w).filter(chapterDone).length;
-const maouNeed = (w) => Math.min(5, activeChapters(w).length);
+const bossCount = (w) => progChapters(w).filter(chapterDone).length;
+const maouNeed = (w) => Math.min(5, progChapters(w).length);
 function maouOpen(n) {
   if (window.PQ_DEBUG && window.PQ_OPEN) return true;
-  const ws = WORLDS.filter((w) => activeChapters(w.id).length);
+  const ws = WORLDS.filter((w) => progChapters(w.id).length);
   if (!ws.length) return false;
   if (n === 1) return ws.every((w) => bossCount(w.id) >= maouNeed(w.id));
-  return stStars("z1-4") > 0 && ws.every((w) => bossCount(w.id) >= activeChapters(w.id).length);
+  return stStars("z1-4") > 0 && ws.every((w) => bossCount(w.id) >= progChapters(w.id).length);
 }
 // まおうの 問題：クリアした 章の 問題から、むずかしめ（ティア3いじょう）を 中心に
 function maouPool() {
@@ -168,6 +168,18 @@ function skelPts(sk, N) {
   return pts;
 }
 const featCache = {};
+// フォントを えらべる お手本（カタカナの はんてい用）
+const KATA_FONTS = [null, "sans-serif", "serif"];
+function refFeatF(k, font) {
+  if (!font) return refFeat(k);
+  const key = font + ":" + k;
+  if (featCache[key]) return featCache[key];
+  const N = FS_N, c = document.createElement("canvas"); c.width = c.height = N;
+  const g = c.getContext("2d", { willReadFrequently: true });
+  g.font = `${Math.round(N * 0.8)}px ${font}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#000";
+  g.fillText(k, N / 2, N / 2 + N * 0.04);
+  return (featCache[key] = dirFeat(skelPts(thinGrid(gridOf(g, N, 100), N), N)));
+}
 function refFeat(k) {
   if (featCache[k]) return featCache[k];
   const N = FS_N, c = document.createElement("canvas"); c.width = c.height = N;
@@ -202,6 +214,13 @@ function writeCheck(k, strokes) {
   const f = inkFeat(strokes);
   if (!f) return { ok: false, s: 0 };
   const me = cosSim(refFeat(k), f);
+  // カタカナ：ほかの カタカナ ぜんぶと くらべて、いちばん にている ときだけ ○（シと ツ などを 見分ける）
+  // フォントで 形が ちがうので、いくつかの フォントの お手本の うち いちばん 近い ものと くらべる
+  if (window.KATA && window.KATA.includes(k)) {
+    const sim = (x) => Math.max(...KATA_FONTS.map((fn) => cosSim(refFeatF(x, fn), f)));
+    const mk = sim(k), higher = [...window.KATA].filter((x) => x !== k && sim(x) > mk).length;
+    return { s: mk, rank: higher + 1, ok: mk >= KATA_OK && higher === 0 };
+  }
   const K = KANJI.find((x) => x.k === k);
   const same = KANJI.filter((x) => K && x.g === K.g && x.k !== k).map((x) => x.k);
   const cands = [...new Set([...(K ? K.sim : []), ...shuffle(same).slice(0, 40), ...shuffle(KANJI.map((x) => x.k)).slice(0, 40)])].filter((x) => x !== k);
@@ -209,6 +228,15 @@ function writeCheck(k, strokes) {
   return { s: me, rank: higher + 1, ok: me >= 0.4 && higher < 10 };
 }
 
+// カタカナの かきとり（kt:ア など）。お手本の ことばの 中の その字を □に して 出す
+const KATA_OK = 0.35;
+function makeKataWriteQ(id) {
+  const k = id.slice(3), h = String.fromCharCode(k.charCodeAt(0) - 0x60), ex = (window.KATA_EX || {})[k] || "";
+  const exH = [...ex].map((c) => (/[ァ-ヶ]/.test(c) ? String.fromCharCode(c.charCodeAt(0) - 0x60) : c)).join("");
+  return { id, kind: "write", k, word: ex || k, reading: h, kata: true,
+    explain: `<span class="wk">${k}</span>「${h}」の カタカナ${ex ? `（${ex}）` : ""}`,
+    head: `<div class="qlabel">✍️ カタカナで 書こう</div><div class="qruby">「${h}」</div>${ex ? `<div class="qword fsm">${esc(ex).split(k).join('<span class="blank">□</span>')}</div><div class="qruby">${exH}</div>` : `<div class="qword fsm"><span class="blank">□</span></div>`}` };
+}
 // かきとりの 問題を つくる
 function makeWriteQ(id) {
   const K = kanjiOf(id);

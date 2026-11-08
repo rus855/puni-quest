@@ -32,12 +32,16 @@ const fmtCode = (c) => (c ? c.replace(/(.{4})(.{4})(.{4})/, "$1-$2-$3") : "");
 // ---------- カードの 名前・国 ----------
 function cardLabel(id) {
   if (id.startsWith("k:")) return id.slice(2);
+  if (id.startsWith("kt:")) return id.slice(3) + "（カタカナ）";
   if (id.startsWith("f:")) { const F = FORMULAS.find((x) => x.id === id.slice(2)); return F ? F.name : id; }
   if (id.startsWith("m:")) return (MATH[id.slice(2)] || {}).name || id;
   return (BANK[id] || {}).t || id;
 }
 function cardWorld(id) {
   if (id.startsWith("k:")) return "kanji";
+  // わかばコースの 問題なども あるので、まず 章から さがす
+  const ch = CHAPTERS.find((c) => c.items && c.items.includes(id));
+  if (ch) return ch.w;
   if (id.startsWith("f:") || id.startsWith("m:")) return "math";
   return (BANK[id] || {}).w || "kotoba";
 }

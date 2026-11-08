@@ -1029,3 +1029,9 @@ button.okbar { display: block; width: calc(100% - 32px); border: 0; cursor: poin
 .rotbtns .mini.big { background: #ff7eb3; color: #fff; font-size: 16px; padding: 8px 16px; }
 .rotbtns .mini.ok { background: #3cc45a; color: #fff; }
 .mini .ficon { width: 26px; vertical-align: middle; }
+/* わかばコース */
+.qtext .dots { font-size: 26px; letter-spacing: 2px; line-height: 1.5; word-break: break-all; }
+.qtext .big.kata, .qtext .big { font-size: 46px; font-weight: 900; }
+.qsvg.tokei { width: 170px; max-width: 46vw; display: block; margin: 4px auto 0; }
+.hissan { display: inline-grid; grid-template-columns: 1.2em auto; column-gap: 6px; font-size: 34px; font-weight: 900; line-height: 1.2; font-variant-numeric: tabular-nums; text-align: right; padding: 4px 14px 6px; border-bottom: 4px solid #3b2a55; margin: 4px auto; }
+.hissan span:nth-child(odd) { text-align: center; }

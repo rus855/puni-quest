@@ -604,13 +604,19 @@ const fmtNum = (v, u) => `${v}${u ? " " + u : ""}`;
 // カードの名前（ずかん・ニガテモンスターなどで使う）
 function cardLabel(id) {
   if (id.startsWith("k:")) return id.slice(2);
+  if (id.startsWith("kt:")) return id.slice(3);
   if (id.startsWith("f:")) return formulaOf(id).name;
   if (id.startsWith("m:")) return (MATH[id.slice(2)] || {}).name || "?";
   return (BANK[id] || {}).t || "?";
 }
 // カードが どの国のものか
+// 1文字の 大きな カード（漢字・カタカナ）
+const bigCard = (id) => id.startsWith("k:") || id.startsWith("kt:");
 function cardWorld(id) {
   if (id.startsWith("k:")) return "kanji";
+  // わかばの ことばの 問題（m:wk_…）なども あるので、まず 章から さがす
+  const ch = CHAPTERS.find((c) => c.items && c.items.includes(id));
+  if (ch) return ch.w;
   if (id.startsWith("f:") || id.startsWith("m:")) return "math";
   return (BANK[id] || {}).w || "kotoba";
 }
@@ -619,6 +625,7 @@ function cardWorld(id) {
 const optCls = (opts) => (opts.some((o) => String(o).replace(/<[^>]+>/g, "").length > 9) ? "fch" : "");
 
 function makeQ(id, kind) {
+  if (id.startsWith("kt:")) return makeKataWriteQ(id);
   // --- 漢字（よみ・かき） ---
   if (id.startsWith("k:")) {
     const K = kanjiOf(id);
@@ -840,7 +847,7 @@ function nextQ(special = false) {
   }
   B.recent = [id, ...B.recent].slice(0, Math.min(8, Math.max(0, Math.floor(B.pool.length * 0.6)))); // 最近 出た 問題は しばらく 出にくく
   // 必殺技：公式なら「正しい公式は？」、それ以外は ふつうの問題で 3ばい
-  B.q = B.st.ch && B.st.ch.write && id.startsWith("k:") ? makeWriteQ(id) : makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
+  B.q = id.startsWith("kt:") ? makeKataWriteQ(id) : B.st.ch && B.st.ch.write && id.startsWith("k:") ? makeWriteQ(id) : makeQ(id, special && id.startsWith("f:") ? "ffill" : null);
   B.q.special = special;
   showQ();
 }
@@ -1245,7 +1252,7 @@ function stageClear() {
   }
   save();
   checkTreasures(); // もらった 日を きろくする（見せるのは ホームで）
-  const tiles = (ids, tag) => ids.map((id) => `<div class="mini-card ${id.startsWith("k:") ? "" : "long"}"><b>${id.startsWith("k:") ? id.slice(2) : esc(cardLabel(id))}</b><i>${tag}</i></div>`).join("");
+  const tiles = (ids, tag) => ids.map((id) => `<div class="mini-card ${bigCard(id) ? "" : "long"}"><b>${bigCard(id) ? cardLabel(id) : esc(cardLabel(id))}</b><i>${tag}</i></div>`).join("");
   const cards = B.news.length || B.ups.length ? `<div class="gotcards">${tiles(B.news, "NEW")}${tiles(B.ups, "★UP")}</div>` : "";
   const box = treasure ? `<div class="tbox" id="tbox" onclick="openBox()"><div class="chest">🎁</div><small>タップして あけよう！</small></div>
     <div class="treasure hidden" id="treasure"><div class="bigicon">${treasure.icon}</div><b>${treasure.text}</b>${treasure.item ? `<div class="hero xs">${charSVG({ ...S.eq, [itemById(treasure.item).type]: treasure.item }, S.color)}</div>` : ""}</div>` : "";
@@ -1539,9 +1546,9 @@ function newZukan() {
   const day = (t) => { const d = Math.round((new Date(today() + "T00:00:00") - new Date(dateKey(new Date(t)) + "T00:00:00")) / 864e5); return d <= 0 ? "きょう" : d === 1 ? "きのう" : `${d}日まえ`; };
   let last = "", tiles = "";
   log.forEach((x) => {
-    const c = S.cards[x.id], d = day(x.at), w = cardWorld(x.id);
+    const c = S.cards[x.id], d = day(x.at), w = WORLDS.find((v) => v.id === cardWorld(x.id));
     if (d !== last) { tiles += `<div class="zday">${d}</div>`; last = d; }
-    tiles += `<button class="zc ${x.id.startsWith("k:") ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${x.id}')">
+    tiles += `<button class="zc ${bigCard(x.id) ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${x.id}')">
       ${x.at > seen ? `<i class="znewtag">NEW</i>` : ""}<i class="zkind ${x.k}">${x.k === "new" ? "はじめて" : "★アップ"}</i>
       <b>${esc(cardLabel(x.id))}</b><span class="stars">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</span>${w ? `<i class="zw">${w.icon}</i>` : ""}</button>`;
   });
@@ -1552,12 +1559,6 @@ function newZukan() {
   // 見たので NEW を けす（つぎに ひらいた ときから）
   S.cardSeenAt = Date.now(); save();
 }
-// カードが どの国の ものか
-function cardWorld(id) {
-  if (id.startsWith("k:")) return WORLDS.find((w) => w.id === "kanji");
-  const ch = CHAPTERS.find((c) => c.items && c.items.includes(id));
-  return ch ? WORLDS.find((w) => w.id === ch.w) : null;
-}
 function zukan(tab) {
   if (tab) zTab = tab;
   if (zTab === "mats") return matZukan();
@@ -1567,8 +1568,8 @@ function zukan(tab) {
   const big = zTab === "kanji";
   const tiles = ids.map((id) => {
     const c = S.cards[id] || (zukanAll() ? { s: 0 } : null);
-    if (!zukanAll() && (!c || c.s === 0)) return `<button class="zc lock ${big ? "" : "f"}" onclick="toast('バトルで 正解すると カードに なるよ')"><b>？</b>${c && c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
-    return `<button class="zc ${big ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${id}')"><b>${esc(cardLabel(id))}</b><span class="stars">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</span>${c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
+    if (!zukanAll() && (!c || c.s === 0)) return `<button class="zc lock ${big || bigCard(id) ? "" : "f"}" onclick="toast('バトルで 正解すると カードに なるよ')"><b>？</b>${c && c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
+    return `<button class="zc ${big || bigCard(id) ? "" : "f"} ${c.s >= 5 ? "shiny" : ""} ${c.ng ? "ngc" : ""}" onclick="cardDetail('${id}')"><b>${esc(cardLabel(id))}</b><span class="stars">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</span>${c.ng ? '<i class="ngm">👻</i>' : ""}</button>`;
   }).join("");
   setScreen(`${topBar("ずかん")}
     ${zukanTabs()}
@@ -1581,7 +1582,10 @@ function cardDetail(id) {
   const stars = `<div class="stars big">${"★".repeat(c.s)}${"☆".repeat(5 - c.s)}</div>`;
   const next = c.ng ? "👻 ニガテちゅう！ あと " + (2 - c.st) + "回 正解で ニガテ解除" : c.s >= 5 ? "✨ キラカード！ かんぺき！" : c.last === today() ? "つぎの ★アップは あした いこうに 正解！" : "きょう 正解すると ★アップ！";
   let body;
-  if (id.startsWith("k:")) {
+  if (id.startsWith("kt:")) {
+    const k = id.slice(3), ex = (window.KATA_EX || {})[k];
+    body = `<div class="kbig ${c.s >= 5 ? "shiny" : ""}">${k}</div><div class="words"><div>「${String.fromCharCode(k.charCodeAt(0) - 0x60)}」の カタカナ</div>${ex ? `<div>${ex}</div>` : ""}</div>`;
+  } else if (id.startsWith("k:")) {
     const K = kanjiOf(id);
     body = `<div class="kbig ${c.s >= 5 ? "shiny" : ""}">${K.k}</div><div class="words">${K.w.map(([w, r]) => `<div>${esc(w)}<small>（${r}）</small></div>`).join("")}</div>`;
   } else if (id.startsWith("f:")) {

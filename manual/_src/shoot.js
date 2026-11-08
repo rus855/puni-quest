@@ -90,6 +90,14 @@ const SHOTS = [
   ["50i_dir", `RESTORE(); RM={sel:"",move:-1}; window.ROOMDEMO(); S.room.rooms[0]=[{id:"f_rug2",x:1,y:2},{id:"f_tv",x:2,y:0},{id:"f_sofa",x:1,y:3},{id:"f_chair",x:0,y:1},{id:"f_chair",x:4,y:1},{id:"g_t02",x:5,y:3},{id:"g_s06",x:5,y:2},{id:"f_window",x:1,y:-1},{id:"f_plant",x:0,y:4},{id:"f_bed",x:4,y:0},{id:"f_pic",x:4,y:-1}]; ["f_tv","f_sofa","g_t02","g_s06"].forEach(id=>S.furn[id]=2); S.furn.f_chair=4; room(); setTimeout(()=>{ clearInterval(roomTimer); const g=rgeo(), L=roomList(), sofa=L[2], acts=[...document.querySelectorAll(".ract")]; [[1.5,0],[2.5,1]].forEach(([x,k])=>{ const el=acts[k]; if(!el) return; const t=sofa.y+0.62; el.style.transition="none"; el.style.left=pc(g.X(x,t)); el.style.top=pc(g.Y(t)-0.06); el.style.setProperty("--fw",(g.cw(t)*0.85).toFixed(4)); el.style.zIndex=100+Math.round((sofa.y+0.82)*10)-1; el.classList.add("sit"); }); }, 300)`, 1500],
   ["50j_dirmenu", `RESTORE(); RM={sel:"",move:-1}; window.ROOMDEMO(); S.room.rooms[0]=[{id:"f_tv",x:2,y:0},{id:"f_sofa",x:1,y:3,d:0,man:1},{id:"f_chair",x:0,y:1}]; S.furn.f_tv=1; S.furn.f_sofa=1; room(); setTimeout(()=>roomTap(1,3),300)`, 1000],
   ["50k_rotmode", `RESTORE(); RM={sel:"",move:-1}; window.ROOMDEMO(); S.room.rooms[0]=[{id:"f_tv",x:2,y:0},{id:"f_sofa",x:1,y:3},{id:"f_chair",x:4,y:2,d:0,man:1},{id:"f_plant",x:0,y:0},{id:"f_window",x:1,y:-1}]; S.furn.f_tv=1; S.furn.f_sofa=1; S.furn.f_chair=1; S.room.pets=[999]; RM={sel:"",move:-1,rot:2}; room(); setTimeout(()=>{ clearInterval(roomTimer); document.getElementById("roombox").scrollIntoView({block:"start"}); window.scrollBy(0,-90); }, 200)`, 1200],
+  ["60_wkmath", `RESTORE(); openWorld("math", "wk")`, 900],
+  ["60b_tokei", `RESTORE(); QB("mw5-1", "m:wk_nanpun")`, 1000],
+  ["60c_hissan", `RESTORE(); QB("mw7-1", "m:wk_htasu")`, 1000],
+  ["60d_kazu", `RESTORE(); QB("mw1-1", "m:wk_kazu")`, 1000],
+  ["60e_kata", `RESTORE(); QB("ww1-1", "m:wk_kr1")`, 1000],
+  ["60f_katawrite", `RESTORE(); startBattle("ww2-1"); B.q=makeKataWriteQ("kt:ツ"); B.q.special=false; showQ(); setTimeout(()=>{ TR.strokes=FAKE("ツ"); redrawTrace(); }, 200)`, 1200],
+  ["60g_wkkotoba", `RESTORE(); openWorld("kotoba", "wk")`, 900],
+  ["60h_kuku", `RESTORE(); QB("mw9-1", "m:wk_kuku3")`, 1000],
   ["27_hatch", `RESTORE(); S.eggs[0].p=20; nakama("egg"); hatchEgg(0)`, 2800],
 ];
 

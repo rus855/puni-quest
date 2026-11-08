@@ -110,6 +110,8 @@ function cfgSummary(cfg) {
   return `${cfg && cfg.g ? `${cfg.g}年生まで` : "すべての 学年"}${cfg && cfg.noExam ? "・中学受験用を のぞく" : ""}${n ? `（くわしい設定 ${n}章）` : ""}`;
 }
 const activeChapters = (w) => worldChapters(w).filter(chapterOn);
+// 国の 進みぐあいに 数える 章（わかばコースは おまけなので 数えない）
+const progChapters = (w) => activeChapters(w).filter((c) => !c.wakaba);
 const chapterOf = (id) => CHAPTERS.find((c) => c.id === id) || (typeof EXTRA_CH !== "undefined" ? EXTRA_CH.find((c) => c.id === id) : null);
 
 // 章の じゅんばんから ティア と 属性を きめる
@@ -117,16 +119,17 @@ function prepareChapters() {
   applyGrades();
   WORLDS.forEach((w) => {
     const list = worldChapters(w.id);
+    const lastStd = list.filter((c) => !c.wakaba).pop(); // さいごの 章（わかばは のぞく）
     list.forEach((ch, i) => {
       // 区切り（sec）が あるときは、区切りの 中で ティアを きめる
       const grp = list.filter((c) => c.sec === ch.sec), j = grp.indexOf(ch);
       ch.idx = i; ch.no = j + 1;
       // 漢字の国の 1〜3年生エリアは やさしめ（1年：ティア1〜2、2年：1〜3、3年：1〜4）
-      const g = w.id === "kanji" ? Number(String(ch.sec || "").slice(1)) : 0, top = { 1: 2, 2: 3, 3: 4 }[g] || 6;
+      const g = w.id === "kanji" ? Number(String(ch.sec || "").slice(1)) : 0, top = ch.wakaba ? 1 : { 1: 2, 2: 3, 3: 4 }[g] || 6;
       ch.tier = Math.min(top, 1 + Math.floor((j * top) / grp.length));
       const seed = i + w.id.length * 3;
       ch.els = [ELS4[seed % 4], ELS4[(seed + 1 + (i % 2)) % 4]];
-      ch.last = i === list.length - 1;
+      ch.last = ch === lastStd;
     });
   });
 }
@@ -161,6 +164,8 @@ function makeEnemy(ch, el, boss, n, k) {
   const H = typeof hardStats === "function" ? hardStats(ch, boss) : null;
   if (H) { e.hp = Math.round(H.hp * (0.95 + ((n + k) % 3) * 0.05)); e.atk = H.atk; if (boss) e.barrier = ch.w; }
   if (el === "rand") { e.name = "まぼろしスライム"; e.shape = "blob"; e.color = "#b388ff"; }
+  // わかばコース（1・2年生）は もっと やさしい てき
+  if (ch.wakaba) { e.hp = Math.round(e.hp * 0.7); e.atk = Math.max(3, Math.round(e.atk * 0.6)); }
   return e;
 }
 
@@ -340,6 +345,7 @@ function chapterOpen(ch) {
   if (window.PQ_DEBUG && window.PQ_OPEN) return true; // デバッグ：ぜんぶ ひらく
   if (ch.write) return writeOpen(ch);
   if (ch.maou) return maouOpen(ch.maou);
+  if (ch.wakaba) return true; // わかばコースは にがてな ところを えらんで れんしゅう できるよう、はじめから ぜんぶ ひらく
   const list = activeChapters(ch.w).filter((c) => c.sec === ch.sec), i = list.indexOf(ch);
   if (stStars(`${ch.id}-1`) > 0) return true;
   if (i <= 0) return !kanjiHighLocked(ch);
@@ -355,7 +361,8 @@ const stageOpen = (ch, n) => chapterOpen(ch) && (n === 1 || !!ch.maou || (window
 const chapterDone = (ch) => stStars(`${ch.id}-4`) > 0;
 const chapterStars = (ch) => [1, 2, 3, 4].reduce((a, n) => a + stStars(`${ch.id}-${n}`), 0);
 function worldProgress(w) {
-  const list = activeChapters(w);
+  // ふつうは わかばを のぞいて 数える。わかばしか 出ない 設定の ときは わかばで 数える
+  const p = progChapters(w), list = p.length ? p : activeChapters(w);
   return { done: list.filter(chapterDone).length, all: list.length };
 }
 

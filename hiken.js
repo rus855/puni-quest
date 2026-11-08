@@ -82,7 +82,7 @@ const hikenLv = (w) => [3, 2, 1, 0].find((lv) => S.owned.includes(hikenId(w, lv)
 const HIKEN_RATE = 0.015, HIKEN_PITY = 120;
 function hikenDrop(e) {
   const ch = B.st.ch, h = ch && hikenOf(ch.w);
-  if (!h || ch.maou) return null;
+  if (!h || ch.maou || ch.wakaba) return null; // わかばコースでは 出ない
   const got = {};
   // ひみつの けん（1.5%。その国で 120体 たおしても 出なければ 次は かならず。5年生相当の 章でも かならず）
   if (!hasHiken(h.w) && !S.owned.includes(HIKEN_FINAL)) {

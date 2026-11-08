@@ -134,7 +134,7 @@ const FURN_MORE = [
 FURN_MORE.forEach((f) => { f.set = "more"; f.em = ""; f.max = f.max || 1; FURN.push(f); });
 
 // その国の 章を クリアした かず・ぜんぶの かず
-const worldDone = (w) => { const l = worldChapters(w).filter((c) => !c.write && !c.maou); return [l.filter(chapterDone).length, l.length]; };
+const worldDone = (w) => { const l = worldChapters(w).filter((c) => !c.write && !c.maou && !c.wakaba); return [l.filter(chapterDone).length, l.length]; };
 // ならぶのに ひつような 章の かず
 const furnNeed = (f) => { const [, n] = worldDone(f.u[0]); return Math.max(1, Math.round(f.u[1] * n)); };
 const furnOpen = (f) => !f.u || (PQ_DEBUG && window.PQ_FURNALL) || worldDone(f.u[0])[0] >= furnNeed(f);
