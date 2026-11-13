@@ -218,8 +218,22 @@ function writeCheck(k, strokes) {
   // フォントで 形が ちがうので、いくつかの フォントの お手本の うち いちばん 近い ものと くらべる
   if (window.KATA && window.KATA.includes(k)) {
     const sim = (x) => Math.max(...KATA_FONTS.map((fn) => cosSim(refFeatF(x, fn), f)));
-    const mk = sim(k), higher = [...window.KATA].filter((x) => x !== k && sim(x) > mk).length;
-    return { s: mk, rank: higher + 1, ok: mk >= KATA_OK && higher === 0 };
+    const mk = sim(k), conf = window.KATA_CONF ? window.KATA_CONF(k) : [];
+    // シ・ツ・ソ・ン は、点の 数と さいごの 線の むきで 見分ける（学校で ならう 見分け方）
+    if (KATA_STRICT.includes(k)) {
+      const c = shitsuSonn(strokes);
+      if (c) return { s: mk, rank: c === k ? 1 : 2, ok: c === k && mk >= 0.2, hint: c === k ? "" : KATA_HINT[k] };
+    }
+    let higher = 0, beaten = false;
+    for (const x of window.KATA) {
+      if (x === k) continue;
+      const d = sim(x) - mk;
+      if (d <= 0) continue;
+      higher++;
+      // まちがえやすい 字（シと ツ など）には 少しでも 負けたら ×、形の ちがう 字には 大きく 負けたときだけ ×
+      if (d >= (conf.includes(x) ? KATA_GAP_CONF : KATA_GAP_OTHER)) beaten = true;
+    }
+    return { s: mk, rank: higher + 1, ok: mk >= KATA_OK && !beaten };
   }
   const K = KANJI.find((x) => x.k === k);
   const same = KANJI.filter((x) => K && x.g === K.g && x.k !== k).map((x) => x.k);
@@ -229,7 +243,26 @@ function writeCheck(k, strokes) {
 }
 
 // カタカナの かきとり（kt:ア など）。お手本の ことばの 中の その字を □に して 出す
-const KATA_OK = 0.35;
+// カタカナの はんてい（子どもの 字は くずれやすいので ゆるめに。にた字との ちがいだけは 見る）
+const KATA_OK = 0.25, KATA_GAP_CONF = 0.03, KATA_GAP_OTHER = 0.3, KATA_STRICT = "シツソン";
+const KATA_HINT = {
+  シ: "シは 点が 2つ。さいごの 線は 下から 上へ はらうよ",
+  ツ: "ツは 点が 2つ。さいごの 線は 上から 下へ はらうよ",
+  ソ: "ソは 点が 1つ。さいごの 線は 上から 下へ はらうよ",
+  ン: "ンは 点が 1つ。さいごの 線は 下から 上へ はらうよ",
+};
+// 書いた 線から シ・ツ・ソ・ン の どれかを きめる（わからない ときは null）
+function shitsuSonn(strokes) {
+  const len = (st) => { let L = 0; for (let i = 1; i < st.length; i++) L += Math.hypot(st[i][0] - st[i - 1][0], st[i][1] - st[i - 1][1]); return L; };
+  const ss = strokes.filter((st) => st.length >= 1);
+  if (ss.length < 2 || ss.length > 3) return null;
+  const ls = ss.map(len), li = ls.indexOf(Math.max(...ls)), long = ss[li];
+  if (ls[li] < 0.25) return null; // 長い 線が ない
+  // 長い 線の むき：上へ（シ・ン）か 下へ（ツ・ソ）
+  const a = long[0], b = long[long.length - 1], up = b[1] < a[1];
+  const dots = ss.length - 1;
+  return dots === 2 ? (up ? "シ" : "ツ") : up ? "ン" : "ソ";
+}
 function makeKataWriteQ(id) {
   const k = id.slice(3), h = String.fromCharCode(k.charCodeAt(0) - 0x60), ex = (window.KATA_EX || {})[k] || "";
   const exH = [...ex].map((c) => (/[ァ-ヶ]/.test(c) ? String.fromCharCode(c.charCodeAt(0) - 0x60) : c)).join("");
@@ -262,7 +295,7 @@ function writeJudge() {
     traceClear();
     snd("ng");
     const row = $("qpanel").querySelector(".wrow");
-    if (row && !$("qpanel").querySelector(".wretry")) row.insertAdjacentHTML("beforebegin", `<p class="wself wretry">うーん、よめなかったよ。もう いちど ていねいに 書いてみよう！（あと 1回）</p>`);
+    if (row && !$("qpanel").querySelector(".wretry")) row.insertAdjacentHTML("beforebegin", `<p class="wself wretry">うーん、よめなかったよ。もう いちど ていねいに 書いてみよう！（あと 1回）${r.hint ? `<br><b>💡 ${r.hint}</b>` : ""}</p>`);
     return;
   }
   // 2回目も ○に ならなければ、お手本を 見せて まちがいに する

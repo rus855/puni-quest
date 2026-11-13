@@ -137,7 +137,16 @@ FURN_MORE.forEach((f) => { f.set = "more"; f.em = ""; f.max = f.max || 1; FURN.p
 const worldDone = (w) => { const l = worldChapters(w).filter((c) => !c.write && !c.maou && !c.wakaba); return [l.filter(chapterDone).length, l.length]; };
 // ならぶのに ひつような 章の かず
 const furnNeed = (f) => { const [, n] = worldDone(f.u[0]); return Math.max(1, Math.round(f.u[1] * n)); };
-const furnOpen = (f) => !f.u || (PQ_DEBUG && window.PQ_FURNALL) || worldDone(f.u[0])[0] >= furnNeed(f);
-const furnHint = (f) => { const [d] = worldDone(f.u[0]); return `${WORLDS.find((w) => w.id === f.u[0]).name}の 章を あと ${furnNeed(f) - d}こ クリアすると ならぶよ`; };
+// わかばコースの 章（さんすう・ことば あわせて）を クリアした かず・ぜんぶの かず
+const wakabaDone = () => { const l = CHAPTERS.filter((c) => c.wakaba); return [l.filter(chapterDone).length, l.length]; };
+// わかばで ならぶのに ひつような 章の かず（わかばの 章が ない ときは 0）
+const furnNeedWk = (f) => { const [, n] = wakabaDone(); return n ? Math.max(1, Math.round(f.u[1] * n)) : 0; };
+// ふつうの 章でも、わかばの 章でも、どちらかで 足りれば ならぶ
+const furnOpen = (f) => !f.u || (PQ_DEBUG && window.PQ_FURNALL) || worldDone(f.u[0])[0] >= furnNeed(f) || (furnNeedWk(f) > 0 && wakabaDone()[0] >= furnNeedWk(f));
+const furnHint = (f) => {
+  const [d] = worldDone(f.u[0]), nw = furnNeedWk(f);
+  const wk = nw ? `（わかばなら あと ${nw - wakabaDone()[0]}こ）` : "";
+  return `${WORLDS.find((w) => w.id === f.u[0]).name}の 章を あと ${furnNeed(f) - d}こ${wk} クリアすると ならぶよ`;
+};
 // まだ 見ていない あたらしい かぐ（ショップの NEW）
 const newFurn = () => FURN.some((f) => f.u && furnOpen(f) && !fOwn(f.id) && !(S.fseen || {})[f.id]);

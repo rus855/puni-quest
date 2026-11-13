@@ -257,7 +257,7 @@
   const KATA = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
   const hira = (k) => String.fromCharCode(k.charCodeAt(0) - 0x60);
   // まちがえやすい カタカナの なかま
-  const CONF = ["シツ", "ソン", "クワケタ", "ヌスフ", "ウワフ", "チテ", "コユロ", "ナメノ", "ルレ", "アマヤ", "キモ", "セヒ", "オホ", "ネ", "ハヘ", "ミニ", "サセ", "ラヲ", "イト"];
+  const CONF = ["シツソン", "ノソ", "クワケタ", "ヌスフ", "ウワフ", "チテ", "コユロ", "ナメノ", "ルレ", "アマヤ", "キモ", "セヒ", "オホ", "ネ", "ハヘ", "ミニ", "サセ", "ラヲ", "イト"];
   const confOf = (k) => { const g = CONF.filter((s) => s.includes(k)).join("").replace(new RegExp(k, "g"), ""); return [...new Set(g.split(""))]; };
   const kataNg = (k, n = 3) => { const c = shuffle(confOf(k)); while (c.length < n) { const x = P(KATA.split("")); if (x !== k && !c.includes(x)) c.push(x); } return c.slice(0, n); };
   window.KATA = KATA; window.KATA_CONF = confOf;
