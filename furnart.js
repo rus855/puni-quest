@@ -137,15 +137,20 @@ FURN_MORE.forEach((f) => { f.set = "more"; f.em = ""; f.max = f.max || 1; FURN.p
 const worldDone = (w) => { const l = worldChapters(w).filter((c) => !c.write && !c.maou && !c.wakaba); return [l.filter(chapterDone).length, l.length]; };
 // ならぶのに ひつような 章の かず
 const furnNeed = (f) => { const [, n] = worldDone(f.u[0]); return Math.max(1, Math.round(f.u[1] * n)); };
-// わかばコースの 章（さんすう・ことば あわせて）を クリアした かず・ぜんぶの かず
-const wakabaDone = () => { const l = CHAPTERS.filter((c) => c.wakaba); return [l.filter(chapterDone).length, l.length]; };
-// わかばで ならぶのに ひつような 章の かず（わかばの 章が ない ときは 0）
-const furnNeedWk = (f) => { const [, n] = wakabaDone(); return n ? Math.max(1, Math.round(f.u[1] * n)) : 0; };
-// ふつうの 章でも、わかばの 章でも、どちらかで 足りれば ならぶ
-const furnOpen = (f) => !f.u || (PQ_DEBUG && window.PQ_FURNALL) || worldDone(f.u[0])[0] >= furnNeed(f) || (furnNeedWk(f) > 0 && wakabaDone()[0] >= furnNeedWk(f));
+// わかばコースの ステージを クリアした かいすう（くりかえしも かぞえる）
+// はじめて つかう ときは、いままでに クリアした わかばの ステージの かずから はじめる
+const wakabaPts = () => {
+  if (S.wkClear == null) S.wkClear = CHAPTERS.filter((c) => c.wakaba).reduce((n, c) => n + [1, 2, 3, 4].filter((i) => stStars(`${c.id}-${i}`) > 0).length, 0);
+  return S.wkClear;
+};
+// わかばは やさしいので、ふつうの 章 1こ ぶんを わかばの ステージ 20かい（5ばい）と して かぞえる
+const WK_PER_CH = 20;
+const furnNeedWk = (f) => { const n = CHAPTERS.filter((c) => c.wakaba).length; return n ? Math.max(1, Math.round(f.u[1] * n)) * WK_PER_CH : 0; };
+// ふつうの 章でも、わかばの ステージでも、どちらかで 足りれば ならぶ
+const furnOpen = (f) => !f.u || (PQ_DEBUG && window.PQ_FURNALL) || worldDone(f.u[0])[0] >= furnNeed(f) || (furnNeedWk(f) > 0 && wakabaPts() >= furnNeedWk(f));
 const furnHint = (f) => {
   const [d] = worldDone(f.u[0]), nw = furnNeedWk(f);
-  const wk = nw ? `（わかばなら あと ${nw - wakabaDone()[0]}こ）` : "";
+  const wk = nw ? `（わかばなら ステージを あと ${nw - wakabaPts()}かい）` : "";
   return `${WORLDS.find((w) => w.id === f.u[0]).name}の 章を あと ${furnNeed(f) - d}こ${wk} クリアすると ならぶよ`;
 };
 // まだ 見ていない あたらしい かぐ（ショップの NEW）

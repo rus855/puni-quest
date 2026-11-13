@@ -219,21 +219,35 @@ function writeCheck(k, strokes) {
   if (window.KATA && window.KATA.includes(k)) {
     const sim = (x) => Math.max(...KATA_FONTS.map((fn) => cosSim(refFeatF(x, fn), f)));
     const mk = sim(k), conf = window.KATA_CONF ? window.KATA_CONF(k) : [];
+    const P = Object.assign({ ok: KATA_OK, conf: KATA_GAP_CONF, same: KATA_GAP_SAME, ssn: KATA_GAP_SSN }, window.KATA_P || {}); // テスト用に 上書きできる
+    // 画数（点や 線の かず）が ちがえば ×（点が 足りない・多い ときに ○に しない）
+    const n = strokes.filter((st) => st.length >= 1).length, kk = KATA_KAKU[k];
+    if (kk && n !== kk) return { s: mk, rank: 2, ok: false, hint: KATA_HINT[k] || `${k}は ${kk}かいで 書くよ。点や 線の かずを たしかめよう` };
     // シ・ツ・ソ・ン は、点の 数と さいごの 線の むきで 見分ける（学校で ならう 見分け方）
     if (KATA_STRICT.includes(k)) {
       const c = shitsuSonn(strokes);
-      if (c) return { s: mk, rank: c === k ? 1 : 2, ok: c === k && mk >= 0.2, hint: c === k ? "" : KATA_HINT[k] };
+      // 点の かずや むきが ちがえば ×。あっていても、下で ほかの 字（クや サなど）とも くらべる
+      if (c && c !== k) return { s: mk, rank: 2, ok: false, hint: KATA_HINT[k] };
     }
     let higher = 0, beaten = false;
+    const isSsn = KATA_STRICT.includes(k) && shitsuSonn(strokes) === k;
+    // シ・ツ・ソ・ン いがいの 字なのに、「みじかい 点＋長い 線」の 形で、その 字にも にていたら ×（ンを 書いて スで ○ など）
+    const ds = isSsn ? null : dotShape(strokes);
+    if (ds && ds !== k && sim(ds) >= mk - P.ssn) beaten = true;
     for (const x of window.KATA) {
       if (x === k) continue;
+      // 画数が おなじ 字と、まちがえやすい 字だけと くらべる
+      const isConf = conf.includes(x);
+      if (!isConf && KATA_KAKU[x] !== kk) continue;
+      // シ・ツ・ソ・ン どうしは 上の 見分け方で きめたので、ここでは くらべない
+      if (isSsn && KATA_STRICT.includes(x)) continue;
       const d = sim(x) - mk;
       if (d <= 0) continue;
       higher++;
-      // まちがえやすい 字（シと ツ など）には 少しでも 負けたら ×、形の ちがう 字には 大きく 負けたときだけ ×
-      if (d >= (conf.includes(x) ? KATA_GAP_CONF : KATA_GAP_OTHER)) beaten = true;
+      // シ・ツ・ソ・ン は 形の とくちょうが 出にくいので、点と むきが あっていれば すこし ゆるめに くらべる
+      if (d >= (isSsn ? P.ssn : isConf ? P.conf : P.same)) beaten = true;
     }
-    return { s: mk, rank: higher + 1, ok: mk >= KATA_OK && !beaten };
+    return { s: mk, rank: higher + 1, ok: mk >= P.ok && !beaten };
   }
   const K = KANJI.find((x) => x.k === k);
   const same = KANJI.filter((x) => K && x.g === K.g && x.k !== k).map((x) => x.k);
@@ -244,7 +258,11 @@ function writeCheck(k, strokes) {
 
 // カタカナの かきとり（kt:ア など）。お手本の ことばの 中の その字を □に して 出す
 // カタカナの はんてい（子どもの 字は くずれやすいので ゆるめに。にた字との ちがいだけは 見る）
-const KATA_OK = 0.25, KATA_GAP_CONF = 0.03, KATA_GAP_OTHER = 0.3, KATA_STRICT = "シツソン";
+// KATA_OK：お手本と にている度の さいてい。KATA_GAP_*：ほかの 字の ほうが これだけ にていたら ×
+const KATA_OK = 0.4, KATA_GAP_CONF = 0.02, KATA_GAP_SAME = 0.06, KATA_GAP_SSN = 0.15, KATA_STRICT = "シツソン";
+// カタカナの 画数（学校で ならう 書き方）
+const KATA_KAKU = { ア: 2, イ: 2, ウ: 3, エ: 3, オ: 3, カ: 2, キ: 3, ク: 2, ケ: 3, コ: 2, サ: 3, シ: 3, ス: 2, セ: 2, ソ: 2, タ: 3, チ: 3, ツ: 3, テ: 3, ト: 2,
+  ナ: 2, ニ: 2, ヌ: 2, ネ: 4, ノ: 1, ハ: 2, ヒ: 2, フ: 1, ヘ: 1, ホ: 4, マ: 2, ミ: 3, ム: 2, メ: 2, モ: 3, ヤ: 2, ユ: 2, ヨ: 3, ラ: 2, リ: 2, ル: 2, レ: 1, ロ: 3, ワ: 2, ヲ: 3, ン: 2 };
 const KATA_HINT = {
   シ: "シは 点が 2つ。さいごの 線は 下から 上へ はらうよ",
   ツ: "ツは 点が 2つ。さいごの 線は 上から 下へ はらうよ",
@@ -262,6 +280,13 @@ function shitsuSonn(strokes) {
   const a = long[0], b = long[long.length - 1], up = b[1] < a[1];
   const dots = ss.length - 1;
   return dots === 2 ? (up ? "シ" : "ツ") : up ? "ン" : "ソ";
+}
+// 「みじかい 点＋長い 線」の 形なら シ・ツ・ソ・ン の どれかを かえす（点が 長すぎる ときは null）
+function dotShape(strokes) {
+  const len = (st) => { let L = 0; for (let i = 1; i < st.length; i++) L += Math.hypot(st[i][0] - st[i - 1][0], st[i][1] - st[i - 1][1]); return L; };
+  const ls = strokes.filter((st) => st.length >= 1).map(len), mx = Math.max(...ls);
+  if (ls.filter((l) => l < mx).some((l) => l > mx * 0.45)) return null;
+  return shitsuSonn(strokes);
 }
 function makeKataWriteQ(id) {
   const k = id.slice(3), h = String.fromCharCode(k.charCodeAt(0) - 0x60), ex = (window.KATA_EX || {})[k] || "";

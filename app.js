@@ -1232,6 +1232,7 @@ function stageClear() {
   let treasure = null, newItems = [];
   if (isStage) {
     S.stClear = S.stClear || {}; S.tierClear = S.tierClear || {};
+    if (st.ch.wakaba) S.wkClear = wakabaPts() + 1; // わかばの かぐ用に かいすうを かぞえる（さきに かぞえてから きろく）
     S.stClear[B.sid] = Math.max(prev, stars);
     addProg("stage1");
     if (first) {
